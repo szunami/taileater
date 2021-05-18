@@ -1,7 +1,6 @@
 use std::collections::HashSet;
 
 use bevy::prelude::*;
-use itertools::Itertools;
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
 pub struct SnakeMovementLabel;
 
@@ -131,6 +130,17 @@ fn setup(
             .id();
     }
 
+    commands
+        .spawn()
+        .insert_bundle(SpriteBundle {
+            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+            material: ground_color.clone_weak(),
+            ..Default::default()
+        })
+        .insert(GridLocation { x: 5, y: 0 })
+        .insert(Ground)
+        .id();
+
     for i in 13..20 {
         commands
             .spawn()
@@ -148,8 +158,11 @@ fn setup(
 fn snake_movement(
     keyboard_input: Res<Input<KeyCode>>,
     snake_parts: Res<SnakeParts>,
-    mut grid_locations: Query<&mut GridLocation, With<Snake>>,
+    grounds: Query<&GridLocation, (With<Ground>, Without<Snake>)>,
+
+    mut snakes: Query<&mut GridLocation, (With<Snake>, Without<Ground>)>,
 ) {
+    // TODO: don't allow x and y at the same damn time
     let mut diff = GridLocation { x: 0, y: 0 };
     if keyboard_input.just_pressed(KeyCode::A) {
         diff.x -= 1;
@@ -169,23 +182,59 @@ fn snake_movement(
     }
 
     // TODO: check for blocked!
+    // block if collision between head and:
+    // - non tail
+    // - non second to last!
+    // - ground
+    // - someday: box + wall (???)
+
+    let block_set = {
+        let mut tmp = HashSet::new();
+
+        // exclude head; exclude tail + second to last
+        for snake_part_entity in snake_parts.0[1..snake_parts.0.len() - 1].iter() {
+            tmp.insert(
+                snakes
+                    .get_mut(*snake_part_entity)
+                    .expect("snake part grid location")
+                    .clone(),
+            );
+        }
+
+        for ground in grounds.iter() {
+            tmp.insert(ground.clone());
+        }
+
+        tmp
+    };
+
+    let head_location = snakes
+        .get_mut(*snake_parts.0.first().expect("head exists!"))
+        .expect("head location exists");
+    let proposed_location = head_location.clone() + diff.clone();
+
+    if block_set.contains(&proposed_location) {
+        dbg!("blocked; not moving!");
+        return;
+    }
 
     for (prev, curr) in snake_parts.0.iter().zip(snake_parts.0[1..].iter()).rev() {
-        if let Ok(prev_grid_location) = grid_locations.get_mut(*prev) {
+        if let Ok(prev_grid_location) = snakes.get_mut(*prev) {
             let tmp = prev_grid_location.clone();
-            if let Ok(mut curr_grid_location) = grid_locations.get_mut(*curr) {
+            if let Ok(mut curr_grid_location) = snakes.get_mut(*curr) {
                 *curr_grid_location = tmp;
             }
         }
     }
 
     if let Some(head) = snake_parts.0.first() {
-        if let Ok(mut grid_location) = grid_locations.get_mut(*head) {
+        if let Ok(mut grid_location) = snakes.get_mut(*head) {
             *grid_location = grid_location.clone() + diff;
         }
     }
 }
 
+// TODO: use With<Snake>
 fn gravity(
     snake_parts: Query<(&Snake, Entity)>,
     ground: Query<(&Ground, Entity)>,
@@ -200,8 +249,6 @@ fn gravity(
         }
         tmp
     };
-
-    dbg!(&ground_set);
 
     let mut snake_fall = i32::MIN;
 
@@ -222,22 +269,18 @@ fn gravity(
             }
         }
         snake_fall = snake_fall.max(distance + 1);
-
-        dbg!(snake_fall, distance);
     }
 
     for (_snake, e) in snake_parts.iter() {
         let mut snake_grid_location = grid_locations.get_mut(e).expect("snake grid location!");
         snake_grid_location.y += snake_fall;
     }
-
-    dbg!(snake_fall);
 }
 
 const LERP_LAMBDA: f32 = 5.0;
 
 fn gridlocation_to_transform(time: Res<Time>, mut q: Query<(&GridLocation, &mut Transform)>) {
-    // TODO: lerp
+    // TODO: queue of locations
     for (grid_location, mut xform) in q.iter_mut() {
         let target_x = GRID_WIDTH * grid_location.x as f32;
         xform.translation.x = xform.translation.x * (1.0 - LERP_LAMBDA * time.delta_seconds())
