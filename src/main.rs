@@ -217,7 +217,7 @@ fn gravity(
             .is_none()
         {
             distance -= 1;
-            if distance < -1000 {
+            if distance < -50 {
                 break;
             }
         }
@@ -234,10 +234,16 @@ fn gravity(
     dbg!(snake_fall);
 }
 
-fn gridlocation_to_transform(mut q: Query<(&GridLocation, &mut Transform)>) {
+const LERP_LAMBDA: f32 = 5.0;
+
+fn gridlocation_to_transform(time: Res<Time>, mut q: Query<(&GridLocation, &mut Transform)>) {
     // TODO: lerp
-    for (gridlocation, mut xform) in q.iter_mut() {
-        xform.translation.x = gridlocation.x as f32 * GRID_WIDTH;
-        xform.translation.y = gridlocation.y as f32 * GRID_HEIGHT;
+    for (grid_location, mut xform) in q.iter_mut() {
+        let target_x = GRID_WIDTH * grid_location.x as f32;
+        xform.translation.x = xform.translation.x * (1.0 - LERP_LAMBDA * time.delta_seconds())
+            + target_x * LERP_LAMBDA * time.delta_seconds();
+        let target_y = GRID_HEIGHT * grid_location.y as f32;
+        xform.translation.y = xform.translation.y * (1.0 - LERP_LAMBDA * time.delta_seconds())
+            + target_y * LERP_LAMBDA * time.delta_seconds();
     }
 }
