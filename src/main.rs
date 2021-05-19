@@ -47,6 +47,8 @@ const GRID_HEIGHT: f32 = 16.0;
 
 struct MainCamera;
 
+struct Cursor;
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -54,12 +56,27 @@ fn main() {
         App::build()
             .add_plugins(DefaultPlugins)
             .add_system(bevy::input::system::exit_on_esc_system.system())
-            .add_startup_system((|mut commands: Commands| {
-                commands.spawn()
-                .insert_bundle(OrthographicCameraBundle::new_2d())
-                .insert(MainCamera);
-                commands.spawn_bundle(UiCameraBundle::default());
-            }).system())
+            .add_startup_system(
+                (|mut commands: Commands, mut materials: ResMut<Assets<ColorMaterial>>| {
+                    commands
+                        .spawn()
+                        .insert_bundle(OrthographicCameraBundle::new_2d())
+                        .insert(MainCamera);
+                    commands.spawn_bundle(UiCameraBundle::default());
+
+                    commands
+                        .spawn()
+                        .insert_bundle(SpriteBundle {
+                            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+                            material: cursor_color(&mut materials),
+                            ..Default::default()
+                        })
+                        .insert(GridLocation { x: 0, y: 0 })
+                        .insert(Cursor)
+                        .id();
+                })
+                .system(),
+            )
             .add_system(my_cursor_system.system())
             .run();
     } else {
@@ -109,8 +126,6 @@ fn setup(
     let body_color = materials.add(Color::rgb(117.0 / 255.0, 167.0 / 255.0, 67.0 / 255.0).into());
     let tail_color = materials.add(Color::rgb(232.0 / 255.0, 193.0 / 255.0, 112.0 / 255.0).into());
 
-    let ground_color = materials.add(Color::rgb(173.0 / 255.0, 119.0 / 255.0, 87.0 / 255.0).into());
-
     let food_color = materials.add(Color::rgb(165.0 / 255.0, 48.0 / 255.0, 48.0 / 255.0).into());
 
     *snake_parts = SnakeParts(vec![
@@ -141,7 +156,7 @@ fn setup(
             .spawn()
             .insert_bundle(SpriteBundle {
                 sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-                material: ground_color.clone_weak(),
+                material: ground_color(&mut materials),
                 ..Default::default()
             })
             .insert(GridLocation { x: i, y: -1 })
@@ -153,7 +168,7 @@ fn setup(
         .spawn()
         .insert_bundle(SpriteBundle {
             sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-            material: ground_color.clone_weak(),
+            material: ground_color(&mut materials),
             ..Default::default()
         })
         .insert(GridLocation { x: 5, y: 0 })
@@ -165,7 +180,7 @@ fn setup(
             .spawn()
             .insert_bundle(SpriteBundle {
                 sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-                material: ground_color.clone_weak(),
+                material: ground_color(&mut materials),
                 ..Default::default()
             })
             .insert(GridLocation { x: i, y: -1 })
@@ -177,7 +192,7 @@ fn setup(
         .spawn()
         .insert_bundle(SpriteBundle {
             sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-            material: ground_color.clone_weak(),
+            material: ground_color(&mut materials),
             ..Default::default()
         })
         .insert(GridLocation { x: 19, y: 4 })
@@ -188,7 +203,7 @@ fn setup(
         .spawn()
         .insert_bundle(SpriteBundle {
             sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-            material: ground_color.clone_weak(),
+            material: ground_color(&mut materials),
             ..Default::default()
         })
         .insert(GridLocation { x: 18, y: 8 })
@@ -449,10 +464,15 @@ fn win(snake_parts: Res<SnakeParts>, snake_locations: Query<&GridLocation, With<
 }
 
 fn my_cursor_system(
+    mut commands: Commands,
     // need to get window dimensions
     wnds: Res<Windows>,
+    keyboard_input: Res<Input<KeyCode>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+
     // query to get camera transform
-    q_camera: Query<&Transform, With<MainCamera>>,
+    q_camera: Query<&Transform, (With<MainCamera>, Without<Cursor>)>,
+    mut cursors: Query<&mut Transform, (With<Cursor>, Without<MainCamera>)>,
 ) {
     // get the primary window
     let wnd = wnds.get_primary().unwrap();
@@ -471,6 +491,48 @@ fn my_cursor_system(
 
         // apply the camera transform
         let pos_wld = camera_transform.compute_matrix() * p.extend(0.0).extend(1.0);
-        eprintln!("World coords: {}/{}", pos_wld.x, pos_wld.y);
+        println!("World coords: ({}, {})", pos_wld.x, pos_wld.y);
+        println!(
+            "To grid: ({}, {})",
+            (pos_wld.x / GRID_WIDTH) as i32,
+            (pos_wld.y / GRID_HEIGHT) as i32
+        );
+
+        let mouse_grid_location = GridLocation {
+            x: (pos_wld.x / GRID_WIDTH) as i32,
+            y: (pos_wld.y / GRID_HEIGHT) as i32,
+        };
+        let mouse_xform = Transform::from_translation(Vec3::new(
+            mouse_grid_location.x as f32 * GRID_WIDTH,
+            mouse_grid_location.y as f32 * GRID_HEIGHT,
+            0.,
+        ));
+        
+        for mut cursor in cursors.iter_mut() {
+            *cursor = mouse_xform;
+        }
+ 
+
+        // TODO: delete whatever is there!
+        if keyboard_input.just_pressed(KeyCode::G) {
+            commands
+                .spawn()
+                .insert_bundle(SpriteBundle {
+                    sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+                    material: ground_color(&mut materials),
+                    transform: mouse_xform,
+                    ..Default::default()
+                })
+                .insert(mouse_grid_location)
+                .insert(Ground);
+        }
     }
+}
+
+fn ground_color(mut materials: &mut ResMut<Assets<ColorMaterial>>) -> Handle<ColorMaterial> {
+    materials.add(Color::rgb(173.0 / 255.0, 119.0 / 255.0, 87.0 / 255.0).into())
+}
+
+fn cursor_color(mut materials: &mut ResMut<Assets<ColorMaterial>>) -> Handle<ColorMaterial> {
+    materials.add(Color::rgb(164.0 / 255.0, 221.0 / 255.0, 219.0 / 255.0).into())
 }
