@@ -335,7 +335,7 @@ fn cleanup(
             ..Default::default()
         });
     }
-    
+
     for (_ground, grid_location, e) in foods.iter() {
         commands.entity(e).insert_bundle(SpriteBundle {
             sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
