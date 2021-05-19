@@ -1,6 +1,10 @@
-use bevy::{prelude::*, reflect::TypeRegistry, render::camera::Camera};
-use std::{collections::HashSet, time::Duration};
+use bevy::{
+    prelude::*,
+    reflect::TypeRegistry,
+    render::{camera::Camera, pipeline::IndexFormat},
+};
 use std::env;
+use std::{collections::HashSet, time::Duration};
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
 pub struct FoodLabel;
@@ -17,7 +21,13 @@ pub struct GravityLabel;
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
 pub struct WinLabel;
 
-#[derive(Debug, Hash, PartialEq, Eq, Clone)]
+#[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
+pub struct SetupLabel;
+
+#[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
+pub struct CleanupLabel;
+#[reflect(Component)]
+#[derive(Debug, Hash, PartialEq, Eq, Clone, Reflect, Default)]
 struct GridLocation {
     x: i32,
     y: i32,
@@ -36,7 +46,8 @@ impl std::ops::Add for GridLocation {
 
 struct Snake;
 
-#[derive(Reflect)]
+#[derive(Reflect, Default)]
+#[reflect(Component)]
 struct Ground;
 
 struct Food;
@@ -85,7 +96,7 @@ fn main() {
             .add_plugins(DefaultPlugins)
             .insert_resource(MyWorld(World::new(), TypeRegistry::default()))
             .register_type::<Ground>()
-            .register_type::<ComponentB>()
+            .register_type::<GridLocation>()
             .add_system(bevy::input::system::exit_on_esc_system.system())
             .add_startup_system(
                 (|world: &mut World| {
@@ -121,15 +132,21 @@ fn main() {
     } else {
         App::build()
             .add_plugins(DefaultPlugins)
-            .register_type::<ComponentA>()
-            .register_type::<ComponentB>()
+            .register_type::<core::option::Option<IndexFormat>>()
+            .register_type::<Ground>()
+            .register_type::<GridLocation>()
             .insert_resource(SnakeParts(vec![]))
-
-            .add_startup_system(setup.system())
-
+            .add_startup_system(setup.system().label(SetupLabel))
+            .add_system(cleanup.system().label(CleanupLabel).after(SetupLabel))
             .add_system(bevy::input::system::exit_on_esc_system.system())
-    
-      
+            .add_system(
+                (|q: Query<(&Ground, &Transform)>| {
+                    for (_g, xform) in q.iter() {
+                        dbg!(xform);
+                    }
+                })
+                .system(),
+            )
             // .add_system(food.system().label(FoodLabel))
             // .add_system(
             //     snake_movement
@@ -143,12 +160,9 @@ fn main() {
             //         .label(GravityLabel)
             //         .after(SnakeMovementLabel),
             // )
-            // .add_system(
-            //     gridlocation_to_transform
-            //         .system()
-            //         .label(TransformLabel)
-            //         .after(GravityLabel),
-            // )
+            .add_system(
+                gridlocation_to_transform.system().label(TransformLabel), // .after(GravityLabel),
+            )
             // .add_system(win.system().label(WinLabel).after(GravityLabel))
             // gravity
             // gridlocation to transform
@@ -166,8 +180,10 @@ fn setup(
 
     mut scene_spawner: ResMut<SceneSpawner>,
 ) {
+    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+    commands.spawn_bundle(UiCameraBundle::default());
     // Scenes are loaded just like any other asset.
-    let scene_handle: Handle<DynamicScene> = asset_server.load("tmp.scn.ron");
+    let scene_handle: Handle<DynamicScene> = asset_server.load("new.scn.ron");
 
     // SceneSpawner can "spawn" scenes. "Spawning" a scene creates a new instance of the scene in
     // the World with new entity ids. This guarantees that it will not overwrite existing
@@ -176,9 +192,7 @@ fn setup(
 
     // This tells the AssetServer to watch for changes to assets.
     // It enables our scenes to automatically reload in game when we modify their files
-    asset_server.watch_for_changes().unwrap();
-    //     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
-    //     commands.spawn_bundle(UiCameraBundle::default());
+    // asset_server.watch_for_changes().unwrap();
 
     //     let head_color = materials.add(Color::rgb(168.0 / 255.0, 202.0 / 255.0, 88.0 / 255.0).into());
     //     let body_color = materials.add(Color::rgb(117.0 / 255.0, 167.0 / 255.0, 67.0 / 255.0).into());
@@ -311,6 +325,26 @@ fn setup(
     //         .insert(GridLocation { x: -8, y: 0 })
     //         .insert(Food)
     //         .id();
+}
+
+fn cleanup(
+    mut commands: Commands,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+
+    q: Query<(&Ground, &GridLocation, Entity), Without<Sprite>>,
+) {
+    for (_ground, grid_location, e) in q.iter() {
+        commands.entity(e).insert_bundle(SpriteBundle {
+            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+            material: ground_color(&mut materials),
+            transform: Transform::from_translation(Vec3::new(
+                grid_location.x as f32 * GRID_WIDTH,
+                grid_location.y as f32 * GRID_HEIGHT,
+                0.,
+            )),
+            ..Default::default()
+        });
+    }
 }
 
 fn snake_movement(
@@ -585,24 +619,25 @@ fn my_cursor_system(
                 .insert(mouse_grid_location.clone())
                 .insert(Ground);
 
-            my_world
+            let id = my_world
                 .0
                 .spawn()
-                .insert_bundle(SpriteBundle {
-                    sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-                    material: ground_color(&mut materials),
-                    transform: mouse_xform,
-                    ..Default::default()
-                })
+                // .insert_bundle(SpriteBundle {
+                //     sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+                //     material: ground_color(&mut materials),
+                //     transform: mouse_xform,
+                //     ..Default::default()
+                // })
                 .insert(mouse_grid_location)
-                .insert(Ground);
+                .insert(Ground)
+                .id();
         }
 
         if keyboard_input.just_pressed(KeyCode::S) {
-            let type_registry = my_world.1.clone();
-            dbg!(type_registry.clone());
+            dbg!(&my_world.0);
+
             let scene = DynamicScene::from_world(&my_world.0, &my_world.1);
-            println!("{}", scene.serialize_ron(&type_registry).unwrap());
+            println!("{}", scene.serialize_ron(&my_world.1).unwrap());
         }
     }
 }
