@@ -63,31 +63,6 @@ struct Cursor;
 
 struct MyWorld(World, TypeRegistry);
 
-#[derive(Reflect, Default)]
-#[reflect(Component)] // this tells the reflect derive to also reflect component behaviors
-struct ComponentA {
-    pub x: f32,
-    pub y: f32,
-}
-
-#[derive(Reflect)]
-#[reflect(Component)]
-struct ComponentB {
-    pub value: String,
-    #[reflect(ignore)]
-    pub _time_since_startup: Duration,
-}
-
-impl FromWorld for ComponentB {
-    fn from_world(world: &mut World) -> Self {
-        let time = world.get_resource::<Time>().unwrap();
-        ComponentB {
-            _time_since_startup: time.time_since_startup(),
-            value: "Default Value".to_string(),
-        }
-    }
-}
-
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -183,7 +158,11 @@ fn setup(
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
     // Scenes are loaded just like any other asset.
-    let scene_handle: Handle<DynamicScene> = asset_server.load("scenes/20210519_15:00:14.scn.ron");
+    
+    let args: Vec<String> = env::args().collect();
+    let level = args.last().expect("Provide a filename!");
+
+    let scene_handle: Handle<DynamicScene> = asset_server.load(format!("../{}", level).as_str());
 
     // SceneSpawner can "spawn" scenes. "Spawning" a scene creates a new instance of the scene in
     // the World with new entity ids. This guarantees that it will not overwrite existing
@@ -568,6 +547,8 @@ fn my_cursor_system(
     // query to get camera transform
     q_camera: Query<&Transform, (With<MainCamera>, Without<Cursor>)>,
     mut cursors: Query<&mut Transform, (With<Cursor>, Without<MainCamera>)>,
+
+    grid_locations: Query<(&GridLocation, Entity)>,
 ) {
     // get the primary window
     let wnd = wnds.get_primary().unwrap();
@@ -607,8 +588,24 @@ fn my_cursor_system(
             *cursor = mouse_xform;
         }
 
-        // TODO: delete whatever is there!
         if keyboard_input.just_pressed(KeyCode::G) {
+            let mut q = my_world.0.query::<(&GridLocation, Entity)>();
+
+            let mut to_despawn = vec![];
+            for (grid_location, e) in q.iter(&my_world.0) {
+                if *grid_location == mouse_grid_location {
+                    to_despawn.push(e);
+                }
+            }
+            for e in to_despawn {
+                my_world.0.despawn(e);
+            }
+
+            for (grid_location, e) in grid_locations.iter() {
+                if *grid_location == mouse_grid_location {
+                    commands.entity(e).despawn_recursive();
+                }
+            }
             commands
                 .spawn()
                 .insert_bundle(SpriteBundle {
@@ -623,19 +620,16 @@ fn my_cursor_system(
             let id = my_world
                 .0
                 .spawn()
-                // .insert_bundle(SpriteBundle {
-                //     sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-                //     material: ground_color(&mut materials),
-                //     transform: mouse_xform,
-                //     ..Default::default()
-                // })
                 .insert(mouse_grid_location)
                 .insert(Ground)
                 .id();
         }
 
-        if keyboard_input.just_pressed(KeyCode::S) {
-            let filename = format!("assets/scenes/tmp/{}.scn.ron", Local::now().format("%Y%m%d_%H:%M:%S"));
+        if keyboard_input.just_pressed(KeyCode::E) {
+            let filename = format!(
+                "assets/scenes/tmp/{}.scn.ron",
+                Local::now().format("%Y%m%d_%H:%M:%S")
+            );
             let path = Path::new(&filename);
             let scene = DynamicScene::from_world(&my_world.0, &my_world.1);
             let data = scene.serialize_ron(&my_world.1).unwrap();
