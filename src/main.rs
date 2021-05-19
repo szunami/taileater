@@ -71,7 +71,10 @@ fn setup(
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
 
-    let head_color = materials.add(Color::rgb(117.0 / 255.0, 167.0 / 255.0, 67.0 / 255.0).into());
+    let head_color = materials.add(Color::rgb(168.0 / 255.0, 202.0 / 255.0, 88.0 / 255.0).into());
+    let body_color = materials.add(Color::rgb(117.0 / 255.0, 167.0 / 255.0, 67.0 / 255.0).into());
+
+    let tail_color = materials.add(Color::rgb(232.0 / 255.0, 193.0 / 255.0, 112.0 / 255.0).into());
     let ground_color = materials.add(Color::rgb(136.0 / 255.0, 75.0 / 255.0, 43.0 / 255.0).into());
 
     *snake_parts = SnakeParts(vec![
@@ -85,31 +88,41 @@ fn setup(
             .insert(GridLocation { x: 0, y: 0 })
             .insert(Snake)
             .id(),
+        // commands
+        //     .spawn()
+        //     .insert_bundle(SpriteBundle {
+        //         sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+        //         material: body_color.clone_weak(),
+        //         ..Default::default()
+        //     })
+        //     .insert(GridLocation { x: 0, y: 0 })
+        //     .insert(Snake)
+        //     .id(),
+        // commands
+        //     .spawn()
+        //     .insert_bundle(SpriteBundle {
+        //         sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+        //         material: body_color.clone_weak(),
+        //         ..Default::default()
+        //     })
+        //     .insert(GridLocation { x: 0, y: 0 })
+        //     .insert(Snake)
+        //     .id(),
+        // commands
+        //     .spawn()
+        //     .insert_bundle(SpriteBundle {
+        //         sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+        //         material: body_color.clone_weak(),
+        //         ..Default::default()
+        //     })
+        //     .insert(GridLocation { x: 0, y: 0 })
+        //     .insert(Snake)
+        //     .id(),
         commands
             .spawn()
             .insert_bundle(SpriteBundle {
                 sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-                material: head_color.clone_weak(),
-                ..Default::default()
-            })
-            .insert(GridLocation { x: 0, y: 0 })
-            .insert(Snake)
-            .id(),
-        commands
-            .spawn()
-            .insert_bundle(SpriteBundle {
-                sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-                material: head_color.clone_weak(),
-                ..Default::default()
-            })
-            .insert(GridLocation { x: 0, y: 0 })
-            .insert(Snake)
-            .id(),
-        commands
-            .spawn()
-            .insert_bundle(SpriteBundle {
-                sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-                material: head_color.clone_weak(),
+                material: tail_color.clone_weak(),
                 ..Default::default()
             })
             .insert(GridLocation { x: 0, y: 0 })
@@ -191,12 +204,21 @@ fn snake_movement(
     let block_set = {
         let mut tmp = HashSet::new();
 
-        // exclude head; exclude tail + second to last
-        for snake_part_entity in snake_parts.0[1..snake_parts.0.len() - 1].iter() {
+        if snake_parts.0.len() > 2 {
+            // exclude head; exclude tail + second to last
+            for snake_part_entity in snake_parts.0[1..snake_parts.0.len() - 2].iter() {
+                tmp.insert(
+                    snakes
+                        .get_mut(*snake_part_entity)
+                        .expect("snake part grid location")
+                        .clone(),
+                );
+            }
+        } else if snake_parts.0.len() == 2 {
             tmp.insert(
                 snakes
-                    .get_mut(*snake_part_entity)
-                    .expect("snake part grid location")
+                    .get_mut(*snake_parts.0.last().expect("tail exists"))
+                    .expect("snake part lookup")
                     .clone(),
             );
         }
