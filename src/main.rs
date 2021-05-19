@@ -1,6 +1,10 @@
 use std::collections::HashSet;
 
 use bevy::prelude::*;
+
+#[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
+pub struct FoodLabel;
+
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
 pub struct SnakeMovementLabel;
 
@@ -9,6 +13,9 @@ pub struct TransformLabel;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
 pub struct GravityLabel;
+
+#[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
+pub struct WinLabel;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone)]
 struct GridLocation {
@@ -31,6 +38,8 @@ struct Snake;
 
 struct Ground;
 
+struct Food;
+
 struct SnakeParts(Vec<Entity>);
 
 const GRID_WIDTH: f32 = 16.0;
@@ -42,7 +51,13 @@ fn main() {
         .insert_resource(SnakeParts(vec![]))
         .add_system(bevy::input::system::exit_on_esc_system.system())
         .add_startup_system(setup.system())
-        .add_system(snake_movement.system().label(SnakeMovementLabel))
+        .add_system(food.system().label(FoodLabel))
+        .add_system(
+            snake_movement
+                .system()
+                .label(SnakeMovementLabel)
+                .after(FoodLabel),
+        )
         .add_system(
             gravity
                 .system()
@@ -55,6 +70,7 @@ fn main() {
                 .label(TransformLabel)
                 .after(GravityLabel),
         )
+        .add_system(win.system().label(WinLabel).after(GravityLabel))
         // gravity
         // gridlocation to transform
         .run();
@@ -73,9 +89,11 @@ fn setup(
 
     let head_color = materials.add(Color::rgb(168.0 / 255.0, 202.0 / 255.0, 88.0 / 255.0).into());
     let body_color = materials.add(Color::rgb(117.0 / 255.0, 167.0 / 255.0, 67.0 / 255.0).into());
-
     let tail_color = materials.add(Color::rgb(232.0 / 255.0, 193.0 / 255.0, 112.0 / 255.0).into());
-    let ground_color = materials.add(Color::rgb(136.0 / 255.0, 75.0 / 255.0, 43.0 / 255.0).into());
+
+    let ground_color = materials.add(Color::rgb(173.0 / 255.0, 119.0 / 255.0, 87.0 / 255.0).into());
+
+    let food_color = materials.add(Color::rgb(165.0 / 255.0, 48.0 / 255.0, 48.0 / 255.0).into());
 
     *snake_parts = SnakeParts(vec![
         commands
@@ -88,36 +106,6 @@ fn setup(
             .insert(GridLocation { x: 0, y: 0 })
             .insert(Snake)
             .id(),
-        // commands
-        //     .spawn()
-        //     .insert_bundle(SpriteBundle {
-        //         sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-        //         material: body_color.clone_weak(),
-        //         ..Default::default()
-        //     })
-        //     .insert(GridLocation { x: 0, y: 0 })
-        //     .insert(Snake)
-        //     .id(),
-        // commands
-        //     .spawn()
-        //     .insert_bundle(SpriteBundle {
-        //         sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-        //         material: body_color.clone_weak(),
-        //         ..Default::default()
-        //     })
-        //     .insert(GridLocation { x: 0, y: 0 })
-        //     .insert(Snake)
-        //     .id(),
-        // commands
-        //     .spawn()
-        //     .insert_bundle(SpriteBundle {
-        //         sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-        //         material: body_color.clone_weak(),
-        //         ..Default::default()
-        //     })
-        //     .insert(GridLocation { x: 0, y: 0 })
-        //     .insert(Snake)
-        //     .id(),
         commands
             .spawn()
             .insert_bundle(SpriteBundle {
@@ -166,6 +154,72 @@ fn setup(
             .insert(Ground)
             .id();
     }
+
+    commands
+        .spawn()
+        .insert_bundle(SpriteBundle {
+            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+            material: ground_color.clone_weak(),
+            ..Default::default()
+        })
+        .insert(GridLocation { x: 19, y: 4 })
+        .insert(Ground)
+        .id();
+
+    commands
+        .spawn()
+        .insert_bundle(SpriteBundle {
+            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+            material: ground_color.clone_weak(),
+            ..Default::default()
+        })
+        .insert(GridLocation { x: 18, y: 8 })
+        .insert(Ground)
+        .id();
+
+    commands
+        .spawn()
+        .insert_bundle(SpriteBundle {
+            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+            material: food_color.clone_weak(),
+            ..Default::default()
+        })
+        .insert(GridLocation { x: -5, y: 0 })
+        .insert(Food)
+        .id();
+
+    commands
+        .spawn()
+        .insert_bundle(SpriteBundle {
+            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+            material: food_color.clone_weak(),
+            ..Default::default()
+        })
+        .insert(GridLocation { x: -7, y: 0 })
+        .insert(Food)
+        .id();
+
+    commands
+        .spawn()
+        .insert_bundle(SpriteBundle {
+            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+            material: food_color.clone_weak(),
+            ..Default::default()
+        })
+        .insert(GridLocation { x: -9, y: 0 })
+        .insert(Food)
+        .id();
+
+    commands
+        .spawn()
+        .insert_bundle(SpriteBundle {
+            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+            material: food_color.clone_weak(),
+            ..Default::default()
+        })
+        .insert(GridLocation { x: -8, y: 0 })
+        .insert(Food)
+        .id();
 }
 
 fn snake_movement(
@@ -299,6 +353,51 @@ fn gravity(
     }
 }
 
+fn food(
+    mut commands: Commands,
+
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    mut snake_parts: ResMut<SnakeParts>,
+
+    snake_locations: Query<(&GridLocation, &Transform), (With<Snake>, Without<Food>)>,
+    food_locations: Query<(&GridLocation, Entity), (With<Food>, Without<Snake>)>,
+) {
+    let head_location = snake_locations
+        .get(*snake_parts.0.first().expect("head exists"))
+        .expect("head has grid location")
+        .0;
+
+    let (tail_location, tail_xform) = snake_locations
+        .get(*snake_parts.0.last().expect("tail exists"))
+        .expect("head has grid location");
+
+    for (food_location, food_entity) in food_locations.iter() {
+        if food_location == head_location {
+            // despawn food!
+            commands.entity(food_entity).despawn_recursive();
+
+            let body_color =
+                materials.add(Color::rgb(117.0 / 255.0, 167.0 / 255.0, 67.0 / 255.0).into());
+
+            let new_snake = commands
+                .spawn()
+                .insert_bundle(SpriteBundle {
+                    sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+                    material: body_color.clone_weak(),
+                    transform: *tail_xform,
+                    ..Default::default()
+                })
+                .insert(tail_location.clone())
+                .insert(Snake)
+                .id();
+
+            let index = snake_parts.0.len() - 1;
+
+            snake_parts.0.insert(index, new_snake);
+        }
+    }
+}
+
 const LERP_LAMBDA: f32 = 5.0;
 
 fn gridlocation_to_transform(time: Res<Time>, mut q: Query<(&GridLocation, &mut Transform)>) {
@@ -310,5 +409,23 @@ fn gridlocation_to_transform(time: Res<Time>, mut q: Query<(&GridLocation, &mut 
         let target_y = GRID_HEIGHT * grid_location.y as f32;
         xform.translation.y = xform.translation.y * (1.0 - LERP_LAMBDA * time.delta_seconds())
             + target_y * LERP_LAMBDA * time.delta_seconds();
+    }
+}
+
+fn win(snake_parts: Res<SnakeParts>, snake_locations: Query<&GridLocation, With<Snake>>) {
+    if snake_parts.0.len() == 2 {
+        return;
+    }
+
+    let head_location = snake_locations
+        .get(*snake_parts.0.first().expect("snake head exists"))
+        .expect("head has location");
+
+    let tail_location = snake_locations
+        .get(*snake_parts.0.last().expect("snake tail exists"))
+        .expect("tail has location");
+
+    if head_location == tail_location {
+        println!("You won! Nice.");
     }
 }
