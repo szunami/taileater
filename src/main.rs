@@ -1,5 +1,5 @@
-use bevy::{prelude::*, render::camera::Camera};
-use std::collections::HashSet;
+use bevy::{prelude::*, reflect::TypeRegistry, render::camera::Camera};
+use std::{collections::HashSet, time::Duration};
 use std::env;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
@@ -36,6 +36,7 @@ impl std::ops::Add for GridLocation {
 
 struct Snake;
 
+#[derive(Reflect)]
 struct Ground;
 
 struct Food;
@@ -49,13 +50,51 @@ struct MainCamera;
 
 struct Cursor;
 
+struct MyWorld(World, TypeRegistry);
+
+#[derive(Reflect, Default)]
+#[reflect(Component)] // this tells the reflect derive to also reflect component behaviors
+struct ComponentA {
+    pub x: f32,
+    pub y: f32,
+}
+
+#[derive(Reflect)]
+#[reflect(Component)]
+struct ComponentB {
+    pub value: String,
+    #[reflect(ignore)]
+    pub _time_since_startup: Duration,
+}
+
+impl FromWorld for ComponentB {
+    fn from_world(world: &mut World) -> Self {
+        let time = world.get_resource::<Time>().unwrap();
+        ComponentB {
+            _time_since_startup: time.time_since_startup(),
+            value: "Default Value".to_string(),
+        }
+    }
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
     if args.last() == Some(&String::from("-l")) {
         App::build()
             .add_plugins(DefaultPlugins)
+            .insert_resource(MyWorld(World::new(), TypeRegistry::default()))
+            .register_type::<Ground>()
+            .register_type::<ComponentB>()
             .add_system(bevy::input::system::exit_on_esc_system.system())
+            .add_startup_system(
+                (|world: &mut World| {
+                    let real_type_registry = world.get_resource::<TypeRegistry>().unwrap().clone();
+                    let mut my_world = world.get_resource_mut::<MyWorld>().unwrap();
+                    my_world.1 = real_type_registry;
+                })
+                .exclusive_system(),
+            )
             .add_startup_system(
                 (|mut commands: Commands, mut materials: ResMut<Assets<ColorMaterial>>| {
                     commands
@@ -82,29 +121,35 @@ fn main() {
     } else {
         App::build()
             .add_plugins(DefaultPlugins)
+            .register_type::<ComponentA>()
+            .register_type::<ComponentB>()
             .insert_resource(SnakeParts(vec![]))
-            .add_system(bevy::input::system::exit_on_esc_system.system())
+
             .add_startup_system(setup.system())
-            .add_system(food.system().label(FoodLabel))
-            .add_system(
-                snake_movement
-                    .system()
-                    .label(SnakeMovementLabel)
-                    .after(FoodLabel),
-            )
-            .add_system(
-                gravity
-                    .system()
-                    .label(GravityLabel)
-                    .after(SnakeMovementLabel),
-            )
-            .add_system(
-                gridlocation_to_transform
-                    .system()
-                    .label(TransformLabel)
-                    .after(GravityLabel),
-            )
-            .add_system(win.system().label(WinLabel).after(GravityLabel))
+
+            .add_system(bevy::input::system::exit_on_esc_system.system())
+    
+      
+            // .add_system(food.system().label(FoodLabel))
+            // .add_system(
+            //     snake_movement
+            //         .system()
+            //         .label(SnakeMovementLabel)
+            //         .after(FoodLabel),
+            // )
+            // .add_system(
+            //     gravity
+            //         .system()
+            //         .label(GravityLabel)
+            //         .after(SnakeMovementLabel),
+            // )
+            // .add_system(
+            //     gridlocation_to_transform
+            //         .system()
+            //         .label(TransformLabel)
+            //         .after(GravityLabel),
+            // )
+            // .add_system(win.system().label(WinLabel).after(GravityLabel))
             // gravity
             // gridlocation to transform
             .run();
@@ -118,141 +163,154 @@ fn setup(
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+
+    mut scene_spawner: ResMut<SceneSpawner>,
 ) {
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
-    commands.spawn_bundle(UiCameraBundle::default());
+    // Scenes are loaded just like any other asset.
+    let scene_handle: Handle<DynamicScene> = asset_server.load("tmp.scn.ron");
 
-    let head_color = materials.add(Color::rgb(168.0 / 255.0, 202.0 / 255.0, 88.0 / 255.0).into());
-    let body_color = materials.add(Color::rgb(117.0 / 255.0, 167.0 / 255.0, 67.0 / 255.0).into());
-    let tail_color = materials.add(Color::rgb(232.0 / 255.0, 193.0 / 255.0, 112.0 / 255.0).into());
+    // SceneSpawner can "spawn" scenes. "Spawning" a scene creates a new instance of the scene in
+    // the World with new entity ids. This guarantees that it will not overwrite existing
+    // entities.
+    scene_spawner.spawn_dynamic(scene_handle);
 
-    let food_color = materials.add(Color::rgb(165.0 / 255.0, 48.0 / 255.0, 48.0 / 255.0).into());
+    // This tells the AssetServer to watch for changes to assets.
+    // It enables our scenes to automatically reload in game when we modify their files
+    asset_server.watch_for_changes().unwrap();
+    //     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+    //     commands.spawn_bundle(UiCameraBundle::default());
 
-    *snake_parts = SnakeParts(vec![
-        commands
-            .spawn()
-            .insert_bundle(SpriteBundle {
-                sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-                material: head_color.clone_weak(),
-                ..Default::default()
-            })
-            .insert(GridLocation { x: 0, y: 0 })
-            .insert(Snake)
-            .id(),
-        commands
-            .spawn()
-            .insert_bundle(SpriteBundle {
-                sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-                material: tail_color.clone_weak(),
-                ..Default::default()
-            })
-            .insert(GridLocation { x: 0, y: 0 })
-            .insert(Snake)
-            .id(),
-    ]);
+    //     let head_color = materials.add(Color::rgb(168.0 / 255.0, 202.0 / 255.0, 88.0 / 255.0).into());
+    //     let body_color = materials.add(Color::rgb(117.0 / 255.0, 167.0 / 255.0, 67.0 / 255.0).into());
+    //     let tail_color = materials.add(Color::rgb(232.0 / 255.0, 193.0 / 255.0, 112.0 / 255.0).into());
 
-    for i in -10..10 {
-        commands
-            .spawn()
-            .insert_bundle(SpriteBundle {
-                sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-                material: ground_color(&mut materials),
-                ..Default::default()
-            })
-            .insert(GridLocation { x: i, y: -1 })
-            .insert(Ground)
-            .id();
-    }
+    //     let food_color = materials.add(Color::rgb(165.0 / 255.0, 48.0 / 255.0, 48.0 / 255.0).into());
 
-    commands
-        .spawn()
-        .insert_bundle(SpriteBundle {
-            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-            material: ground_color(&mut materials),
-            ..Default::default()
-        })
-        .insert(GridLocation { x: 5, y: 0 })
-        .insert(Ground)
-        .id();
+    //     *snake_parts = SnakeParts(vec![
+    //         commands
+    //             .spawn()
+    //             .insert_bundle(SpriteBundle {
+    //                 sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+    //                 material: head_color.clone_weak(),
+    //                 ..Default::default()
+    //             })
+    //             .insert(GridLocation { x: 0, y: 0 })
+    //             .insert(Snake)
+    //             .id(),
+    //         commands
+    //             .spawn()
+    //             .insert_bundle(SpriteBundle {
+    //                 sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+    //                 material: tail_color.clone_weak(),
+    //                 ..Default::default()
+    //             })
+    //             .insert(GridLocation { x: 0, y: 0 })
+    //             .insert(Snake)
+    //             .id(),
+    //     ]);
 
-    for i in 13..20 {
-        commands
-            .spawn()
-            .insert_bundle(SpriteBundle {
-                sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-                material: ground_color(&mut materials),
-                ..Default::default()
-            })
-            .insert(GridLocation { x: i, y: -1 })
-            .insert(Ground)
-            .id();
-    }
+    //     for i in -10..10 {
+    //         commands
+    //             .spawn()
+    //             .insert_bundle(SpriteBundle {
+    //                 sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+    //                 material: ground_color(&mut materials),
+    //                 ..Default::default()
+    //             })
+    //             .insert(GridLocation { x: i, y: -1 })
+    //             .insert(Ground)
+    //             .id();
+    //     }
 
-    commands
-        .spawn()
-        .insert_bundle(SpriteBundle {
-            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-            material: ground_color(&mut materials),
-            ..Default::default()
-        })
-        .insert(GridLocation { x: 19, y: 4 })
-        .insert(Ground)
-        .id();
+    //     commands
+    //         .spawn()
+    //         .insert_bundle(SpriteBundle {
+    //             sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+    //             material: ground_color(&mut materials),
+    //             ..Default::default()
+    //         })
+    //         .insert(GridLocation { x: 5, y: 0 })
+    //         .insert(Ground)
+    //         .id();
 
-    commands
-        .spawn()
-        .insert_bundle(SpriteBundle {
-            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-            material: ground_color(&mut materials),
-            ..Default::default()
-        })
-        .insert(GridLocation { x: 18, y: 8 })
-        .insert(Ground)
-        .id();
+    //     for i in 13..20 {
+    //         commands
+    //             .spawn()
+    //             .insert_bundle(SpriteBundle {
+    //                 sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+    //                 material: ground_color(&mut materials),
+    //                 ..Default::default()
+    //             })
+    //             .insert(GridLocation { x: i, y: -1 })
+    //             .insert(Ground)
+    //             .id();
+    //     }
 
-    commands
-        .spawn()
-        .insert_bundle(SpriteBundle {
-            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-            material: food_color.clone_weak(),
-            ..Default::default()
-        })
-        .insert(GridLocation { x: -5, y: 0 })
-        .insert(Food)
-        .id();
+    //     commands
+    //         .spawn()
+    //         .insert_bundle(SpriteBundle {
+    //             sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+    //             material: ground_color(&mut materials),
+    //             ..Default::default()
+    //         })
+    //         .insert(GridLocation { x: 19, y: 4 })
+    //         .insert(Ground)
+    //         .id();
 
-    commands
-        .spawn()
-        .insert_bundle(SpriteBundle {
-            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-            material: food_color.clone_weak(),
-            ..Default::default()
-        })
-        .insert(GridLocation { x: -7, y: 0 })
-        .insert(Food)
-        .id();
+    //     commands
+    //         .spawn()
+    //         .insert_bundle(SpriteBundle {
+    //             sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+    //             material: ground_color(&mut materials),
+    //             ..Default::default()
+    //         })
+    //         .insert(GridLocation { x: 18, y: 8 })
+    //         .insert(Ground)
+    //         .id();
 
-    commands
-        .spawn()
-        .insert_bundle(SpriteBundle {
-            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-            material: food_color.clone_weak(),
-            ..Default::default()
-        })
-        .insert(GridLocation { x: -9, y: 0 })
-        .insert(Food)
-        .id();
+    //     commands
+    //         .spawn()
+    //         .insert_bundle(SpriteBundle {
+    //             sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+    //             material: food_color.clone_weak(),
+    //             ..Default::default()
+    //         })
+    //         .insert(GridLocation { x: -5, y: 0 })
+    //         .insert(Food)
+    //         .id();
 
-    commands
-        .spawn()
-        .insert_bundle(SpriteBundle {
-            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-            material: food_color.clone_weak(),
-            ..Default::default()
-        })
-        .insert(GridLocation { x: -8, y: 0 })
-        .insert(Food)
-        .id();
+    //     commands
+    //         .spawn()
+    //         .insert_bundle(SpriteBundle {
+    //             sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+    //             material: food_color.clone_weak(),
+    //             ..Default::default()
+    //         })
+    //         .insert(GridLocation { x: -7, y: 0 })
+    //         .insert(Food)
+    //         .id();
+
+    //     commands
+    //         .spawn()
+    //         .insert_bundle(SpriteBundle {
+    //             sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+    //             material: food_color.clone_weak(),
+    //             ..Default::default()
+    //         })
+    //         .insert(GridLocation { x: -9, y: 0 })
+    //         .insert(Food)
+    //         .id();
+
+    //     commands
+    //         .spawn()
+    //         .insert_bundle(SpriteBundle {
+    //             sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+    //             material: food_color.clone_weak(),
+    //             ..Default::default()
+    //         })
+    //         .insert(GridLocation { x: -8, y: 0 })
+    //         .insert(Food)
+    //         .id();
 }
 
 fn snake_movement(
@@ -470,6 +528,8 @@ fn my_cursor_system(
     keyboard_input: Res<Input<KeyCode>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 
+    mut my_world: ResMut<MyWorld>,
+
     // query to get camera transform
     q_camera: Query<&Transform, (With<MainCamera>, Without<Cursor>)>,
     mut cursors: Query<&mut Transform, (With<Cursor>, Without<MainCamera>)>,
@@ -491,12 +551,12 @@ fn my_cursor_system(
 
         // apply the camera transform
         let pos_wld = camera_transform.compute_matrix() * p.extend(0.0).extend(1.0);
-        println!("World coords: ({}, {})", pos_wld.x, pos_wld.y);
-        println!(
-            "To grid: ({}, {})",
-            (pos_wld.x / GRID_WIDTH) as i32,
-            (pos_wld.y / GRID_HEIGHT) as i32
-        );
+        // println!("World coords: ({}, {})", pos_wld.x, pos_wld.y);
+        // println!(
+        //     "To grid: ({}, {})",
+        //     (pos_wld.x / GRID_WIDTH) as i32,
+        //     (pos_wld.y / GRID_HEIGHT) as i32
+        // );
 
         let mouse_grid_location = GridLocation {
             x: (pos_wld.x / GRID_WIDTH) as i32,
@@ -507,11 +567,10 @@ fn my_cursor_system(
             mouse_grid_location.y as f32 * GRID_HEIGHT,
             0.,
         ));
-        
+
         for mut cursor in cursors.iter_mut() {
             *cursor = mouse_xform;
         }
- 
 
         // TODO: delete whatever is there!
         if keyboard_input.just_pressed(KeyCode::G) {
@@ -523,8 +582,27 @@ fn my_cursor_system(
                     transform: mouse_xform,
                     ..Default::default()
                 })
+                .insert(mouse_grid_location.clone())
+                .insert(Ground);
+
+            my_world
+                .0
+                .spawn()
+                .insert_bundle(SpriteBundle {
+                    sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+                    material: ground_color(&mut materials),
+                    transform: mouse_xform,
+                    ..Default::default()
+                })
                 .insert(mouse_grid_location)
                 .insert(Ground);
+        }
+
+        if keyboard_input.just_pressed(KeyCode::S) {
+            let type_registry = my_world.1.clone();
+            dbg!(type_registry.clone());
+            let scene = DynamicScene::from_world(&my_world.0, &my_world.1);
+            println!("{}", scene.serialize_ron(&type_registry).unwrap());
         }
     }
 }
