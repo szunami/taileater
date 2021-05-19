@@ -1,6 +1,6 @@
+use bevy::{prelude::*, render::camera::Camera};
 use std::collections::HashSet;
-
-use bevy::prelude::*;
+use std::env;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
 pub struct FoodLabel;
@@ -45,35 +45,53 @@ struct SnakeParts(Vec<Entity>);
 const GRID_WIDTH: f32 = 16.0;
 const GRID_HEIGHT: f32 = 16.0;
 
+struct MainCamera;
+
 fn main() {
-    App::build()
-        .add_plugins(DefaultPlugins)
-        .insert_resource(SnakeParts(vec![]))
-        .add_system(bevy::input::system::exit_on_esc_system.system())
-        .add_startup_system(setup.system())
-        .add_system(food.system().label(FoodLabel))
-        .add_system(
-            snake_movement
-                .system()
-                .label(SnakeMovementLabel)
-                .after(FoodLabel),
-        )
-        .add_system(
-            gravity
-                .system()
-                .label(GravityLabel)
-                .after(SnakeMovementLabel),
-        )
-        .add_system(
-            gridlocation_to_transform
-                .system()
-                .label(TransformLabel)
-                .after(GravityLabel),
-        )
-        .add_system(win.system().label(WinLabel).after(GravityLabel))
-        // gravity
-        // gridlocation to transform
-        .run();
+    let args: Vec<String> = env::args().collect();
+
+    if args.last() == Some(&String::from("-l")) {
+        App::build()
+            .add_plugins(DefaultPlugins)
+            .add_system(bevy::input::system::exit_on_esc_system.system())
+            .add_startup_system((|mut commands: Commands| {
+                commands.spawn()
+                .insert_bundle(OrthographicCameraBundle::new_2d())
+                .insert(MainCamera);
+                commands.spawn_bundle(UiCameraBundle::default());
+            }).system())
+            .add_system(my_cursor_system.system())
+            .run();
+    } else {
+        App::build()
+            .add_plugins(DefaultPlugins)
+            .insert_resource(SnakeParts(vec![]))
+            .add_system(bevy::input::system::exit_on_esc_system.system())
+            .add_startup_system(setup.system())
+            .add_system(food.system().label(FoodLabel))
+            .add_system(
+                snake_movement
+                    .system()
+                    .label(SnakeMovementLabel)
+                    .after(FoodLabel),
+            )
+            .add_system(
+                gravity
+                    .system()
+                    .label(GravityLabel)
+                    .after(SnakeMovementLabel),
+            )
+            .add_system(
+                gridlocation_to_transform
+                    .system()
+                    .label(TransformLabel)
+                    .after(GravityLabel),
+            )
+            .add_system(win.system().label(WinLabel).after(GravityLabel))
+            // gravity
+            // gridlocation to transform
+            .run();
+    }
 }
 
 fn setup(
@@ -427,5 +445,32 @@ fn win(snake_parts: Res<SnakeParts>, snake_locations: Query<&GridLocation, With<
 
     if head_location == tail_location {
         println!("You won! Nice.");
+    }
+}
+
+fn my_cursor_system(
+    // need to get window dimensions
+    wnds: Res<Windows>,
+    // query to get camera transform
+    q_camera: Query<&Transform, With<MainCamera>>,
+) {
+    // get the primary window
+    let wnd = wnds.get_primary().unwrap();
+
+    // check if the cursor is in the primary window
+    if let Some(pos) = wnd.cursor_position() {
+        // get the size of the window
+        let size = Vec2::new(wnd.width() as f32, wnd.height() as f32);
+
+        // the default orthographic projection is in pixels from the center;
+        // just undo the translation
+        let p = pos - size / 2.0;
+
+        // assuming there is exactly one main camera entity, so this is OK
+        let camera_transform = q_camera.single().unwrap();
+
+        // apply the camera transform
+        let pos_wld = camera_transform.compute_matrix() * p.extend(0.0).extend(1.0);
+        eprintln!("World coords: {}/{}", pos_wld.x, pos_wld.y);
     }
 }
