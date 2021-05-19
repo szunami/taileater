@@ -158,7 +158,7 @@ fn setup(
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
     // Scenes are loaded just like any other asset.
-    
+
     let args: Vec<String> = env::args().collect();
     let level = args.last().expect("Provide a filename!");
 
@@ -617,12 +617,67 @@ fn my_cursor_system(
                 .insert(mouse_grid_location.clone())
                 .insert(Ground);
 
-            let id = my_world
+            my_world
                 .0
                 .spawn()
-                .insert(mouse_grid_location)
-                .insert(Ground)
-                .id();
+                .insert(mouse_grid_location.clone())
+                .insert(Ground);
+        }
+        
+        if keyboard_input.just_pressed(KeyCode::S) {
+            let mut q = my_world.0.query::<(&GridLocation, Entity)>();
+
+            let mut to_despawn = vec![];
+            for (grid_location, e) in q.iter(&my_world.0) {
+                if *grid_location == mouse_grid_location {
+                    to_despawn.push(e);
+                }
+            }
+            for e in to_despawn {
+                my_world.0.despawn(e);
+            }
+
+            for (grid_location, e) in grid_locations.iter() {
+                if *grid_location == mouse_grid_location {
+                    commands.entity(e).despawn_recursive();
+                }
+            }
+            commands
+                .spawn()
+                .insert_bundle(SpriteBundle {
+                    sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+                    material: snake_color(&mut materials),
+                    transform: mouse_xform,
+                    ..Default::default()
+                })
+                .insert(mouse_grid_location.clone())
+                .insert(Snake);
+
+            my_world
+                .0
+                .spawn()
+                .insert(mouse_grid_location.clone())
+                .insert(Snake);
+        }
+        
+        if keyboard_input.just_pressed(KeyCode::D) {
+            let mut q = my_world.0.query::<(&GridLocation, Entity)>();
+
+            let mut to_despawn = vec![];
+            for (grid_location, e) in q.iter(&my_world.0) {
+                if *grid_location == mouse_grid_location {
+                    to_despawn.push(e);
+                }
+            }
+            for e in to_despawn {
+                my_world.0.despawn(e);
+            }
+
+            for (grid_location, e) in grid_locations.iter() {
+                if *grid_location == mouse_grid_location {
+                    commands.entity(e).despawn_recursive();
+                }
+            }
         }
 
         if keyboard_input.just_pressed(KeyCode::E) {
@@ -650,6 +705,9 @@ fn my_cursor_system(
 
 fn ground_color(mut materials: &mut ResMut<Assets<ColorMaterial>>) -> Handle<ColorMaterial> {
     materials.add(Color::rgb(173.0 / 255.0, 119.0 / 255.0, 87.0 / 255.0).into())
+}
+fn snake_color(mut materials: &mut ResMut<Assets<ColorMaterial>>) -> Handle<ColorMaterial> {
+    materials.add(Color::rgb(117.0 / 255.0, 167.0 / 255.0, 67.0 / 255.0).into())
 }
 
 fn cursor_color(mut materials: &mut ResMut<Assets<ColorMaterial>>) -> Handle<ColorMaterial> {
