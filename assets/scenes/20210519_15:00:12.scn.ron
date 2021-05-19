@@ -7,7 +7,7 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": -1,
+            "value": 1,
           },
           "y": {
             "type": "i32",
@@ -29,11 +29,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": 0,
+            "value": 4,
           },
           "y": {
             "type": "i32",
-            "value": 0,
+            "value": 2,
           },
         },
       },
@@ -51,11 +51,33 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": 1,
+            "value": -1,
           },
           "y": {
             "type": "i32",
-            "value": 0,
+            "value": 3,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 3,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": -7,
+          },
+          "y": {
+            "type": "i32",
+            "value": 5,
           },
         },
       },

@@ -3,9 +3,9 @@ use bevy::{
     reflect::TypeRegistry,
     render::{camera::Camera, pipeline::IndexFormat},
 };
-use std::env;
-use std::{collections::HashSet, time::Duration};
-
+use chrono::Local;
+use std::{collections::HashSet, path::Path, time::Duration};
+use std::{env, fs::File, io::Write, time::SystemTime};
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
 pub struct FoodLabel;
 
@@ -183,7 +183,7 @@ fn setup(
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
     // Scenes are loaded just like any other asset.
-    let scene_handle: Handle<DynamicScene> = asset_server.load("new.scn.ron");
+    let scene_handle: Handle<DynamicScene> = asset_server.load("scenes/20210519_15:00:14.scn.ron");
 
     // SceneSpawner can "spawn" scenes. "Spawning" a scene creates a new instance of the scene in
     // the World with new entity ids. This guarantees that it will not overwrite existing
@@ -327,6 +327,7 @@ fn setup(
     //         .id();
 }
 
+// spawning scenes is async, we don't have a good callback yet
 fn cleanup(
     mut commands: Commands,
     mut materials: ResMut<Assets<ColorMaterial>>,
@@ -634,10 +635,21 @@ fn my_cursor_system(
         }
 
         if keyboard_input.just_pressed(KeyCode::S) {
-            dbg!(&my_world.0);
-
+            let filename = format!("assets/scenes/tmp/{}.scn.ron", Local::now().format("%Y%m%d_%H:%M:%S"));
+            let path = Path::new(&filename);
             let scene = DynamicScene::from_world(&my_world.0, &my_world.1);
-            println!("{}", scene.serialize_ron(&my_world.1).unwrap());
+            let data = scene.serialize_ron(&my_world.1).unwrap();
+            // Open a file in write-only mode, returns `io::Result<File>`
+            match File::create(&path) {
+                Err(why) => eprintln!("couldn't save to {}: {}", path.display(), why),
+                Ok(mut file) => {
+                    // Write the `LOREM_IPSUM` string to `file`, returns `io::Result<()>`
+                    match file.write_all(data.as_bytes()) {
+                        Err(why) => panic!("couldn't write to {}: {}", path.display(), why),
+                        Ok(_) => println!("Successfully wrote to {}", path.display()),
+                    }
+                }
+            };
         }
     }
 }
