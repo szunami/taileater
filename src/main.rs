@@ -108,7 +108,7 @@ fn main() {
                 })
                 .system(),
             )
-            .add_system(my_cursor_system.system())
+            .add_system(editor.system())
             .run();
     } else {
         App::build()
@@ -397,14 +397,11 @@ fn food(
             // despawn food!
             commands.entity(food_entity).despawn_recursive();
 
-            let body_color =
-                materials.add(Color::rgb(117.0 / 255.0, 167.0 / 255.0, 67.0 / 255.0).into());
-
             let new_snake = commands
                 .spawn()
                 .insert_bundle(SpriteBundle {
                     sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-                    material: body_color.clone_weak(),
+                    material: snake_color(&mut materials),
                     transform: *tail_xform,
                     ..Default::default()
                 })
@@ -455,19 +452,16 @@ fn win(snake_parts: Res<SnakeParts>, snake_locations: Query<&GridLocation, With<
     }
 }
 
-fn my_cursor_system(
+fn editor(
     mut commands: Commands,
-    // need to get window dimensions
+
     wnds: Res<Windows>,
     keyboard_input: Res<Input<KeyCode>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-
     mut my_world: ResMut<MyWorld>,
 
-    // query to get camera transform
-    q_camera: Query<&Transform, (With<MainCamera>, Without<Cursor>)>,
+    camera: Query<&Transform, (With<MainCamera>, Without<Cursor>)>,
     mut cursors: Query<&mut Transform, (With<Cursor>, Without<MainCamera>)>,
-
     grid_locations: Query<(&GridLocation, Entity)>,
 ) {
     // get the primary window
@@ -483,7 +477,7 @@ fn my_cursor_system(
         let p = pos - size / 2.0;
 
         // assuming there is exactly one main camera entity, so this is OK
-        let camera_transform = q_camera.single().unwrap();
+        let camera_transform = camera.single().unwrap();
 
         // apply the camera transform
         let pos_wld = camera_transform.compute_matrix() * p.extend(0.0).extend(1.0);
