@@ -72,6 +72,10 @@ fn main() {
 
     if args.last() == Some(&String::from("-l")) {
         App::build()
+        .insert_resource(WindowDescriptor {
+            title: "EDITOR".to_string(),
+            ..Default::default()
+        })
             .add_plugins(DefaultPlugins)
             .insert_resource(MyWorld(World::new(), TypeRegistry::default()))
             .register_type::<Ground>()
@@ -112,12 +116,17 @@ fn main() {
             .run();
     } else {
         App::build()
+        .insert_resource(WindowDescriptor {
+            title: "TAILEATER".to_string(),
+            ..Default::default()
+        })
             .add_plugins(DefaultPlugins)
             .register_type::<Ground>()
             .register_type::<GridLocation>()
             .register_type::<Snake>()
             .register_type::<Food>()
             .insert_resource(SnakeParts(vec![]))
+            
             .add_startup_system(setup.system().label(SetupLabel))
             .add_system(cleanup.system())
             .add_system(bevy::input::system::exit_on_esc_system.system())
@@ -657,7 +666,7 @@ fn my_cursor_system(
             *cursor = mouse_xform;
         }
 
-        if keyboard_input.just_pressed(KeyCode::G) {
+        if keyboard_input.pressed(KeyCode::G) {
             let mut q = my_world.0.query::<(&GridLocation, Entity)>();
 
             let mut to_despawn = vec![];
@@ -693,7 +702,7 @@ fn my_cursor_system(
                 .insert(Ground);
         }
 
-        if keyboard_input.just_pressed(KeyCode::S) {
+        if keyboard_input.pressed(KeyCode::S) {
             let mut q = my_world.0.query::<(&GridLocation, Entity)>();
 
             let mut to_despawn = vec![];
@@ -729,7 +738,7 @@ fn my_cursor_system(
                 .insert(Snake);
         }
 
-        if keyboard_input.just_pressed(KeyCode::F) {
+        if keyboard_input.pressed(KeyCode::F) {
             let mut q = my_world.0.query::<(&GridLocation, Entity)>();
 
             let mut to_despawn = vec![];
@@ -765,7 +774,7 @@ fn my_cursor_system(
                 .insert(Food);
         }
 
-        if keyboard_input.just_pressed(KeyCode::D) {
+        if keyboard_input.pressed(KeyCode::D) {
             let mut q = my_world.0.query::<(&GridLocation, Entity)>();
 
             let mut to_despawn = vec![];
