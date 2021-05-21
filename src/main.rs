@@ -539,6 +539,8 @@ fn food(
             let index = snake_parts.0.len() - 1;
 
             snake_parts.0.insert(index, new_snake);
+            dbg!(snake_parts.0.len());
+
         }
     }
 }
