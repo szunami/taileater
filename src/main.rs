@@ -373,7 +373,7 @@ fn gravity(
         }
         snake_fall = snake_fall.max(distance + 1);
     }
-    
+
     if snake_fall == 0 {
         return;
     }
