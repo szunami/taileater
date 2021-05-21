@@ -54,8 +54,8 @@ struct Food;
 
 struct SnakeParts(Vec<Entity>);
 
-const GRID_WIDTH: f32 = 16.0;
-const GRID_HEIGHT: f32 = 16.0;
+const GRID_WIDTH: f32 = 64.0;
+const GRID_HEIGHT: f32 = 64.0;
 
 struct MainCamera;
 
@@ -169,6 +169,7 @@ fn cleanup(
     mut commands: Commands,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut snake_parts: ResMut<SnakeParts>,
+    asset_server: Res<AssetServer>,
 
     grounds: Query<(&Ground, &GridLocation, Entity), Without<Sprite>>,
     snakes: Query<(&Snake, &GridLocation, Entity), Without<Sprite>>,
@@ -205,11 +206,12 @@ fn cleanup(
     let mut internal_snake_parts = vec![];
     let mut max_x = None;
     for (_snake, grid_location, e) in snakes.iter() {
+        let texture_handle = asset_server.load("sprites/tmp/Sprite-0010.png");
         let id = commands
             .entity(e)
             .insert_bundle(SpriteBundle {
                 sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-                material: snake_color(&mut materials),
+                material: materials.add(texture_handle.into()),
                 transform: Transform::from_translation(Vec3::new(
                     grid_location.x as f32 * GRID_WIDTH,
                     grid_location.y as f32 * GRID_HEIGHT,
@@ -373,6 +375,7 @@ fn food(
 
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut snake_parts: ResMut<SnakeParts>,
+    asset_server: Res<AssetServer>,
 
     snake_locations: Query<(&GridLocation, &Transform), (With<Snake>, Without<Food>)>,
     food_locations: Query<(&GridLocation, Entity), (With<Food>, Without<Snake>)>,
@@ -396,12 +399,13 @@ fn food(
         if food_location == head_location {
             // despawn food!
             commands.entity(food_entity).despawn_recursive();
+            let texture_handle = asset_server.load("sprites/tmp/Sprite-0010.png");
 
             let new_snake = commands
                 .spawn()
                 .insert_bundle(SpriteBundle {
                     sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-                    material: snake_color(&mut materials),
+                    material: materials.add(texture_handle.into()),
                     transform: *tail_xform,
                     ..Default::default()
                 })
