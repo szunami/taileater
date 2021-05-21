@@ -9,6 +9,9 @@ pub struct FoodLabel;
 pub struct SnakeMovementLabel;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
+pub struct SpriteLabel;
+
+#[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
 pub struct TransformLabel;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
@@ -56,14 +59,29 @@ struct Food;
 
 struct SnakeParts(Vec<Entity>);
 
-const GRID_WIDTH: f32 = 16.0;
-const GRID_HEIGHT: f32 = 16.0;
+const GRID_WIDTH: f32 = 32.0;
+const GRID_HEIGHT: f32 = 32.0;
 
 struct MainCamera;
 
 struct Cursor;
 
 struct MyWorld(World, TypeRegistry);
+
+#[derive(Clone)]
+enum Direction {
+    Up,
+    Down,
+    Left,
+    Right,
+}
+
+#[derive(Clone)]
+// does tail care about from?
+struct Orientation {
+    from: Direction,
+    to: Direction,
+}
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -135,6 +153,9 @@ fn main() {
                     .after(FoodLabel),
             )
             .add_system(
+                sprite.system().label(SpriteLabel).after(SnakeMovementLabel)
+            )
+            .add_system(
                 gravity
                     .system()
                     .label(GravityLabel)
@@ -171,8 +192,10 @@ fn cleanup(
     mut commands: Commands,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut snake_parts: ResMut<SnakeParts>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    
     asset_server: Res<AssetServer>,
-
+    
     grounds: Query<(&Ground, &GridLocation, Entity), Without<Sprite>>,
     snakes: Query<(&Snake, &GridLocation, Entity), Without<Sprite>>,
     foods: Query<(&Food, &GridLocation, Entity), Without<Sprite>>,
@@ -190,7 +213,7 @@ fn cleanup(
         });
     }
 
-    for (_ground, grid_location, e) in foods.iter() {
+    for (_food, grid_location, e) in foods.iter() {
         commands.entity(e).insert_bundle(SpriteBundle {
             sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
             material: food_color(&mut materials),
@@ -202,18 +225,21 @@ fn cleanup(
             ..Default::default()
         });
     }
-
+    
+    let snake_sprite = asset_server.load("sprites/tmp/base_green.png");
+    let snake_atlas = TextureAtlas::from_grid(snake_sprite, Vec2::new(32.0, 32.0), 8, 1);
+    let snake_handle = texture_atlases.add(snake_atlas);
+    
     // HACK: assume that the rightmost snake is first in the array
     // TODO: use MapEntities
     let mut internal_snake_parts = vec![];
     let mut max_x = None;
     for (_snake, grid_location, e) in snakes.iter() {
-        let texture_handle = asset_server.load("sprites/tmp/Sprite-0010.png");
+        // let texture_handle = asset_server.load("sprites/tmp/Sprite-0010.png");
         let id = commands
             .entity(e)
-            .insert_bundle(SpriteBundle {
-                sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-                material: materials.add(texture_handle.into()),
+            .insert_bundle(SpriteSheetBundle {
+                texture_atlas: snake_handle.clone_weak(),
                 transform: Transform::from_translation(Vec3::new(
                     grid_location.x as f32 * GRID_WIDTH,
                     grid_location.y as f32 * GRID_HEIGHT,
@@ -222,6 +248,10 @@ fn cleanup(
                 ..Default::default()
             })
             .insert(LocationQueue(vec![]))
+            .insert(Orientation {
+                to: Direction::Right,
+                from: Direction::Left,
+            })
             .id();
         match max_x {
             Some(max_x) => {
@@ -247,7 +277,10 @@ fn snake_movement(
     snake_parts: Res<SnakeParts>,
     grounds: Query<&GridLocation, (With<Ground>, Without<Snake>)>,
 
-    mut snakes: Query<(&mut GridLocation, &mut LocationQueue), (With<Snake>, Without<Ground>)>,
+    mut snakes: Query<
+        (&mut GridLocation, &mut LocationQueue, &mut Orientation),
+        (With<Snake>, Without<Ground>),
+    >,
 ) {
     // TODO: don't allow x and y at the same damn time
     let mut diff = GridLocation { x: 0, y: 0 };
@@ -306,7 +339,7 @@ fn snake_movement(
         tmp
     };
 
-    let (head_location, _queue) = snakes
+    let (head_location, _queue, _orientation) = snakes
         .get_mut(*snake_parts.0.first().expect("head exists!"))
         .expect("head location exists");
     let proposed_location = head_location.clone() + diff.clone();
@@ -317,9 +350,11 @@ fn snake_movement(
     }
 
     for (prev, curr) in snake_parts.0.iter().zip(snake_parts.0[1..].iter()).rev() {
-        if let Ok((prev_grid_location, _prev_queue)) = snakes.get_mut(*prev) {
+        if let Ok((prev_grid_location, _prev_queue, _orientation)) = snakes.get_mut(*prev) {
             let tmp = prev_grid_location.clone();
-            if let Ok((mut curr_grid_location, mut curr_queue)) = snakes.get_mut(*curr) {
+            if let Ok((mut curr_grid_location, mut curr_queue, _orientation)) =
+                snakes.get_mut(*curr)
+            {
                 *curr_grid_location = tmp.clone();
                 dbg!("pushing to queue");
                 curr_queue.0.push(tmp);
@@ -328,10 +363,22 @@ fn snake_movement(
     }
 
     if let Some(head) = snake_parts.0.first() {
-        if let Ok((mut grid_location, mut queue)) = snakes.get_mut(*head) {
+        if let Ok((mut grid_location, mut queue, _orientation)) = snakes.get_mut(*head) {
             *grid_location = grid_location.clone() + diff.clone();
-            dbg!("pushing to head queue");
             queue.0.push(grid_location.clone());
+        }
+    }
+
+    for (prev, curr) in snake_parts.0.iter().zip(snake_parts.0[1..].iter()).rev() {
+        if let Ok((_prev_grid_location, _prev_queue, prev_orientation)) = snakes.get_mut(*prev) {
+            let tmp = prev_orientation.clone();
+            
+            if let Ok((_curr_grid_location, _curr_queue, mut curr_orientation)) =
+                snakes.get_mut(*curr)
+            {
+                curr_orientation.from = curr_orientation.to.clone();
+                curr_orientation.to = tmp.from.clone();
+            }
         }
     }
 }
@@ -711,4 +758,9 @@ fn cursor_color(materials: &mut ResMut<Assets<ColorMaterial>>) -> Handle<ColorMa
 
 fn food_color(materials: &mut ResMut<Assets<ColorMaterial>>) -> Handle<ColorMaterial> {
     materials.add(Color::rgb(165.0 / 255.0, 48.0 / 255.0, 48.0 / 255.0).into())
+}
+
+// update sprite based on each direction
+fn sprite() {
+    
 }
