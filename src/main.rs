@@ -29,6 +29,8 @@ struct GridLocation {
     y: i32,
 }
 
+struct LocationQueue(Vec<GridLocation>);
+
 impl std::ops::Add for GridLocation {
     type Output = Self;
 
@@ -219,6 +221,7 @@ fn cleanup(
                 )),
                 ..Default::default()
             })
+            .insert(LocationQueue(vec![]))
             .id();
         match max_x {
             Some(max_x) => {
@@ -244,7 +247,7 @@ fn snake_movement(
     snake_parts: Res<SnakeParts>,
     grounds: Query<&GridLocation, (With<Ground>, Without<Snake>)>,
 
-    mut snakes: Query<&mut GridLocation, (With<Snake>, Without<Ground>)>,
+    mut snakes: Query<(&mut GridLocation, &mut LocationQueue), (With<Snake>, Without<Ground>)>,
 ) {
     // TODO: don't allow x and y at the same damn time
     let mut diff = GridLocation { x: 0, y: 0 };
@@ -282,6 +285,7 @@ fn snake_movement(
                     snakes
                         .get_mut(*snake_part_entity)
                         .expect("snake part grid location")
+                        .0
                         .clone(),
                 );
             }
@@ -290,6 +294,7 @@ fn snake_movement(
                 snakes
                     .get_mut(*snake_parts.0.last().expect("tail exists"))
                     .expect("snake part lookup")
+                    .0
                     .clone(),
             );
         }
@@ -301,7 +306,7 @@ fn snake_movement(
         tmp
     };
 
-    let head_location = snakes
+    let (head_location, _queue) = snakes
         .get_mut(*snake_parts.0.first().expect("head exists!"))
         .expect("head location exists");
     let proposed_location = head_location.clone() + diff.clone();
@@ -312,17 +317,21 @@ fn snake_movement(
     }
 
     for (prev, curr) in snake_parts.0.iter().zip(snake_parts.0[1..].iter()).rev() {
-        if let Ok(prev_grid_location) = snakes.get_mut(*prev) {
+        if let Ok((prev_grid_location, _prev_queue)) = snakes.get_mut(*prev) {
             let tmp = prev_grid_location.clone();
-            if let Ok(mut curr_grid_location) = snakes.get_mut(*curr) {
-                *curr_grid_location = tmp;
+            if let Ok((mut curr_grid_location, mut curr_queue)) = snakes.get_mut(*curr) {
+                *curr_grid_location = tmp.clone();
+                dbg!("pushing to queue");
+                curr_queue.0.push(tmp);
             }
         }
     }
 
     if let Some(head) = snake_parts.0.first() {
-        if let Ok(mut grid_location) = snakes.get_mut(*head) {
-            *grid_location = grid_location.clone() + diff;
+        if let Ok((mut grid_location, mut queue)) = snakes.get_mut(*head) {
+            *grid_location = grid_location.clone() + diff.clone();
+            dbg!("pushing to head queue");
+            queue.0.push(grid_location.clone());
         }
     }
 }
@@ -332,6 +341,7 @@ fn gravity(
     snake_parts: Query<(&Snake, Entity)>,
     ground: Query<(&Ground, Entity)>,
     mut grid_locations: Query<&mut GridLocation>,
+    mut queues: Query<&mut LocationQueue>,
 ) {
     let ground_set = {
         let mut tmp = HashSet::new();
@@ -363,10 +373,23 @@ fn gravity(
         }
         snake_fall = snake_fall.max(distance + 1);
     }
+    
+    if snake_fall == 0 {
+        return;
+    }
 
     for (_snake, e) in snake_parts.iter() {
         let mut snake_grid_location = grid_locations.get_mut(e).expect("snake grid location!");
         snake_grid_location.y += snake_fall;
+
+        match queues.get_mut(e) {
+            Ok(mut queue) => {
+                queue.0.push(snake_grid_location.clone());
+            }
+            Err(_) => {
+                eprintln!("Scene not loaded?")
+            }
+        }
     }
 }
 
@@ -410,6 +433,7 @@ fn food(
                     ..Default::default()
                 })
                 .insert(tail_location.clone())
+                .insert(LocationQueue(vec![]))
                 .insert(Snake)
                 .id();
 
@@ -420,21 +444,33 @@ fn food(
     }
 }
 
+const RATE: f32 = 2.0;
 
-fn gridlocation_to_transform(mut q: Query<(&GridLocation, &mut Transform)>) {
-    // TODO: queue of locations
-    
-    for (grid_location, mut xform) in q.iter_mut() {
-        let target_x = GRID_WIDTH * grid_location.x as f32;
-        let dx = target_x - xform.translation.x ;
-        if dx.abs() > f32::EPSILON {
-            xform.translation.x += 2. * dx.signum();
-        }
-        
-        let target_y = GRID_HEIGHT * grid_location.y as f32;
-        let dy = target_y - xform.translation.y;
-        if dy.abs() > f32::EPSILON {
-            xform.translation.y += 2. * dy.signum();
+fn gridlocation_to_transform(mut q: Query<(&mut LocationQueue, &mut Transform)>) {
+    for (mut location_queue, mut xform) in q.iter_mut() {
+        // if item in location queue, move to it.
+        // if arrive there, remove it.
+
+        if let Some(grid_location) = location_queue.0.first() {
+            let target_x = GRID_WIDTH * grid_location.x as f32;
+            let dx = target_x - xform.translation.x;
+            if dx.abs() > f32::EPSILON {
+                xform.translation.x += RATE * dx.signum();
+            }
+
+            let target_y = GRID_HEIGHT * grid_location.y as f32;
+            let dy = target_y - xform.translation.y;
+            if dy.abs() > f32::EPSILON {
+                xform.translation.y += RATE * dy.signum();
+            }
+
+            if xform
+                .translation
+                .distance(Vec3::new(target_x, target_y, 0.))
+                <= f32::EPSILON
+            {
+                location_queue.0.remove(0);
+            }
         }
     }
 }
