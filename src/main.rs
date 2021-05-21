@@ -54,8 +54,8 @@ struct Food;
 
 struct SnakeParts(Vec<Entity>);
 
-const GRID_WIDTH: f32 = 64.0;
-const GRID_HEIGHT: f32 = 64.0;
+const GRID_WIDTH: f32 = 16.0;
+const GRID_HEIGHT: f32 = 16.0;
 
 struct MainCamera;
 
@@ -420,17 +420,22 @@ fn food(
     }
 }
 
-const LERP_LAMBDA: f32 = 5.0;
 
-fn gridlocation_to_transform(time: Res<Time>, mut q: Query<(&GridLocation, &mut Transform)>) {
+fn gridlocation_to_transform(mut q: Query<(&GridLocation, &mut Transform)>) {
     // TODO: queue of locations
+    
     for (grid_location, mut xform) in q.iter_mut() {
         let target_x = GRID_WIDTH * grid_location.x as f32;
-        xform.translation.x = xform.translation.x * (1.0 - LERP_LAMBDA * time.delta_seconds())
-            + target_x * LERP_LAMBDA * time.delta_seconds();
+        let dx = target_x - xform.translation.x ;
+        if dx.abs() > f32::EPSILON {
+            xform.translation.x += 2. * dx.signum();
+        }
+        
         let target_y = GRID_HEIGHT * grid_location.y as f32;
-        xform.translation.y = xform.translation.y * (1.0 - LERP_LAMBDA * time.delta_seconds())
-            + target_y * LERP_LAMBDA * time.delta_seconds();
+        let dy = target_y - xform.translation.y;
+        if dy.abs() > f32::EPSILON {
+            xform.translation.y += 2. * dy.signum();
+        }
     }
 }
 
