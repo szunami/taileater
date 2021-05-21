@@ -59,8 +59,8 @@ struct Food;
 
 struct SnakeParts(Vec<Entity>);
 
-const GRID_WIDTH: f32 = 32.0;
-const GRID_HEIGHT: f32 = 32.0;
+const GRID_WIDTH: f32 = 16.0;
+const GRID_HEIGHT: f32 = 16.0;
 
 struct MainCamera;
 
@@ -68,7 +68,7 @@ struct Cursor;
 
 struct MyWorld(World, TypeRegistry);
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 enum Direction {
     Up,
     Down,
@@ -76,7 +76,7 @@ enum Direction {
     Right,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 // does tail care about from?
 struct Orientation {
     from: Direction,
@@ -197,7 +197,7 @@ fn cleanup(
     asset_server: Res<AssetServer>,
     
     grounds: Query<(&Ground, &GridLocation, Entity), Without<Sprite>>,
-    snakes: Query<(&Snake, &GridLocation, Entity), Without<Sprite>>,
+    snakes: Query<(&Snake, &GridLocation, Entity), Without<TextureAtlasSprite>>,
     foods: Query<(&Food, &GridLocation, Entity), Without<Sprite>>,
 ) {
     for (_ground, grid_location, e) in grounds.iter() {
@@ -226,16 +226,16 @@ fn cleanup(
         });
     }
     
-    let snake_sprite = asset_server.load("sprites/tmp/base_green.png");
-    let snake_atlas = TextureAtlas::from_grid(snake_sprite, Vec2::new(32.0, 32.0), 8, 1);
-    let snake_handle = texture_atlases.add(snake_atlas);
+    
     
     // HACK: assume that the rightmost snake is first in the array
     // TODO: use MapEntities
     let mut internal_snake_parts = vec![];
     let mut max_x = None;
     for (_snake, grid_location, e) in snakes.iter() {
-        // let texture_handle = asset_server.load("sprites/tmp/Sprite-0010.png");
+        let snake_sprite = asset_server.load("sprites/tmp/base_green.png");
+    let snake_atlas = TextureAtlas::from_grid(snake_sprite, Vec2::new(16.0, 16.0), 6, 1);
+    let snake_handle = texture_atlases.add(snake_atlas);
         let id = commands
             .entity(e)
             .insert_bundle(SpriteSheetBundle {
@@ -368,8 +368,8 @@ fn snake_movement(
             queue.0.push(grid_location.clone());
         }
     }
-
-    for (prev, curr) in snake_parts.0.iter().zip(snake_parts.0[1..].iter()).rev() {
+    dbg!(snake_parts.0.len());
+    for (prev, curr) in snake_parts.0[1..].iter().zip(snake_parts.0[2..].iter()).rev() {
         if let Ok((_prev_grid_location, _prev_queue, prev_orientation)) = snakes.get_mut(*prev) {
             let tmp = prev_orientation.clone();
             
@@ -378,6 +378,55 @@ fn snake_movement(
             {
                 curr_orientation.from = curr_orientation.to.clone();
                 curr_orientation.to = tmp.from.clone();
+            }
+        }
+    }
+    
+    if let Some(second) = snake_parts.0.get(1) {
+        if let Ok((_grid_location, _queue, mut orientation)) = snakes.get_mut(*second) {
+            orientation.from = match orientation.to.clone() {
+                Direction::Up => {Direction::Down}
+                Direction::Down => {Direction::Up}
+                Direction::Left => {Direction::Right}
+                Direction::Right => {Direction::Left}
+            };
+            
+            if keyboard_input.just_pressed(KeyCode::A) {
+                orientation.to = Direction::Left;
+            }
+            if keyboard_input.just_pressed(KeyCode::D) {
+                orientation.to = Direction::Right;
+            }
+            if keyboard_input.just_pressed(KeyCode::S) {
+                orientation.to = Direction::Down;
+            }
+            if keyboard_input.just_pressed(KeyCode::W) {
+                orientation.to = Direction::Up;
+            }
+        }
+    }
+    dbg!(snake_parts.0.len());
+
+    
+    if let Some(head) = snake_parts.0.first() {
+        if let Ok((_grid_location, _queue, mut orientation)) = snakes.get_mut(*head) {
+            orientation.from = orientation.to.clone();
+            
+            if keyboard_input.just_pressed(KeyCode::A) {
+                orientation.to = Direction::Left;
+                orientation.from = Direction::Right;
+            }
+            if keyboard_input.just_pressed(KeyCode::D) {
+                orientation.to = Direction::Right;
+                orientation.from = Direction::Left;
+            }
+            if keyboard_input.just_pressed(KeyCode::S) {
+                orientation.to = Direction::Down;
+                orientation.from = Direction::Up;
+            }
+            if keyboard_input.just_pressed(KeyCode::W) {
+                orientation.to = Direction::Up;
+                orientation.from = Direction::Down;
             }
         }
     }
@@ -447,7 +496,7 @@ fn food(
     mut snake_parts: ResMut<SnakeParts>,
     asset_server: Res<AssetServer>,
 
-    snake_locations: Query<(&GridLocation, &Transform), (With<Snake>, Without<Food>)>,
+    snake_locations: Query<(&GridLocation, &Transform, &Orientation), (With<Snake>, Without<Food>)>,
     food_locations: Query<(&GridLocation, Entity), (With<Food>, Without<Snake>)>,
 ) {
     if snake_parts.0.is_empty() {
@@ -459,16 +508,16 @@ fn food(
         Err(_) => return,
     };
 
-    // .0;
-
-    let (tail_location, tail_xform) = snake_locations
+    let (tail_location, tail_xform, tail_orientation) = snake_locations
         .get(*snake_parts.0.last().expect("tail exists"))
         .expect("head has grid location");
 
     for (food_location, food_entity) in food_locations.iter() {
         if food_location == head_location {
             // despawn food!
+            dbg!(snake_parts.0.len());
             commands.entity(food_entity).despawn_recursive();
+            dbg!(snake_parts.0.len());
             let texture_handle = asset_server.load("sprites/tmp/Sprite-0010.png");
 
             let new_snake = commands
@@ -482,6 +531,9 @@ fn food(
                 .insert(tail_location.clone())
                 .insert(LocationQueue(vec![]))
                 .insert(Snake)
+                // what is orientation??
+                .insert(tail_orientation.clone())
+                
                 .id();
 
             let index = snake_parts.0.len() - 1;
@@ -761,6 +813,39 @@ fn food_color(materials: &mut ResMut<Assets<ColorMaterial>>) -> Handle<ColorMate
 }
 
 // update sprite based on each direction
-fn sprite() {
+fn sprite(mut q: Query<(&Orientation, &mut TextureAtlasSprite)>) {
+    for (orientation, mut sprite) in q.iter_mut() {
+        sprite.index = match (&orientation.from, &orientation.to) {
+            (Direction::Up, Direction::Down) => {1}
+            (Direction::Up, Direction::Left) => {2}
+            (Direction::Up, Direction::Right) => {3}
+            (Direction::Down, Direction::Up) => {1}
+            (Direction::Down, Direction::Left) => {5}
+            (Direction::Down, Direction::Right) => {4}
+            (Direction::Left, Direction::Up) => {2}
+            (Direction::Left, Direction::Down) => {5}
+            (Direction::Left, Direction::Right) => {0}
+            (Direction::Right, Direction::Up) => {3}
+            (Direction::Right, Direction::Down) => {4}
+            (Direction::Right, Direction::Left) => {0}
+            
+            _ => {
+                eprintln!("Shouldn't have happened :O");
+                0
+            }
+        }
+    }
     
+}
+
+#[cfg(test)]
+mod tests{
+    #[test]    fn test() {
+        
+        let x = vec![1, 2, 3];
+        
+        x.get(0);
+        
+        assert_eq!(x.len(), 3);
+    }
 }
