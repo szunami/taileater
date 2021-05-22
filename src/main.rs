@@ -229,20 +229,8 @@ fn cleanup(
     let mut internal_snake_parts = vec![];
     let mut max_x = None;
     for (_snake, grid_location, e) in snakes.iter() {
-        let snake_sprite = asset_server.load("sprites/tmp/base_green.png");
-        let snake_atlas = TextureAtlas::from_grid(snake_sprite, Vec2::new(16.0, 16.0), 6, 1);
-        let snake_handle = texture_atlases.add(snake_atlas);
         let id = commands
             .entity(e)
-            .insert_bundle(SpriteSheetBundle {
-                texture_atlas: snake_handle.clone_weak(),
-                transform: Transform::from_translation(Vec3::new(
-                    grid_location.x as f32 * GRID_WIDTH,
-                    grid_location.y as f32 * GRID_HEIGHT,
-                    0.,
-                )),
-                ..Default::default()
-            })
             .insert(LocationQueue(vec![]))
             .insert(Orientation {
                 to: Direction::Right,
@@ -264,6 +252,46 @@ fn cleanup(
         }
     }
     if !internal_snake_parts.is_empty() {
+        let head_sprite = asset_server.load("sprites/tmp/head.png");
+        let head_atlas = TextureAtlas::from_grid(head_sprite, Vec2::new(16.0, 16.0), 4, 1);
+        let head_handle = texture_atlases.add(head_atlas);
+
+        let head_entity = *internal_snake_parts.first().expect("head exists");
+        let (_snake, head_grid_location, _e) = snakes.get(head_entity).expect("head lookup");
+
+        // TODO: assign sprites here now that we have order. Do something smarter!
+        commands
+            .entity(head_entity)
+            .insert_bundle(SpriteSheetBundle {
+                texture_atlas: head_handle.clone_weak(),
+                transform: Transform::from_translation(Vec3::new(
+                    head_grid_location.x as f32 * GRID_WIDTH,
+                    head_grid_location.y as f32 * GRID_HEIGHT,
+                    0.,
+                )),
+                ..Default::default()
+            });
+
+        let tail_sprite = asset_server.load("sprites/tmp/tail.png");
+        let tail_atlas = TextureAtlas::from_grid(tail_sprite, Vec2::new(16.0, 16.0), 4, 1);
+        let tail_handle = texture_atlases.add(tail_atlas);
+
+        let tail_entity = *internal_snake_parts.last().expect("tail exists");
+        let (_snake, tail_grid_location, _e) = snakes.get(tail_entity).expect("tail lookup");
+
+        // TODO: assign sprites here now that we have order. Do something smarter!
+        commands
+            .entity(tail_entity)
+            .insert_bundle(SpriteSheetBundle {
+                texture_atlas: tail_handle.clone_weak(),
+                transform: Transform::from_translation(Vec3::new(
+                    tail_grid_location.x as f32 * GRID_WIDTH,
+                    tail_grid_location.y as f32 * GRID_HEIGHT,
+                    0.,
+                )),
+                ..Default::default()
+            });
+
         *snake_parts = SnakeParts(internal_snake_parts);
     }
 }
@@ -507,7 +535,7 @@ fn food(
 
     let (tail_location, tail_xform, tail_orientation) = snake_locations
         .get(*snake_parts.0.last().expect("tail exists"))
-        .expect("head has grid location");
+        .expect("tail has grid location");
 
     for (food_location, food_entity) in food_locations.iter() {
         if food_location == head_location {
@@ -525,6 +553,7 @@ fn food(
                     transform: *tail_xform,
                     ..Default::default()
                 })
+                // this is pre movement...
                 .insert(tail_location.clone())
                 .insert(LocationQueue(vec![]))
                 .insert(Snake)
@@ -811,35 +840,61 @@ fn food_color(materials: &mut ResMut<Assets<ColorMaterial>>) -> Handle<ColorMate
 // update sprite based on each direction
 fn sprite(snake_parts: Res<SnakeParts>, mut q: Query<(&Orientation, &mut TextureAtlasSprite)>) {
     for (index, e) in snake_parts.0.iter().enumerate() {
-        match q.get_mut(*e) {
-            Ok((orientation, mut sprite)) => {
-                sprite.index = match (&orientation.from, &orientation.to) {
-                    (Direction::Up, Direction::Down) => 1,
-                    (Direction::Up, Direction::Left) => 2,
-                    (Direction::Up, Direction::Right) => 3,
-                    (Direction::Down, Direction::Up) => 1,
-                    (Direction::Down, Direction::Left) => 5,
-                    (Direction::Down, Direction::Right) => 4,
-                    (Direction::Left, Direction::Up) => 2,
-                    (Direction::Left, Direction::Down) => 5,
-                    (Direction::Left, Direction::Right) => 0,
-                    (Direction::Right, Direction::Up) => 3,
-                    (Direction::Right, Direction::Down) => 4,
-                    (Direction::Right, Direction::Left) => 0,
-
-                    _ => {
-                        dbg!(index, orientation);
-                        1000
+        let tail = snake_parts.0.len() - 1;
+        match index {
+            0 => match q.get_mut(*e) {
+                Ok((orientation, mut sprite)) => {
+                    sprite.index = match &orientation.to {
+                        Direction::Up => 1,
+                        Direction::Down => 3,
+                        Direction::Left => 2,
+                        Direction::Right => 0,
                     }
                 }
-            }
-            Err(_) => {
-                eprintln!("Someone should look into this...")
-            }
+                Err(_) => {
+                    eprintln!("Someone should look into this...")
+                }
+            },
+            x if x == tail => match q.get_mut(*e) {
+                Ok((orientation, mut sprite)) => {
+                    sprite.index = match &orientation.to {
+                        Direction::Up => 3,
+                        Direction::Down => 1,
+                        Direction::Left => 0,
+                        Direction::Right => 2,
+                    }
+                }
+                Err(_) => {
+                    eprintln!("Someone should look into this...")
+                }
+            },
+
+            _ => match q.get_mut(*e) {
+                Ok((orientation, mut sprite)) => {
+                    sprite.index = match (&orientation.from, &orientation.to) {
+                        (Direction::Up, Direction::Down) => 1,
+                        (Direction::Up, Direction::Left) => 2,
+                        (Direction::Up, Direction::Right) => 3,
+                        (Direction::Down, Direction::Up) => 1,
+                        (Direction::Down, Direction::Left) => 5,
+                        (Direction::Down, Direction::Right) => 4,
+                        (Direction::Left, Direction::Up) => 2,
+                        (Direction::Left, Direction::Down) => 5,
+                        (Direction::Left, Direction::Right) => 0,
+                        (Direction::Right, Direction::Up) => 3,
+                        (Direction::Right, Direction::Down) => 4,
+                        (Direction::Right, Direction::Left) => 0,
+
+                        _ => {
+                            dbg!(index, orientation);
+                            1000
+                        }
+                    }
+                }
+                Err(_) => {
+                    eprintln!("Someone should look into this...")
+                }
+            },
         }
     }
-
-    for (orientation, mut sprite) in q.iter_mut() {}
-
-    for (orientation, mut sprite) in q.iter_mut() {}
 }
