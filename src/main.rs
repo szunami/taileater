@@ -375,8 +375,7 @@ fn snake_movement(
             if let Ok((_curr_grid_location, _curr_queue, mut curr_orientation)) =
                 snakes.get_mut(*curr)
             {
-                curr_orientation.from = curr_orientation.to.clone();
-                curr_orientation.to = tmp.from.clone();
+                *curr_orientation = tmp;
             }
         }
     }
@@ -811,28 +810,41 @@ fn food_color(materials: &mut ResMut<Assets<ColorMaterial>>) -> Handle<ColorMate
 
 // update sprite based on each direction
 fn sprite(snake_parts: Res<SnakeParts>, mut q: Query<(&Orientation, &mut TextureAtlasSprite)>) {
+  
     for (index, e) in snake_parts.0.iter().enumerate() {
-        let (orientation, mut sprite) = q.get_mut(*e).expect("orientation lookup!");
-
-        sprite.index = match (&orientation.from, &orientation.to) {
-            (Direction::Up, Direction::Down) => 1,
-            (Direction::Up, Direction::Left) => 2,
-            (Direction::Up, Direction::Right) => 3,
-            (Direction::Down, Direction::Up) => 1,
-            (Direction::Down, Direction::Left) => 5,
-            (Direction::Down, Direction::Right) => 4,
-            (Direction::Left, Direction::Up) => 2,
-            (Direction::Left, Direction::Down) => 5,
-            (Direction::Left, Direction::Right) => 0,
-            (Direction::Right, Direction::Up) => 3,
-            (Direction::Right, Direction::Down) => 4,
-            (Direction::Right, Direction::Left) => 0,
-
-            _ => {
-                dbg!(index, orientation);
-                0
+        match q.get_mut(*e) {
+            Ok((orientation, mut sprite)) => {
+                sprite.index = match (&orientation.from, &orientation.to) {
+                    (Direction::Up, Direction::Down) => 1,
+                    (Direction::Up, Direction::Left) => 2,
+                    (Direction::Up, Direction::Right) => 3,
+                    (Direction::Down, Direction::Up) => 1,
+                    (Direction::Down, Direction::Left) => 5,
+                    (Direction::Down, Direction::Right) => 4,
+                    (Direction::Left, Direction::Up) => 2,
+                    (Direction::Left, Direction::Down) => 5,
+                    (Direction::Left, Direction::Right) => 0,
+                    (Direction::Right, Direction::Up) => 3,
+                    (Direction::Right, Direction::Down) => 4,
+                    (Direction::Right, Direction::Left) => 0,
+        
+                    _ => {
+                        dbg!(index, orientation);
+                        1000
+                    }
+                }
+            }
+            Err(_) => {
+                eprintln!("Someone should look into this...")
             }
         }
+        
+       
+    }
+    
+    for (orientation, mut sprite) in q.iter_mut() {
+
+       
     }
 
     for (orientation, mut sprite) in q.iter_mut() {}
