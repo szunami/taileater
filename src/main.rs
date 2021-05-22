@@ -59,8 +59,8 @@ struct Food;
 
 struct SnakeParts(Vec<Entity>);
 
-const GRID_WIDTH: f32 = 16.0;
-const GRID_HEIGHT: f32 = 16.0;
+const GRID_WIDTH: f32 = 32.0;
+const GRID_HEIGHT: f32 = 32.0;
 
 struct MainCamera;
 
@@ -252,8 +252,8 @@ fn cleanup(
         }
     }
     if !internal_snake_parts.is_empty() {
-        let head_sprite = asset_server.load("sprites/tmp/head.png");
-        let head_atlas = TextureAtlas::from_grid(head_sprite, Vec2::new(16.0, 16.0), 4, 1);
+        let head_sprite = asset_server.load("sprites/tmp/head_thick.png");
+        let head_atlas = TextureAtlas::from_grid(head_sprite, Vec2::new(32.0, 32.0), 4, 1);
         let head_handle = texture_atlases.add(head_atlas);
 
         let head_entity = *internal_snake_parts.first().expect("head exists");
@@ -272,8 +272,8 @@ fn cleanup(
                 ..Default::default()
             });
 
-        let tail_sprite = asset_server.load("sprites/tmp/tail.png");
-        let tail_atlas = TextureAtlas::from_grid(tail_sprite, Vec2::new(16.0, 16.0), 4, 1);
+        let tail_sprite = asset_server.load("sprites/tmp/tail_thick.png");
+        let tail_atlas = TextureAtlas::from_grid(tail_sprite, Vec2::new(32.0, 32.0), 4, 1);
         let tail_handle = texture_atlases.add(tail_atlas);
 
         let tail_entity = *internal_snake_parts.last().expect("tail exists");
@@ -325,17 +325,10 @@ fn snake_movement(
         return;
     }
 
-    // TODO: check for blocked!
-    // block if collision between head and:
-    // - non tail
-    // - non second to last!
-    // - ground
-    // - someday: box + wall (???)
-
     let block_set = {
         let mut tmp = HashSet::new();
 
-        if snake_parts.0.len() > 2 {
+        if snake_parts.0.len() > 3 {
             // exclude head; exclude tail + second to last
             for snake_part_entity in snake_parts.0[1..snake_parts.0.len() - 2].iter() {
                 tmp.insert(
@@ -347,6 +340,21 @@ fn snake_movement(
                 );
             }
         } else if snake_parts.0.len() == 2 {
+            tmp.insert(
+                snakes
+                    .get_mut(*snake_parts.0.last().expect("tail exists"))
+                    .expect("snake part lookup")
+                    .0
+                    .clone(),
+            );
+        } else if snake_parts.0.len() == 3 {
+            tmp.insert(
+                snakes
+                    .get_mut(*snake_parts.0.get(1).expect("middle exists"))
+                    .expect("snake part lookup")
+                    .0
+                    .clone(),
+            );
             tmp.insert(
                 snakes
                     .get_mut(*snake_parts.0.last().expect("tail exists"))
@@ -542,8 +550,14 @@ fn food(
             // despawn food!
             commands.entity(food_entity).despawn_recursive();
 
-            let snake_sprite = asset_server.load("sprites/tmp/base_green.png");
-            let snake_atlas = TextureAtlas::from_grid(snake_sprite, Vec2::new(16.0, 16.0), 6, 1);
+            let snake_sprite = {
+                if snake_parts.0.len() % 2 == 0 {
+                    asset_server.load("sprites/tmp/base_dark_green_thick.png")
+                } else {
+                    asset_server.load("sprites/tmp/base_green_thick.png")
+                }
+            };
+            let snake_atlas = TextureAtlas::from_grid(snake_sprite, Vec2::new(32.0, 32.0), 6, 1);
             let snake_handle = texture_atlases.add(snake_atlas);
 
             let new_snake = commands
