@@ -364,7 +364,6 @@ fn snake_movement(
             queue.0.push(grid_location.clone());
         }
     }
-    dbg!(snake_parts.0.len());
     for (prev, curr) in snake_parts.0[1..]
         .iter()
         .zip(snake_parts.0[2..].iter())
@@ -405,7 +404,6 @@ fn snake_movement(
             }
         }
     }
-    dbg!(snake_parts.0.len());
 
     if let Some(head) = snake_parts.0.first() {
         if let Ok((_grid_location, _queue, mut orientation)) = snakes.get_mut(*head) {
@@ -515,9 +513,7 @@ fn food(
     for (food_location, food_entity) in food_locations.iter() {
         if food_location == head_location {
             // despawn food!
-            dbg!(snake_parts.0.len());
             commands.entity(food_entity).despawn_recursive();
-            dbg!(snake_parts.0.len());
 
             let snake_sprite = asset_server.load("sprites/tmp/base_green.png");
             let snake_atlas = TextureAtlas::from_grid(snake_sprite, Vec2::new(16.0, 16.0), 6, 1);
@@ -540,7 +536,6 @@ fn food(
             let index = snake_parts.0.len() - 1;
 
             snake_parts.0.insert(index, new_snake);
-            dbg!(snake_parts.0.len());
         }
     }
 }
@@ -815,8 +810,10 @@ fn food_color(materials: &mut ResMut<Assets<ColorMaterial>>) -> Handle<ColorMate
 }
 
 // update sprite based on each direction
-fn sprite(mut q: Query<(&Orientation, &mut TextureAtlasSprite)>) {
-    for (orientation, mut sprite) in q.iter_mut() {
+fn sprite(snake_parts: Res<SnakeParts>, mut q: Query<(&Orientation, &mut TextureAtlasSprite)>) {
+    for (index, e) in snake_parts.0.iter().enumerate() {
+        let (orientation, mut sprite) = q.get_mut(*e).expect("orientation lookup!");
+
         sprite.index = match (&orientation.from, &orientation.to) {
             (Direction::Up, Direction::Down) => 1,
             (Direction::Up, Direction::Left) => 2,
@@ -832,21 +829,11 @@ fn sprite(mut q: Query<(&Orientation, &mut TextureAtlasSprite)>) {
             (Direction::Right, Direction::Left) => 0,
 
             _ => {
-                eprintln!("Shouldn't have happened :O");
+                dbg!(index, orientation);
                 0
             }
         }
     }
-}
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn test() {
-        let x = vec![1, 2, 3];
-
-        x.get(0);
-
-        assert_eq!(x.len(), 3);
-    }
+    for (orientation, mut sprite) in q.iter_mut() {}
 }
