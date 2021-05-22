@@ -810,7 +810,6 @@ fn food_color(materials: &mut ResMut<Assets<ColorMaterial>>) -> Handle<ColorMate
 
 // update sprite based on each direction
 fn sprite(snake_parts: Res<SnakeParts>, mut q: Query<(&Orientation, &mut TextureAtlasSprite)>) {
-  
     for (index, e) in snake_parts.0.iter().enumerate() {
         match q.get_mut(*e) {
             Ok((orientation, mut sprite)) => {
@@ -827,7 +826,7 @@ fn sprite(snake_parts: Res<SnakeParts>, mut q: Query<(&Orientation, &mut Texture
                     (Direction::Right, Direction::Up) => 3,
                     (Direction::Right, Direction::Down) => 4,
                     (Direction::Right, Direction::Left) => 0,
-        
+
                     _ => {
                         dbg!(index, orientation);
                         1000
@@ -838,14 +837,9 @@ fn sprite(snake_parts: Res<SnakeParts>, mut q: Query<(&Orientation, &mut Texture
                 eprintln!("Someone should look into this...")
             }
         }
-        
-       
     }
-    
-    for (orientation, mut sprite) in q.iter_mut() {
 
-       
-    }
+    for (orientation, mut sprite) in q.iter_mut() {}
 
     for (orientation, mut sprite) in q.iter_mut() {}
 }
