@@ -152,9 +152,7 @@ fn main() {
                     .label(SnakeMovementLabel)
                     .after(FoodLabel),
             )
-            .add_system(
-                sprite.system().label(SpriteLabel).after(SnakeMovementLabel)
-            )
+            .add_system(sprite.system().label(SpriteLabel).after(SnakeMovementLabel))
             .add_system(
                 gravity
                     .system()
@@ -193,9 +191,9 @@ fn cleanup(
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut snake_parts: ResMut<SnakeParts>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
-    
+
     asset_server: Res<AssetServer>,
-    
+
     grounds: Query<(&Ground, &GridLocation, Entity), Without<Sprite>>,
     snakes: Query<(&Snake, &GridLocation, Entity), Without<TextureAtlasSprite>>,
     foods: Query<(&Food, &GridLocation, Entity), Without<Sprite>>,
@@ -225,17 +223,15 @@ fn cleanup(
             ..Default::default()
         });
     }
-    
-    
-    
+
     // HACK: assume that the rightmost snake is first in the array
     // TODO: use MapEntities
     let mut internal_snake_parts = vec![];
     let mut max_x = None;
     for (_snake, grid_location, e) in snakes.iter() {
         let snake_sprite = asset_server.load("sprites/tmp/base_green.png");
-    let snake_atlas = TextureAtlas::from_grid(snake_sprite, Vec2::new(16.0, 16.0), 6, 1);
-    let snake_handle = texture_atlases.add(snake_atlas);
+        let snake_atlas = TextureAtlas::from_grid(snake_sprite, Vec2::new(16.0, 16.0), 6, 1);
+        let snake_handle = texture_atlases.add(snake_atlas);
         let id = commands
             .entity(e)
             .insert_bundle(SpriteSheetBundle {
@@ -369,10 +365,14 @@ fn snake_movement(
         }
     }
     dbg!(snake_parts.0.len());
-    for (prev, curr) in snake_parts.0[1..].iter().zip(snake_parts.0[2..].iter()).rev() {
+    for (prev, curr) in snake_parts.0[1..]
+        .iter()
+        .zip(snake_parts.0[2..].iter())
+        .rev()
+    {
         if let Ok((_prev_grid_location, _prev_queue, prev_orientation)) = snakes.get_mut(*prev) {
             let tmp = prev_orientation.clone();
-            
+
             if let Ok((_curr_grid_location, _curr_queue, mut curr_orientation)) =
                 snakes.get_mut(*curr)
             {
@@ -381,16 +381,16 @@ fn snake_movement(
             }
         }
     }
-    
+
     if let Some(second) = snake_parts.0.get(1) {
         if let Ok((_grid_location, _queue, mut orientation)) = snakes.get_mut(*second) {
             orientation.from = match orientation.to.clone() {
-                Direction::Up => {Direction::Down}
-                Direction::Down => {Direction::Up}
-                Direction::Left => {Direction::Right}
-                Direction::Right => {Direction::Left}
+                Direction::Up => Direction::Down,
+                Direction::Down => Direction::Up,
+                Direction::Left => Direction::Right,
+                Direction::Right => Direction::Left,
             };
-            
+
             if keyboard_input.just_pressed(KeyCode::A) {
                 orientation.to = Direction::Left;
             }
@@ -407,11 +407,10 @@ fn snake_movement(
     }
     dbg!(snake_parts.0.len());
 
-    
     if let Some(head) = snake_parts.0.first() {
         if let Ok((_grid_location, _queue, mut orientation)) = snakes.get_mut(*head) {
             orientation.from = orientation.to.clone();
-            
+
             if keyboard_input.just_pressed(KeyCode::A) {
                 orientation.to = Direction::Left;
                 orientation.from = Direction::Right;
@@ -492,8 +491,9 @@ fn gravity(
 fn food(
     mut commands: Commands,
 
-    mut materials: ResMut<Assets<ColorMaterial>>,
     mut snake_parts: ResMut<SnakeParts>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+
     asset_server: Res<AssetServer>,
 
     snake_locations: Query<(&GridLocation, &Transform, &Orientation), (With<Snake>, Without<Food>)>,
@@ -518,13 +518,15 @@ fn food(
             dbg!(snake_parts.0.len());
             commands.entity(food_entity).despawn_recursive();
             dbg!(snake_parts.0.len());
-            let texture_handle = asset_server.load("sprites/tmp/Sprite-0010.png");
+
+            let snake_sprite = asset_server.load("sprites/tmp/base_green.png");
+            let snake_atlas = TextureAtlas::from_grid(snake_sprite, Vec2::new(16.0, 16.0), 6, 1);
+            let snake_handle = texture_atlases.add(snake_atlas);
 
             let new_snake = commands
                 .spawn()
-                .insert_bundle(SpriteBundle {
-                    sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-                    material: materials.add(texture_handle.into()),
+                .insert_bundle(SpriteSheetBundle {
+                    texture_atlas: snake_handle.clone_weak(),
                     transform: *tail_xform,
                     ..Default::default()
                 })
@@ -533,14 +535,12 @@ fn food(
                 .insert(Snake)
                 // what is orientation??
                 .insert(tail_orientation.clone())
-                
                 .id();
 
             let index = snake_parts.0.len() - 1;
 
             snake_parts.0.insert(index, new_snake);
             dbg!(snake_parts.0.len());
-
         }
     }
 }
@@ -818,36 +818,35 @@ fn food_color(materials: &mut ResMut<Assets<ColorMaterial>>) -> Handle<ColorMate
 fn sprite(mut q: Query<(&Orientation, &mut TextureAtlasSprite)>) {
     for (orientation, mut sprite) in q.iter_mut() {
         sprite.index = match (&orientation.from, &orientation.to) {
-            (Direction::Up, Direction::Down) => {1}
-            (Direction::Up, Direction::Left) => {2}
-            (Direction::Up, Direction::Right) => {3}
-            (Direction::Down, Direction::Up) => {1}
-            (Direction::Down, Direction::Left) => {5}
-            (Direction::Down, Direction::Right) => {4}
-            (Direction::Left, Direction::Up) => {2}
-            (Direction::Left, Direction::Down) => {5}
-            (Direction::Left, Direction::Right) => {0}
-            (Direction::Right, Direction::Up) => {3}
-            (Direction::Right, Direction::Down) => {4}
-            (Direction::Right, Direction::Left) => {0}
-            
+            (Direction::Up, Direction::Down) => 1,
+            (Direction::Up, Direction::Left) => 2,
+            (Direction::Up, Direction::Right) => 3,
+            (Direction::Down, Direction::Up) => 1,
+            (Direction::Down, Direction::Left) => 5,
+            (Direction::Down, Direction::Right) => 4,
+            (Direction::Left, Direction::Up) => 2,
+            (Direction::Left, Direction::Down) => 5,
+            (Direction::Left, Direction::Right) => 0,
+            (Direction::Right, Direction::Up) => 3,
+            (Direction::Right, Direction::Down) => 4,
+            (Direction::Right, Direction::Left) => 0,
+
             _ => {
                 eprintln!("Shouldn't have happened :O");
                 0
             }
         }
     }
-    
 }
 
 #[cfg(test)]
-mod tests{
-    #[test]    fn test() {
-        
+mod tests {
+    #[test]
+    fn test() {
         let x = vec![1, 2, 3];
-        
+
         x.get(0);
-        
+
         assert_eq!(x.len(), 3);
     }
 }
