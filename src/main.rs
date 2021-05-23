@@ -593,9 +593,9 @@ fn food(
                     transform: *tail_xform,
                     ..Default::default()
                 })
-                // this is pre movement...
                 .insert(tail_location.clone())
-                .insert(LocationQueue(vec![]))
+                // transforms only update is queue is nonempty...
+                .insert(LocationQueue(vec![tail_location.clone()]))
                 .insert(TransitionQueue(vec![]))
                 .insert(Snake)
                 // what is orientation??
@@ -922,7 +922,6 @@ fn sprite(
                 // offset depends on transition values;
                 Ok((_orientation, mut sprite, mut transition_queue)) => {
                     if let Some(transition) = transition_queue.0.first_mut() {
-                        // dbg!(transition.clone());
                         // TODO: this is a function of transition to / from
                         let offset = 0;
                         transition.index = (transition.index + 1).min(16);
