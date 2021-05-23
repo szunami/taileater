@@ -929,10 +929,8 @@ fn sprite(
                 // increment transition; match transition from and to to determine offset
                 // offset depends on transition values;
                 Ok((_orientation, mut sprite, mut transition_queue)) => {
-                    dbg!(transition_queue.0.len());
                     if let Some(transition) = transition_queue.0.first_mut() {
                         // TODO: this is a function of transition to / from
-
                         dbg!(transition.clone());
                         let offset = match (transition.from, transition.to) {
                             (
@@ -947,6 +945,62 @@ fn sprite(
                             ) => {
                                 dbg!("hit our one case :)");
                                 0
+                            }
+
+                            (
+                                Orientation {
+                                    from: Direction::Left,
+                                    to: Direction::Right,
+                                },
+                                Orientation {
+                                    from: Direction::Left,
+                                    to: Direction::Up,
+                                },
+                            ) => {
+                                dbg!("hit our one case :)");
+                                1
+                            }
+
+                            (
+                                Orientation {
+                                    from: Direction::Left,
+                                    to: Direction::Right,
+                                },
+                                Orientation {
+                                    from: Direction::Left,
+                                    to: Direction::Down,
+                                },
+                            ) => {
+                                dbg!("hit our one case :)");
+                                2
+                            }
+
+                            (
+                                Orientation {
+                                    from: Direction::Left,
+                                    to: Direction::Up,
+                                },
+                                Orientation {
+                                    from: Direction::Down,
+                                    to: Direction::Up,
+                                },
+                            ) => {
+                                dbg!("hit our one case :)");
+                                4
+                            }
+
+                            (
+                                Orientation {
+                                    from: Direction::Left,
+                                    to: Direction::Down,
+                                },
+                                Orientation {
+                                    from: Direction::Up,
+                                    to: Direction::Down,
+                                },
+                            ) => {
+                                dbg!("hit our one case :)");
+                                7
                             }
 
                             _ => 1,
