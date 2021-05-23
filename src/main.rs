@@ -77,11 +77,20 @@ enum Direction {
 }
 
 #[derive(Clone, Debug)]
-// does tail care about from?
 struct Orientation {
     from: Direction,
     to: Direction,
 }
+
+#[derive(Clone, Debug)]
+struct Transition {
+    from: Orientation,
+    to: Orientation,
+    index: u32,
+}
+
+#[derive(Clone, Debug)]
+struct TransitionQueue(Vec<Transition>);
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -232,6 +241,7 @@ fn cleanup(
         let id = commands
             .entity(e)
             .insert(LocationQueue(vec![]))
+            .insert(TransitionQueue(vec![]))
             .insert(Orientation {
                 to: Direction::Right,
                 from: Direction::Left,
@@ -276,6 +286,8 @@ fn cleanup(
         let tail_atlas = TextureAtlas::from_grid(tail_sprite, Vec2::new(32.0, 32.0), 4, 1);
         let tail_handle = texture_atlases.add(tail_atlas);
 
+        dbg!(tail_handle.clone_weak());
+
         let tail_entity = *internal_snake_parts.last().expect("tail exists");
         let (_snake, tail_grid_location, _e) = snakes.get(tail_entity).expect("tail lookup");
 
@@ -305,6 +317,8 @@ fn snake_movement(
         (&mut GridLocation, &mut LocationQueue, &mut Orientation),
         (With<Snake>, Without<Ground>),
     >,
+
+    mut transitions: Query<&mut TransitionQueue, With<Snake>>,
 ) {
     // TODO: don't allow x and y at the same damn time
     let mut diff = GridLocation { x: 0, y: 0 };
@@ -388,7 +402,6 @@ fn snake_movement(
                 snakes.get_mut(*curr)
             {
                 *curr_grid_location = tmp.clone();
-                dbg!("pushing to queue");
                 curr_queue.0.push(tmp);
             }
         }
@@ -418,6 +431,10 @@ fn snake_movement(
 
     if let Some(second) = snake_parts.0.get(1) {
         if let Ok((_grid_location, _queue, mut orientation)) = snakes.get_mut(*second) {
+            // handle transition here?
+
+            let old_orientation = orientation.clone();
+
             orientation.from = match orientation.to.clone() {
                 Direction::Up => Direction::Down,
                 Direction::Down => Direction::Up,
@@ -436,6 +453,16 @@ fn snake_movement(
             }
             if keyboard_input.just_pressed(KeyCode::W) {
                 orientation.to = Direction::Up;
+            }
+
+            let new_orientation = orientation.clone();
+
+            if let Ok(mut transition) = transitions.get_mut(*second) {
+                transition.0.push(Transition {
+                    from: old_orientation,
+                    to: new_orientation,
+                    index: 0,
+                });
             }
         }
     }
@@ -550,26 +577,28 @@ fn food(
             // despawn food!
             commands.entity(food_entity).despawn_recursive();
 
-            let snake_sprite = {
+            let transition_sprite = {
                 if snake_parts.0.len() % 2 == 0 {
-                    asset_server.load("sprites/tmp/base_dark_green_thick.png")
+                    asset_server.load("sprites/tmp/transition.png")
                 } else {
-                    asset_server.load("sprites/tmp/base_green_thick.png")
+                    asset_server.load("sprites/tmp/transition.png")
                 }
             };
-            let snake_atlas = TextureAtlas::from_grid(snake_sprite, Vec2::new(32.0, 32.0), 6, 1);
-            let snake_handle = texture_atlases.add(snake_atlas);
+            let transition_atlas =
+                TextureAtlas::from_grid(transition_sprite, Vec2::new(32.0, 32.0), 16, 1);
+            let transition_handle = texture_atlases.add(transition_atlas);
 
             let new_snake = commands
                 .spawn()
                 .insert_bundle(SpriteSheetBundle {
-                    texture_atlas: snake_handle.clone_weak(),
+                    texture_atlas: transition_handle.clone_weak(),
                     transform: *tail_xform,
                     ..Default::default()
                 })
                 // this is pre movement...
                 .insert(tail_location.clone())
                 .insert(LocationQueue(vec![]))
+                .insert(TransitionQueue(vec![]))
                 .insert(Snake)
                 // what is orientation??
                 .insert(tail_orientation.clone())
@@ -852,12 +881,18 @@ fn food_color(materials: &mut ResMut<Assets<ColorMaterial>>) -> Handle<ColorMate
 }
 
 // update sprite based on each direction
-fn sprite(snake_parts: Res<SnakeParts>, mut q: Query<(&Orientation, &mut TextureAtlasSprite)>) {
+fn sprite(
+    snake_parts: Res<SnakeParts>,
+
+    // TODO: shouldn't need both of these once everything has a transition (???)
+    mut orientation_query: Query<(&Orientation, &mut TextureAtlasSprite, &mut TransitionQueue)>,
+) {
     for (index, e) in snake_parts.0.iter().enumerate() {
         let tail = snake_parts.0.len() - 1;
         match index {
-            0 => match q.get_mut(*e) {
-                Ok((orientation, mut sprite)) => {
+            // HEAD
+            0 => match orientation_query.get_mut(*e) {
+                Ok((orientation, mut sprite, _queue)) => {
                     sprite.index = match &orientation.to {
                         Direction::Up => 1,
                         Direction::Down => 3,
@@ -869,8 +904,9 @@ fn sprite(snake_parts: Res<SnakeParts>, mut q: Query<(&Orientation, &mut Texture
                     eprintln!("Someone should look into this...")
                 }
             },
-            x if x == tail => match q.get_mut(*e) {
-                Ok((orientation, mut sprite)) => {
+            // TAIL
+            x if x == tail => match orientation_query.get_mut(*e) {
+                Ok((orientation, mut sprite, _queue)) => {
                     sprite.index = match &orientation.to {
                         Direction::Up => 3,
                         Direction::Down => 1,
@@ -882,26 +918,20 @@ fn sprite(snake_parts: Res<SnakeParts>, mut q: Query<(&Orientation, &mut Texture
                     eprintln!("Someone should look into this...")
                 }
             },
+            // TWEENER
+            _ => match orientation_query.get_mut(*e) {
+                // increment transition; match transition from and to to determine offset
+                // offset depends on transition values;
+                Ok((_orientation, mut sprite, mut transition_queue)) => {
+                    if let Some(transition) = transition_queue.0.first_mut() {
+                        // dbg!(transition.clone());
+                        // TODO: this is a function of transition to / from
+                        let offset = 0;
+                        transition.index = (transition.index + 1).min(16);
+                        sprite.index = offset + transition.index;
 
-            _ => match q.get_mut(*e) {
-                Ok((orientation, mut sprite)) => {
-                    sprite.index = match (&orientation.from, &orientation.to) {
-                        (Direction::Up, Direction::Down) => 1,
-                        (Direction::Up, Direction::Left) => 2,
-                        (Direction::Up, Direction::Right) => 3,
-                        (Direction::Down, Direction::Up) => 1,
-                        (Direction::Down, Direction::Left) => 5,
-                        (Direction::Down, Direction::Right) => 4,
-                        (Direction::Left, Direction::Up) => 2,
-                        (Direction::Left, Direction::Down) => 5,
-                        (Direction::Left, Direction::Right) => 0,
-                        (Direction::Right, Direction::Up) => 3,
-                        (Direction::Right, Direction::Down) => 4,
-                        (Direction::Right, Direction::Left) => 0,
-
-                        _ => {
-                            dbg!(index, orientation);
-                            1000
+                        if sprite.index == 16 {
+                            transition_queue.0.remove(0);
                         }
                     }
                 }
