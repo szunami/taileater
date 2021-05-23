@@ -286,8 +286,6 @@ fn cleanup(
         let tail_atlas = TextureAtlas::from_grid(tail_sprite, Vec2::new(32.0, 32.0), 4, 1);
         let tail_handle = texture_atlases.add(tail_atlas);
 
-        dbg!(tail_handle.clone_weak());
-
         let tail_entity = *internal_snake_parts.last().expect("tail exists");
         let (_snake, tail_grid_location, _e) = snakes.get(tail_entity).expect("tail lookup");
 
@@ -585,13 +583,13 @@ fn food(
                 }
             };
             let transition_atlas =
-                TextureAtlas::from_grid(transition_sprite, Vec2::new(32.0, 32.0), 16, 1);
+                TextureAtlas::from_grid(transition_sprite.clone(), Vec2::new(96.0, 96.0), 17, 1);
             let transition_handle = texture_atlases.add(transition_atlas);
 
             let new_snake = commands
                 .spawn()
                 .insert_bundle(SpriteSheetBundle {
-                    texture_atlas: transition_handle.clone_weak(),
+                    texture_atlas: transition_handle.clone(),
                     transform: *tail_xform,
                     ..Default::default()
                 })
@@ -928,6 +926,7 @@ fn sprite(
                         // TODO: this is a function of transition to / from
                         let offset = 0;
                         transition.index = (transition.index + 1).min(16);
+
                         sprite.index = offset + transition.index;
 
                         if sprite.index == 16 {
