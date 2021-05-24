@@ -6,6 +6,9 @@ use std::{env, fs::File, io::Write};
 pub struct FoodLabel;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
+pub struct PoisonLabel;
+
+#[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
 pub struct SnakeMovementLabel;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
@@ -56,6 +59,10 @@ struct Ground;
 #[derive(Reflect, Default)]
 #[reflect(Component)]
 struct Food;
+
+#[derive(Reflect, Default)]
+#[reflect(Component)]
+struct Poison;
 
 struct SnakeParts(Vec<Entity>);
 
@@ -155,11 +162,12 @@ fn main() {
             .add_system(cleanup.system())
             .add_system(bevy::input::system::exit_on_esc_system.system())
             .add_system(food.system().label(FoodLabel))
+            .add_system(poison.system().label(PoisonLabel).after(FoodLabel))
             .add_system(
                 snake_movement
                     .system()
                     .label(SnakeMovementLabel)
-                    .after(FoodLabel),
+                    .after(PoisonLabel),
             )
             .add_system(sprite.system().label(SpriteLabel).after(SnakeMovementLabel))
             .add_system(
@@ -615,6 +623,10 @@ fn food(
             snake_parts.0.insert(index, new_snake);
         }
     }
+}
+
+fn poison() {
+    
 }
 
 const RATE: f32 = 2.0;
