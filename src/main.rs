@@ -931,7 +931,8 @@ fn sprite(
                 Ok((_orientation, mut sprite, mut transition_queue)) => {
                     if let Some(transition) = transition_queue.0.first_mut() {
                         // TODO: this is a function of transition to / from
-                        dbg!(transition.clone());
+                        dbg!("start of sprite system");
+
                         let offset = match (transition.from, transition.to) {
                             (
                                 Orientation {
@@ -942,10 +943,7 @@ fn sprite(
                                     from: Direction::Left,
                                     to: Direction::Right,
                                 },
-                            ) => {
-                                dbg!("hit our one case :)");
-                                0
-                            }
+                            ) => 0,
 
                             (
                                 Orientation {
@@ -956,10 +954,7 @@ fn sprite(
                                     from: Direction::Left,
                                     to: Direction::Up,
                                 },
-                            ) => {
-                                dbg!("hit our one case :)");
-                                1
-                            }
+                            ) => 1,
 
                             (
                                 Orientation {
@@ -970,10 +965,18 @@ fn sprite(
                                     from: Direction::Left,
                                     to: Direction::Down,
                                 },
-                            ) => {
-                                dbg!("hit our one case :)");
-                                2
-                            }
+                            ) => 2,
+
+                            (
+                                Orientation {
+                                    from: Direction::Left,
+                                    to: Direction::Up,
+                                },
+                                Orientation {
+                                    from: Direction::Down,
+                                    to: Direction::Left,
+                                },
+                            ) => 3,
 
                             (
                                 Orientation {
@@ -984,10 +987,29 @@ fn sprite(
                                     from: Direction::Down,
                                     to: Direction::Up,
                                 },
-                            ) => {
-                                dbg!("hit our one case :)");
-                                4
-                            }
+                            ) => 4,
+
+                            (
+                                Orientation {
+                                    from: Direction::Left,
+                                    to: Direction::Up,
+                                },
+                                Orientation {
+                                    from: Direction::Down,
+                                    to: Direction::Right,
+                                },
+                            ) => 5,
+
+                            (
+                                Orientation {
+                                    from: Direction::Left,
+                                    to: Direction::Down,
+                                },
+                                Orientation {
+                                    from: Direction::Up,
+                                    to: Direction::Left,
+                                },
+                            ) => 6,
 
                             (
                                 Orientation {
@@ -998,16 +1020,29 @@ fn sprite(
                                     from: Direction::Up,
                                     to: Direction::Down,
                                 },
-                            ) => {
-                                dbg!("hit our one case :)");
-                                7
-                            }
+                            ) => 7,
 
-                            _ => 1,
+                            (
+                                Orientation {
+                                    from: Direction::Left,
+                                    to: Direction::Down,
+                                },
+                                Orientation {
+                                    from: Direction::Up,
+                                    to: Direction::Right,
+                                },
+                            ) => 8,
+
+                            _ => {
+                                dbg!("missed one");
+                                1000
+                            }
                         };
                         transition.index = (transition.index + 1).min(16);
 
                         sprite.index = offset * 17 + transition.index;
+
+                        dbg!(sprite.index, offset, transition.clone());
 
                         if transition.index == 16 {
                             transition_queue.0.remove(0);
