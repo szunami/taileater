@@ -114,6 +114,7 @@ fn main() {
             .register_type::<GridLocation>()
             .register_type::<Snake>()
             .register_type::<Food>()
+            .register_type::<Poison>()
             .add_system(bevy::input::system::exit_on_esc_system.system())
             .add_startup_system(
                 (|world: &mut World| {
@@ -157,6 +158,7 @@ fn main() {
             .register_type::<GridLocation>()
             .register_type::<Snake>()
             .register_type::<Food>()
+            .register_type::<Poison>()
             .insert_resource(SnakeParts(vec![]))
             .add_startup_system(setup.system().label(SetupLabel))
             .add_system(cleanup.system())
@@ -214,6 +216,7 @@ fn cleanup(
     grounds: Query<(&Ground, &GridLocation, Entity), Without<Sprite>>,
     snakes: Query<(&Snake, &GridLocation, Entity), Without<TextureAtlasSprite>>,
     foods: Query<(&Food, &GridLocation, Entity), Without<Sprite>>,
+    poisons: Query<(&Poison, &GridLocation, Entity), Without<Sprite>>,
 ) {
     for (_ground, grid_location, e) in grounds.iter() {
         commands.entity(e).insert_bundle(SpriteBundle {
@@ -232,6 +235,19 @@ fn cleanup(
         commands.entity(e).insert_bundle(SpriteBundle {
             sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
             material: food_color(&mut materials),
+            transform: Transform::from_translation(Vec3::new(
+                grid_location.x as f32 * GRID_WIDTH,
+                grid_location.y as f32 * GRID_HEIGHT,
+                0.,
+            )),
+            ..Default::default()
+        });
+    }
+
+    for (_poison, grid_location, e) in poisons.iter() {
+        commands.entity(e).insert_bundle(SpriteBundle {
+            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+            material: poison_color(&mut materials),
             transform: Transform::from_translation(Vec3::new(
                 grid_location.x as f32 * GRID_WIDTH,
                 grid_location.y as f32 * GRID_HEIGHT,
@@ -650,14 +666,18 @@ fn poison(
             // despawn poison!
             commands.entity(poison_entity).despawn_recursive();
 
-            let to_despawn = match snake_parts.0.len() {
-                1 => snake_parts.0.first().expect("len = 1"),
-                2 => snake_parts.0.last().expect("len = 2"),
-                _ => snake_parts.0.get(snake_parts.0.len() - 2).expect("len > 2"),
+            let to_despawn_index = match snake_parts.0.len() {
+                1 => 0,
+                2 => 1,
+                _ => snake_parts.0.len() - 2,
             };
-            dbg!("despawning", to_despawn);
+            let to_despawn = snake_parts.0.remove(to_despawn_index);
 
-            commands.entity(*to_despawn).despawn_recursive();
+            dbg!("despawning", to_despawn_index);
+
+            commands.entity(to_despawn).despawn_recursive();
+
+            // TODO: update transitions / locations?
         }
     }
 }
@@ -873,6 +893,42 @@ fn editor(
                 .insert(Food);
         }
 
+        if keyboard_input.pressed(KeyCode::P) {
+            let mut q = my_world.0.query::<(&GridLocation, Entity)>();
+
+            let mut to_despawn = vec![];
+            for (grid_location, e) in q.iter(&my_world.0) {
+                if *grid_location == mouse_grid_location {
+                    to_despawn.push(e);
+                }
+            }
+            for e in to_despawn {
+                my_world.0.despawn(e);
+            }
+
+            for (grid_location, e) in grid_locations.iter() {
+                if *grid_location == mouse_grid_location {
+                    commands.entity(e).despawn_recursive();
+                }
+            }
+            commands
+                .spawn()
+                .insert_bundle(SpriteBundle {
+                    sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+                    material: food_color(&mut materials),
+                    transform: mouse_xform,
+                    ..Default::default()
+                })
+                .insert(mouse_grid_location.clone())
+                .insert(Poison);
+
+            my_world
+                .0
+                .spawn()
+                .insert(mouse_grid_location.clone())
+                .insert(Poison);
+        }
+
         if keyboard_input.pressed(KeyCode::D) {
             let mut q = my_world.0.query::<(&GridLocation, Entity)>();
 
@@ -929,6 +985,10 @@ fn cursor_color(materials: &mut ResMut<Assets<ColorMaterial>>) -> Handle<ColorMa
 
 fn food_color(materials: &mut ResMut<Assets<ColorMaterial>>) -> Handle<ColorMaterial> {
     materials.add(Color::rgb(165.0 / 255.0, 48.0 / 255.0, 48.0 / 255.0).into())
+}
+
+fn poison_color(materials: &mut ResMut<Assets<ColorMaterial>>) -> Handle<ColorMaterial> {
+    materials.add(Color::rgb(122.0 / 255.0, 54.0 / 255.0, 123.0 / 255.0).into())
 }
 
 // update sprite based on each direction
