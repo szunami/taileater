@@ -625,8 +625,41 @@ fn food(
     }
 }
 
-fn poison() {
-    
+fn poison(
+    mut commands: Commands,
+
+    mut snake_parts: ResMut<SnakeParts>,
+
+    snake_locations: Query<
+        (&GridLocation, &Transform, &Orientation),
+        (With<Snake>, Without<Poison>),
+    >,
+    poison_locations: Query<(&GridLocation, Entity), (With<Poison>, Without<Snake>)>,
+) {
+    if snake_parts.0.is_empty() {
+        return;
+    }
+
+    let head_location = match snake_locations.get(*snake_parts.0.first().expect("head exists")) {
+        Ok(x) => x.0,
+        Err(_) => return,
+    };
+
+    for (poison_location, poison_entity) in poison_locations.iter() {
+        if poison_location == head_location {
+            // despawn poison!
+            commands.entity(poison_entity).despawn_recursive();
+
+            let to_despawn = match snake_parts.0.len() {
+                1 => snake_parts.0.first().expect("len = 1"),
+                2 => snake_parts.0.last().expect("len = 2"),
+                _ => snake_parts.0.get(snake_parts.0.len() - 2).expect("len > 2"),
+            };
+            dbg!("despawning", to_despawn);
+
+            commands.entity(*to_despawn).despawn_recursive();
+        }
+    }
 }
 
 const RATE: f32 = 2.0;
