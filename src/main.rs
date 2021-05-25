@@ -615,7 +615,7 @@ fn food(
                 }
             };
             let transition_atlas =
-                TextureAtlas::from_grid(transition_sprite, Vec2::new(96.0, 96.0), 17, 27);
+                TextureAtlas::from_grid(transition_sprite, Vec2::new(96.0, 96.0), 17, 36);
             let transition_handle = texture_atlases.add(transition_atlas);
 
             let new_snake = commands
@@ -1036,7 +1036,6 @@ fn sprite(
                 Ok((_orientation, mut sprite, mut transition_queue)) => {
                     if let Some(transition) = transition_queue.0.first_mut() {
                         // TODO: this is a function of transition to / from
-                        dbg!("start of sprite system");
 
                         let offset = match (transition.from, transition.to) {
                             (
@@ -1236,7 +1235,7 @@ fn sprite(
                                     to: Direction::Right,
                                 },
                             ) => 17,
-                            
+
                             (
                                 Orientation {
                                     from: Direction::Down,
@@ -1247,7 +1246,7 @@ fn sprite(
                                     to: Direction::Up,
                                 },
                             ) => 18,
-                            
+
                             (
                                 Orientation {
                                     from: Direction::Down,
@@ -1258,18 +1257,18 @@ fn sprite(
                                     to: Direction::Left,
                                 },
                             ) => 19,
-                            
+
                             (
                                 Orientation {
                                     from: Direction::Down,
                                     to: Direction::Up,
                                 },
                                 Orientation {
-                                    from: Direction::Up,
+                                    from: Direction::Down,
                                     to: Direction::Right,
                                 },
                             ) => 20,
-                            
+
                             (
                                 Orientation {
                                     from: Direction::Down,
@@ -1280,7 +1279,7 @@ fn sprite(
                                     to: Direction::Up,
                                 },
                             ) => 21,
-                            
+
                             (
                                 Orientation {
                                     from: Direction::Down,
@@ -1291,7 +1290,7 @@ fn sprite(
                                     to: Direction::Left,
                                 },
                             ) => 22,
-                            
+
                             (
                                 Orientation {
                                     from: Direction::Down,
@@ -1302,7 +1301,7 @@ fn sprite(
                                     to: Direction::Down,
                                 },
                             ) => 23,
-                            
+
                             (
                                 Orientation {
                                     from: Direction::Down,
@@ -1313,7 +1312,7 @@ fn sprite(
                                     to: Direction::Up,
                                 },
                             ) => 24,
-                            
+
                             (
                                 Orientation {
                                     from: Direction::Down,
@@ -1324,7 +1323,7 @@ fn sprite(
                                     to: Direction::Right,
                                 },
                             ) => 25,
-                            
+
                             (
                                 Orientation {
                                     from: Direction::Down,
@@ -1336,16 +1335,114 @@ fn sprite(
                                 },
                             ) => 26,
 
+                            (
+                                Orientation {
+                                    from: Direction::Up,
+                                    to: Direction::Down,
+                                },
+                                Orientation {
+                                    from: Direction::Up,
+                                    to: Direction::Down,
+                                },
+                            ) => 27,
+
+                            (
+                                Orientation {
+                                    from: Direction::Up,
+                                    to: Direction::Down,
+                                },
+                                Orientation {
+                                    from: Direction::Up,
+                                    to: Direction::Left,
+                                },
+                            ) => 28,
+
+                            (
+                                Orientation {
+                                    from: Direction::Up,
+                                    to: Direction::Down,
+                                },
+                                Orientation {
+                                    from: Direction::Up,
+                                    to: Direction::Right,
+                                },
+                            ) => 29,
+
+                            (
+                                Orientation {
+                                    from: Direction::Up,
+                                    to: Direction::Left,
+                                },
+                                Orientation {
+                                    from: Direction::Right,
+                                    to: Direction::Up,
+                                },
+                            ) => 30,
+
+                            (
+                                Orientation {
+                                    from: Direction::Up,
+                                    to: Direction::Left,
+                                },
+                                Orientation {
+                                    from: Direction::Right,
+                                    to: Direction::Left,
+                                },
+                            ) => 31,
+
+                            (
+                                Orientation {
+                                    from: Direction::Up,
+                                    to: Direction::Left,
+                                },
+                                Orientation {
+                                    from: Direction::Right,
+                                    to: Direction::Down,
+                                },
+                            ) => 32,
+
+                            (
+                                Orientation {
+                                    from: Direction::Up,
+                                    to: Direction::Right,
+                                },
+                                Orientation {
+                                    from: Direction::Left,
+                                    to: Direction::Up,
+                                },
+                            ) => 33,
+
+                            (
+                                Orientation {
+                                    from: Direction::Up,
+                                    to: Direction::Right,
+                                },
+                                Orientation {
+                                    from: Direction::Left,
+                                    to: Direction::Right,
+                                },
+                            ) => 34,
+
+                            (
+                                Orientation {
+                                    from: Direction::Up,
+                                    to: Direction::Right,
+                                },
+                                Orientation {
+                                    from: Direction::Left,
+                                    to: Direction::Down,
+                                },
+                            ) => 35,
+
                             _ => {
                                 dbg!("missed one");
+                                dbg!(transition.clone());
                                 1000
                             }
                         };
                         transition.index = (transition.index + 1).min(16);
 
                         sprite.index = offset * 17 + transition.index;
-
-                        dbg!(sprite.index, offset, transition.clone());
 
                         if transition.index == 16 {
                             transition_queue.0.remove(0);
