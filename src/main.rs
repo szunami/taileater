@@ -435,26 +435,30 @@ fn snake_movement(
             queue.0.push(grid_location.clone());
         }
     }
-    for (prev, curr) in snake_parts.0[1..]
-        .iter()
-        .zip(snake_parts.0[2..].iter())
-        .rev()
-    {
-        if let Ok((_prev_grid_location, _prev_queue, prev_orientation)) = snakes.get_mut(*prev) {
-            let tmp = prev_orientation.clone();
 
-            if let Ok((_curr_grid_location, _curr_queue, mut curr_orientation)) =
-                snakes.get_mut(*curr)
+    if snake_parts.0.len() > 1 {
+        for (prev, curr) in snake_parts.0[1..]
+            .iter()
+            .zip(snake_parts.0[2..].iter())
+            .rev()
+        {
+            if let Ok((_prev_grid_location, _prev_queue, prev_orientation)) = snakes.get_mut(*prev)
             {
-                if let Ok(mut transition_queue) = transitions.get_mut(*curr) {
-                    transition_queue.0.push(Transition {
-                        from: curr_orientation.clone(),
-                        to: tmp.clone(),
-                        index: 0,
-                    });
-                }
+                let tmp = prev_orientation.clone();
 
-                *curr_orientation = tmp;
+                if let Ok((_curr_grid_location, _curr_queue, mut curr_orientation)) =
+                    snakes.get_mut(*curr)
+                {
+                    if let Ok(mut transition_queue) = transitions.get_mut(*curr) {
+                        transition_queue.0.push(Transition {
+                            from: curr_orientation.clone(),
+                            to: tmp.clone(),
+                            index: 0,
+                        });
+                    }
+
+                    *curr_orientation = tmp;
+                }
             }
         }
     }
@@ -714,11 +718,7 @@ fn gridlocation_to_transform(mut q: Query<(&mut LocationQueue, &mut Transform)>)
 }
 
 fn win(snake_parts: Res<SnakeParts>, snake_locations: Query<&GridLocation, With<Snake>>) {
-    if snake_parts.0.is_empty() {
-        return;
-    }
-
-    if snake_parts.0.len() == 2 {
+    if snake_parts.0.len() <= 2 {
         return;
     }
 
@@ -745,7 +745,7 @@ fn editor(
 
     camera: Query<&Transform, (With<MainCamera>, Without<Cursor>)>,
     mut cursors: Query<&mut Transform, (With<Cursor>, Without<MainCamera>)>,
-    grid_locations: Query<(&GridLocation, Entity)>,
+    grid_locations: Query<(&GridLocation, Entity), Without<Cursor>>,
 ) {
     // get the primary window
     let wnd = wnds.get_primary().unwrap();
