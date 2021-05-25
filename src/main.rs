@@ -615,7 +615,7 @@ fn food(
                 }
             };
             let transition_atlas =
-                TextureAtlas::from_grid(transition_sprite, Vec2::new(96.0, 96.0), 17, 9);
+                TextureAtlas::from_grid(transition_sprite, Vec2::new(96.0, 96.0), 17, 18);
             let transition_handle = texture_atlases.add(transition_atlas);
 
             let new_snake = commands
@@ -915,7 +915,7 @@ fn editor(
                 .spawn()
                 .insert_bundle(SpriteBundle {
                     sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-                    material: food_color(&mut materials),
+                    material: poison_color(&mut materials),
                     transform: mouse_xform,
                     ..Default::default()
                 })
@@ -1137,6 +1137,105 @@ fn sprite(
                                     to: Direction::Right,
                                 },
                             ) => 8,
+
+                            (
+                                Orientation {
+                                    from: Direction::Right,
+                                    to: Direction::Left,
+                                },
+                                Orientation {
+                                    from: Direction::Right,
+                                    to: Direction::Left,
+                                },
+                            ) => 9,
+
+                            (
+                                Orientation {
+                                    from: Direction::Right,
+                                    to: Direction::Left,
+                                },
+                                Orientation {
+                                    from: Direction::Right,
+                                    to: Direction::Up,
+                                },
+                            ) => 10,
+
+                            (
+                                Orientation {
+                                    from: Direction::Right,
+                                    to: Direction::Left,
+                                },
+                                Orientation {
+                                    from: Direction::Right,
+                                    to: Direction::Down,
+                                },
+                            ) => 11,
+
+                            (
+                                Orientation {
+                                    from: Direction::Right,
+                                    to: Direction::Up,
+                                },
+                                Orientation {
+                                    from: Direction::Down,
+                                    to: Direction::Left,
+                                },
+                            ) => 12,
+
+                            (
+                                Orientation {
+                                    from: Direction::Right,
+                                    to: Direction::Up,
+                                },
+                                Orientation {
+                                    from: Direction::Down,
+                                    to: Direction::Up,
+                                },
+                            ) => 13,
+
+                            (
+                                Orientation {
+                                    from: Direction::Right,
+                                    to: Direction::Up,
+                                },
+                                Orientation {
+                                    from: Direction::Down,
+                                    to: Direction::Right,
+                                },
+                            ) => 14,
+
+                            (
+                                Orientation {
+                                    from: Direction::Right,
+                                    to: Direction::Down,
+                                },
+                                Orientation {
+                                    from: Direction::Up,
+                                    to: Direction::Left,
+                                },
+                            ) => 15,
+
+                            (
+                                Orientation {
+                                    from: Direction::Right,
+                                    to: Direction::Down,
+                                },
+                                Orientation {
+                                    from: Direction::Up,
+                                    to: Direction::Down,
+                                },
+                            ) => 16,
+
+                            (
+                                Orientation {
+                                    from: Direction::Right,
+                                    to: Direction::Down,
+                                },
+                                Orientation {
+                                    from: Direction::Up,
+                                    to: Direction::Right,
+                                },
+                            ) => 17,
 
                             _ => {
                                 dbg!("missed one");
