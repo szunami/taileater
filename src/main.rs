@@ -66,6 +66,12 @@ struct Poison;
 
 struct SnakeParts(Vec<Entity>);
 
+struct SnakeAssets {
+    head: Handle<TextureAtlas>,
+    tail: Handle<TextureAtlas>,
+    body: Handle<TextureAtlas>,
+}
+
 const GRID_WIDTH: f32 = 32.0;
 const GRID_HEIGHT: f32 = 32.0;
 
@@ -193,10 +199,28 @@ fn setup(
 
     asset_server: Res<AssetServer>,
     mut scene_spawner: ResMut<SceneSpawner>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
-    // Scenes are loaded just like any other asset.
+
+    let body_texture = asset_server.load("sprites/tmp/light_worksheet.png");
+    let body_atlas = TextureAtlas::from_grid(body_texture, Vec2::new(96.0, 96.0), 17, 36);
+    let body_handle = texture_atlases.add(body_atlas);
+
+    let head_texture = asset_server.load("sprites/tmp/head_thick.png");
+    let head_atlas = TextureAtlas::from_grid(head_texture, Vec2::new(32.0, 32.0), 4, 1);
+    let head_handle = texture_atlases.add(head_atlas);
+
+    let tail_texture = asset_server.load("sprites/tmp/tail_thick.png");
+    let tail_atlas = TextureAtlas::from_grid(tail_texture, Vec2::new(32.0, 32.0), 4, 1);
+    let tail_handle = texture_atlases.add(tail_atlas);
+
+    commands.insert_resource(SnakeAssets {
+        head: head_handle,
+        tail: tail_handle,
+        body: body_handle,
+    });
 
     let args: Vec<String> = env::args().collect();
     let level = args.last().expect("Provide a filename!");
@@ -209,9 +233,8 @@ fn cleanup(
     mut commands: Commands,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut snake_parts: ResMut<SnakeParts>,
-    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 
-    asset_server: Res<AssetServer>,
+    snake_assets: Res<SnakeAssets>,
 
     grounds: Query<(&Ground, &GridLocation, Entity), Without<Sprite>>,
     snakes: Query<(&Snake, &GridLocation, Entity), Without<TextureAtlasSprite>>,
@@ -286,10 +309,6 @@ fn cleanup(
         }
     }
     if !internal_snake_parts.is_empty() {
-        let head_sprite = asset_server.load("sprites/tmp/head_thick.png");
-        let head_atlas = TextureAtlas::from_grid(head_sprite, Vec2::new(32.0, 32.0), 4, 1);
-        let head_handle = texture_atlases.add(head_atlas);
-
         let head_entity = *internal_snake_parts.first().expect("head exists");
         let (_snake, head_grid_location, _e) = snakes.get(head_entity).expect("head lookup");
 
@@ -297,7 +316,7 @@ fn cleanup(
         commands
             .entity(head_entity)
             .insert_bundle(SpriteSheetBundle {
-                texture_atlas: head_handle.clone(),
+                texture_atlas: snake_assets.head.clone(),
                 transform: Transform::from_translation(Vec3::new(
                     head_grid_location.x as f32 * GRID_WIDTH,
                     head_grid_location.y as f32 * GRID_HEIGHT,
@@ -306,10 +325,6 @@ fn cleanup(
                 ..Default::default()
             });
 
-        let tail_sprite = asset_server.load("sprites/tmp/tail_thick.png");
-        let tail_atlas = TextureAtlas::from_grid(tail_sprite, Vec2::new(32.0, 32.0), 4, 1);
-        let tail_handle = texture_atlases.add(tail_atlas);
-
         let tail_entity = *internal_snake_parts.last().expect("tail exists");
         let (_snake, tail_grid_location, _e) = snakes.get(tail_entity).expect("tail lookup");
 
@@ -317,7 +332,7 @@ fn cleanup(
         commands
             .entity(tail_entity)
             .insert_bundle(SpriteSheetBundle {
-                texture_atlas: tail_handle.clone(),
+                texture_atlas: snake_assets.tail.clone(),
                 transform: Transform::from_translation(Vec3::new(
                     tail_grid_location.x as f32 * GRID_WIDTH,
                     tail_grid_location.y as f32 * GRID_HEIGHT,
@@ -586,9 +601,8 @@ fn food(
     mut commands: Commands,
 
     mut snake_parts: ResMut<SnakeParts>,
-    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 
-    asset_server: Res<AssetServer>,
+    assets: Res<SnakeAssets>,
 
     snake_locations: Query<(&GridLocation, &Transform, &Orientation), (With<Snake>, Without<Food>)>,
     food_locations: Query<(&GridLocation, Entity), (With<Food>, Without<Snake>)>,
@@ -611,21 +625,10 @@ fn food(
             // despawn food!
             commands.entity(food_entity).despawn_recursive();
 
-            let transition_sprite = {
-                if snake_parts.0.len() % 2 == 0 {
-                    asset_server.load("sprites/tmp/light_worksheet.png")
-                } else {
-                    asset_server.load("sprites/tmp/light_worksheet.png")
-                }
-            };
-            let transition_atlas =
-                TextureAtlas::from_grid(transition_sprite, Vec2::new(96.0, 96.0), 17, 36);
-            let transition_handle = texture_atlases.add(transition_atlas);
-
             let new_snake = commands
                 .spawn()
                 .insert_bundle(SpriteSheetBundle {
-                    texture_atlas: transition_handle,
+                    texture_atlas: assets.body.clone(),
                     transform: *tail_xform,
                     ..Default::default()
                 })
