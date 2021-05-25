@@ -641,7 +641,10 @@ fn food(
                 .insert(tail_orientation.clone())
                 .id();
 
-            let index = snake_parts.0.len() - 1;
+            let index = match snake_parts.0.len() {
+                1 => 1,
+                _ => snake_parts.0.len() - 1,
+            };
 
             snake_parts.0.insert(index, new_snake);
         }
