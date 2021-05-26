@@ -157,48 +157,48 @@ fn main() {
     } else {
         let mut app = App::build();
 
-        // #[cfg(target_arch = "wasm32")]
-        // app.add_plugins(bevy_webgl2::DefaultPlugins);
-        
-        // #[cfg(target_arch = "x86_64")]
-        app.add_plugins(DefaultPlugins);
-
         app.insert_resource(WindowDescriptor {
             title: "TAILEATER".to_string(),
             ..Default::default()
-        })
-        .add_plugins(DefaultPlugins)
-        .register_type::<Ground>()
-        .register_type::<GridLocation>()
-        .register_type::<Snake>()
-        .register_type::<Food>()
-        .register_type::<Poison>()
-        .insert_resource(SnakeParts(vec![]))
-        .add_startup_system(setup.system().label(SetupLabel))
-        .add_system(cleanup.system())
-        .add_system(bevy::input::system::exit_on_esc_system.system())
-        .add_system(food.system().label(FoodLabel))
-        .add_system(poison.system().label(PoisonLabel).after(FoodLabel))
-        .add_system(
-            snake_movement
-                .system()
-                .label(SnakeMovementLabel)
-                .after(PoisonLabel),
-        )
-        .add_system(sprite.system().label(SpriteLabel).after(SnakeMovementLabel))
-        .add_system(
-            gravity
-                .system()
-                .label(GravityLabel)
-                .after(SnakeMovementLabel),
-        )
-        .add_system(
-            gridlocation_to_transform.system().label(TransformLabel), // .after(GravityLabel),
-        )
-        .add_system(win.system().label(WinLabel).after(GravityLabel))
-        // gravity
-        // gridlocation to transform
-        .run();
+        });
+
+        #[cfg(target_arch = "wasm32")]
+        app.add_plugins(bevy_webgl2::DefaultPlugins);
+
+        #[cfg(target_arch = "x86_64")]
+        app.add_plugins(DefaultPlugins);
+
+        app.register_type::<Ground>()
+            .register_type::<GridLocation>()
+            .register_type::<Snake>()
+            .register_type::<Food>()
+            .register_type::<Poison>()
+            .insert_resource(SnakeParts(vec![]))
+            .add_startup_system(setup.system().label(SetupLabel))
+            .add_system(cleanup.system())
+            .add_system(bevy::input::system::exit_on_esc_system.system())
+            .add_system(food.system().label(FoodLabel))
+            .add_system(poison.system().label(PoisonLabel).after(FoodLabel))
+            .add_system(
+                snake_movement
+                    .system()
+                    .label(SnakeMovementLabel)
+                    .after(PoisonLabel),
+            )
+            .add_system(sprite.system().label(SpriteLabel).after(SnakeMovementLabel))
+            .add_system(
+                gravity
+                    .system()
+                    .label(GravityLabel)
+                    .after(SnakeMovementLabel),
+            )
+            .add_system(
+                gridlocation_to_transform.system().label(TransformLabel), // .after(GravityLabel),
+            )
+            .add_system(win.system().label(WinLabel).after(GravityLabel))
+            // gravity
+            // gridlocation to transform
+            .run();
     }
 }
 
@@ -212,7 +212,7 @@ fn setup(
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
 
-    let light_body = asset_server.load("sprites/tmp/light_worksheet.png");
+    let light_body = asset_server.load("sprites/tmp/head.png");
     let light_body = TextureAtlas::from_grid(light_body, Vec2::new(96.0, 96.0), 17, 36);
     let light_body = texture_atlases.add(light_body);
 
