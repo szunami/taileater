@@ -2,4 +2,4 @@ cargo install --force cargo-make
 cargo make build-web
 mkdir dist
 cp index.html dist/
-cp target dist/
+cp -r target dist/
