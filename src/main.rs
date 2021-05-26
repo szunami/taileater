@@ -69,7 +69,8 @@ struct SnakeParts(Vec<Entity>);
 struct SnakeAssets {
     head: Handle<TextureAtlas>,
     tail: Handle<TextureAtlas>,
-    body: Handle<TextureAtlas>,
+    light_body: Handle<TextureAtlas>,
+    dark_body: Handle<TextureAtlas>,
 }
 
 const GRID_WIDTH: f32 = 32.0;
@@ -204,22 +205,27 @@ fn setup(
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
 
-    let body_texture = asset_server.load("sprites/tmp/light_worksheet.png");
-    let body_atlas = TextureAtlas::from_grid(body_texture, Vec2::new(96.0, 96.0), 17, 36);
-    let body_handle = texture_atlases.add(body_atlas);
+    let light_body = asset_server.load("sprites/tmp/light_worksheet.png");
+    let light_body = TextureAtlas::from_grid(light_body, Vec2::new(96.0, 96.0), 17, 36);
+    let light_body = texture_atlases.add(light_body);
 
-    let head_texture = asset_server.load("sprites/tmp/head_thick.png");
-    let head_atlas = TextureAtlas::from_grid(head_texture, Vec2::new(32.0, 32.0), 4, 1);
-    let head_handle = texture_atlases.add(head_atlas);
+    let dark_body = asset_server.load("sprites/tmp/dark_worksheet.png");
+    let dark_body = TextureAtlas::from_grid(dark_body, Vec2::new(96.0, 96.0), 17, 36);
+    let dark_body = texture_atlases.add(dark_body);
 
-    let tail_texture = asset_server.load("sprites/tmp/tail_thick.png");
-    let tail_atlas = TextureAtlas::from_grid(tail_texture, Vec2::new(32.0, 32.0), 4, 1);
-    let tail_handle = texture_atlases.add(tail_atlas);
+    let head = asset_server.load("sprites/tmp/head_thick.png");
+    let head = TextureAtlas::from_grid(head, Vec2::new(32.0, 32.0), 4, 1);
+    let head = texture_atlases.add(head);
+
+    let tail = asset_server.load("sprites/tmp/tail_thick.png");
+    let tail = TextureAtlas::from_grid(tail, Vec2::new(32.0, 32.0), 4, 1);
+    let tail = texture_atlases.add(tail);
 
     commands.insert_resource(SnakeAssets {
-        head: head_handle,
-        tail: tail_handle,
-        body: body_handle,
+        head,
+        tail,
+        light_body,
+        dark_body,
     });
 
     let args: Vec<String> = env::args().collect();
@@ -625,10 +631,18 @@ fn food(
             // despawn food!
             commands.entity(food_entity).despawn_recursive();
 
+            let texture_atlas = {
+                if snake_parts.0.len() % 2 == 0 {
+                    assets.dark_body.clone()
+                } else {
+                    assets.light_body.clone()
+                }
+            };
+
             let new_snake = commands
                 .spawn()
                 .insert_bundle(SpriteSheetBundle {
-                    texture_atlas: assets.body.clone(),
+                    texture_atlas,
                     transform: *tail_xform,
                     ..Default::default()
                 })
@@ -1042,6 +1056,10 @@ fn sprite(
                 Ok((_orientation, mut sprite, mut transition_queue)) => {
                     if let Some(transition) = transition_queue.0.first_mut() {
                         // TODO: this is a function of transition to / from
+
+                        if index == 1 {
+                            dbg!(transition.clone());
+                        }
 
                         let offset = match (transition.from, transition.to) {
                             (
