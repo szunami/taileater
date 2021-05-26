@@ -1,4 +1,4 @@
-sudo apt install clang-12 --install-suggests
+apt install clang-12 --install-suggests
 # cargo install --force cargo-make
 # cargo make build-web
 cargo build --target wasm32-unknown-unknown --features web
