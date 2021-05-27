@@ -134,6 +134,17 @@ fn main() {
                     let real_type_registry = world.get_resource::<TypeRegistry>().unwrap().clone();
                     let mut my_world = world.get_resource_mut::<MyWorld>().unwrap();
                     my_world.1 = real_type_registry;
+
+                    let asset_server = world.get_resource::<AssetServer>().expect("scene spawner");
+                    let level = "assets/scenes/drafts/downsizing_2.scn.ron";
+                    let scene_handle: Handle<DynamicScene> =
+                        asset_server.load(format!("../{}", level).as_str());
+
+                    let mut scene_spawner = world
+                        .get_resource_mut::<SceneSpawner>()
+                        .expect("scene spawner");
+
+                    scene_spawner.spawn_dynamic(scene_handle);
                 })
                 .exclusive_system(),
             )
@@ -158,13 +169,75 @@ fn main() {
                 })
                 .system(),
             )
+            .add_system(
+                (|mut commands: Commands,
+                  mut materials: ResMut<Assets<ColorMaterial>>,
+                  grounds: Query<(Entity, &GridLocation), (With<Ground>, Without<Sprite>)>,
+                  snakes: Query<(Entity, &GridLocation), (With<Snake>, Without<Sprite>)>,
+                  foods: Query<(Entity, &GridLocation), (With<Food>, Without<Sprite>)>,
+                  poisons: Query<(Entity, &GridLocation), (With<Poison>, Without<Sprite>)>| {
+                    for (e, grid_location) in grounds.iter() {
+                        commands.entity(e).insert_bundle(SpriteBundle {
+                            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+                            transform: Transform::from_translation(Vec3::new(
+                                grid_location.x as f32 * GRID_WIDTH,
+                                grid_location.y as f32 * GRID_HEIGHT,
+                                0.
+                            )),
+                            material: ground_color(&mut materials),
+                            ..Default::default()
+                        });
+                    }
+                    
+                    for (e, grid_location) in snakes.iter() {
+                        commands.entity(e).insert_bundle(SpriteBundle {
+                            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+                            transform: Transform::from_translation(Vec3::new(
+                                grid_location.x as f32 * GRID_WIDTH,
+                                grid_location.y as f32 * GRID_HEIGHT,
+                                0.
+                            )),
+                            material: snake_color(&mut materials),
+                            ..Default::default()
+                        });
+                    }
+                    
+                    for (e, grid_location) in foods.iter() {
+                        commands.entity(e).insert_bundle(SpriteBundle {
+                            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+                            transform: Transform::from_translation(Vec3::new(
+                                grid_location.x as f32 * GRID_WIDTH,
+                                grid_location.y as f32 * GRID_HEIGHT,
+                                0.
+                            )),
+                            material: food_color(&mut materials),
+                            ..Default::default()
+                        });
+                    }
+                    
+                    for (e, grid_location) in poisons.iter() {
+                        commands.entity(e).insert_bundle(SpriteBundle {
+                            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+                            transform: Transform::from_translation(Vec3::new(
+                                grid_location.x as f32 * GRID_WIDTH,
+                                grid_location.y as f32 * GRID_HEIGHT,
+                                0.
+                            )),
+                            material: poison_color(&mut materials),
+                            ..Default::default()
+                        });
+                    }
+
+                })
+                .system(),
+            )
             .add_system(editor.system())
             .run();
-    } else if args.last() == Some(&String::from("-m")) {
+    } else {
         let mut app = App::build();
 
         app.insert_resource(WindowDescriptor {
-            title: "TAILEATER (menu)".to_string(),
+            title: "TAILEATER".to_string(),
             ..Default::default()
         })
         .insert_resource(ClearColor(Color::rgb(
@@ -241,51 +314,6 @@ fn main() {
                     .label(WinLabel)
                     .after(GravityLabel),
             )
-            // gravity
-            // gridlocation to transform
-            .run();
-    } else {
-        let mut app = App::build();
-
-        app.insert_resource(WindowDescriptor {
-            title: "TAILEATER".to_string(),
-            ..Default::default()
-        });
-
-        #[cfg(target_arch = "wasm32")]
-        app.add_plugins(bevy_webgl2::DefaultPlugins);
-
-        #[cfg(target_arch = "x86_64")]
-        app.add_plugins(DefaultPlugins);
-
-        app.register_type::<Ground>()
-            .register_type::<GridLocation>()
-            .register_type::<Snake>()
-            .register_type::<Food>()
-            .register_type::<Poison>()
-            .insert_resource(SnakeParts(vec![]))
-            .add_startup_system(setup.system().label(SetupLabel))
-            .add_system(cleanup.system())
-            .add_system(bevy::input::system::exit_on_esc_system.system())
-            .add_system(food.system().label(FoodLabel))
-            .add_system(poison.system().label(PoisonLabel).after(FoodLabel))
-            .add_system(
-                snake_movement
-                    .system()
-                    .label(SnakeMovementLabel)
-                    .after(PoisonLabel),
-            )
-            .add_system(sprite.system().label(SpriteLabel).after(SnakeMovementLabel))
-            .add_system(
-                gravity
-                    .system()
-                    .label(GravityLabel)
-                    .after(SnakeMovementLabel),
-            )
-            .add_system(
-                gridlocation_to_transform.system().label(TransformLabel), // .after(GravityLabel),
-            )
-            .add_system(win.system().label(WinLabel).after(GravityLabel))
             // gravity
             // gridlocation to transform
             .run();
@@ -371,9 +399,13 @@ fn setup(
     });
 
     let args: Vec<String> = env::args().collect();
-    let level = "assets/scenes/drafts/playground.scn.ron";
-    let scene_handle: Handle<DynamicScene> = asset_server.load(format!("../{}", level).as_str());
-    scene_spawner.spawn_dynamic(scene_handle);
+    if let Some(level) = args.last() {
+        let scene_handle: Handle<DynamicScene> =
+            asset_server.load(format!("../{}", level).as_str());
+        scene_spawner.spawn_dynamic(scene_handle);
+    } else {
+        eprintln!("No level provided.");
+    }
 }
 
 // spawning scenes is async, we don't have a good callback yet
@@ -390,7 +422,6 @@ fn cleanup(
     poisons: Query<(&Poison, &GridLocation, Entity), Without<Sprite>>,
 ) {
     for (_ground, grid_location, e) in grounds.iter() {
-        dbg!("doing ground");
         commands.entity(e).insert_bundle(SpriteBundle {
             sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
             material: ground_color(&mut materials),

@@ -39,7 +39,12 @@ command = "cargo"
 
 [tasks.run]
 command = "${CARGO_TARGET_DIR}/${ENV_DIR}/${CARGO_MAKE_BINARY_EXECUTABLE_NAME}"
-args = ["-m"]
+args = ["-m", "${@}"]
+dependencies = ["build-native"]
+
+[tasks.level]
+command = "${CARGO_TARGET_DIR}/${ENV_DIR}/${CARGO_MAKE_BINARY_EXECUTABLE_NAME}"
+args = ["-l"]
 dependencies = ["build-native"]
 
 [tasks.serve]
