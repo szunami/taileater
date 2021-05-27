@@ -6,3 +6,4 @@ cargo build --target wasm32-unknown-unknown --features web
 mkdir dist
 cp index.html dist/
 cp -r target dist/
+cp -r assets dist/
