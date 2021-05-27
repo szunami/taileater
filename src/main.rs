@@ -106,6 +106,12 @@ struct Transition {
 #[derive(Clone, Debug)]
 struct TransitionQueue(Vec<Transition>);
 
+#[derive(Clone, Eq, PartialEq, Debug, Hash)]
+enum GameState {
+    StartMenu,
+    InGame,
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -154,7 +160,12 @@ fn main() {
             )
             .add_system(editor.system())
             .run();
-    } else {
+    } 
+    else if args.last() == Some(&String::from("-m")) {
+ 
+    
+    }    
+    else {
         App::build()
             .insert_resource(WindowDescriptor {
                 title: "TAILEATER".to_string(),
