@@ -164,9 +164,14 @@ fn main() {
         let mut app = App::build();
 
         app.insert_resource(WindowDescriptor {
-            title: "TAILEATER".to_string(),
+            title: "TAILEATER (menu)".to_string(),
             ..Default::default()
-        });
+        })
+        .insert_resource(ClearColor(Color::rgb(
+            235. / 255.,
+            237. / 255.,
+            233. / 255.,
+        )));
 
         #[cfg(target_arch = "wasm32")]
         app.add_plugins(bevy_webgl2::DefaultPlugins);
@@ -174,6 +179,7 @@ fn main() {
         #[cfg(target_arch = "x86_64")]
         app.add_plugins(DefaultPlugins);
 
+        // start menu stuff
         app.add_state(GameState::StartMenu)
             .register_type::<Ground>()
             .register_type::<GridLocation>()
@@ -182,42 +188,54 @@ fn main() {
             .register_type::<Poison>()
             .insert_resource(SnakeParts(vec![]))
             .add_system(bevy::input::system::exit_on_esc_system.system())
+            .add_system_set(
+                SystemSet::on_enter(GameState::StartMenu).with_system(enter_start_menu.system()),
+            )
+            .add_system_set(
+                SystemSet::on_update(GameState::StartMenu).with_system(update_start_menu.system()),
+            )
+            .add_system_set(
+                SystemSet::on_exit(GameState::StartMenu).with_system(exit_start_menu.system()),
+            )
+            .add_system_set(
+                SystemSet::on_update(GameState::StartMenu).with_system(update_start_menu.system()),
+            )
             // ingame stuff
             .add_system_set(SystemSet::on_enter(GameState::InGame).with_system(setup.system()))
-            .add_system(SystemSet::on_update(GameState::InGame).with_system(cleanup.system()))
-            .add_system(
+            .add_system_set(SystemSet::on_update(GameState::InGame).with_system(cleanup.system()))
+            .add_system_set(
                 SystemSet::on_update(GameState::InGame)
                     .with_system(food.system())
                     .label(FoodLabel),
             )
-            .add_system(
+            .add_system_set(
                 SystemSet::on_update(GameState::InGame)
                     .with_system(poison.system())
                     .label(PoisonLabel)
                     .after(FoodLabel),
             )
-            .add_system(
+            .add_system_set(
                 SystemSet::on_update(GameState::InGame)
                     .with_system(snake_movement.system())
                     .label(SnakeMovementLabel)
                     .after(PoisonLabel),
             )
-            .add_system(
+            .add_system_set(
                 SystemSet::on_update(GameState::InGame)
                     .with_system(sprite.system().label(SpriteLabel).after(SnakeMovementLabel)),
             )
-            .add_system(
+            .add_system_set(
                 SystemSet::on_update(GameState::InGame)
                     .with_system(gravity.system())
                     .label(GravityLabel)
                     .after(SnakeMovementLabel),
             )
-            .add_system(
+            .add_system_set(
                 SystemSet::on_update(GameState::InGame)
                     .with_system(gridlocation_to_transform.system())
                     .label(TransformLabel), // .after(GravityLabel),
             )
-            .add_system(
+            .add_system_set(
                 SystemSet::on_update(GameState::InGame)
                     .with_system(win.system())
                     .label(WinLabel)
@@ -274,6 +292,54 @@ fn main() {
     }
 }
 
+struct Logo;
+
+fn enter_start_menu(
+    mut commands: Commands,
+
+    asset_server: Res<AssetServer>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+) {
+    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+    commands.spawn_bundle(UiCameraBundle::default());
+    dbg!("entering start menu!");
+    let logo = asset_server.load("sprites/drafts/logo-Sheet.png");
+    let logo = TextureAtlas::from_grid(logo, Vec2::new(371.0, 96.0), 5, 1);
+    let logo = texture_atlases.add(logo);
+
+    commands
+        .spawn_bundle(SpriteSheetBundle {
+            texture_atlas: logo.clone(),
+            ..Default::default()
+        })
+        .insert(Timer::from_seconds(0.1, true))
+        .insert(Logo);
+}
+
+fn update_start_menu(
+    time: Res<Time>,
+    mut state: ResMut<State<GameState>>,
+
+    mut q: Query<(&mut TextureAtlasSprite, &mut Timer), With<Logo>>,
+) {
+    for (mut sprite, mut timer) in q.iter_mut() {
+        timer.tick(time.delta());
+        if timer.just_finished() {
+            sprite.index = (sprite.index + 1) % 5;
+        }
+    }
+
+    if time.seconds_since_startup() > 3. {
+        state.set(GameState::InGame);
+    }
+}
+
+fn exit_start_menu(mut commands: Commands, mut q: Query<Entity, With<Logo>>) {
+    for e in q.iter_mut() {
+        commands.entity(e).despawn_recursive();
+    }
+}
+
 fn setup(
     mut commands: Commands,
 
@@ -281,9 +347,6 @@ fn setup(
     mut scene_spawner: ResMut<SceneSpawner>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
-    commands.spawn_bundle(UiCameraBundle::default());
-
     let light_body = asset_server.load("sprites/drafts/light_worksheet.png");
     let light_body = TextureAtlas::from_grid(light_body, Vec2::new(96.0, 96.0), 17, 36);
     let light_body = texture_atlases.add(light_body);
@@ -309,7 +372,6 @@ fn setup(
 
     let args: Vec<String> = env::args().collect();
     let level = "assets/scenes/drafts/playground.scn.ron";
-    // args.last().expect("Provide a filename!");
     let scene_handle: Handle<DynamicScene> = asset_server.load(format!("../{}", level).as_str());
     scene_spawner.spawn_dynamic(scene_handle);
 }
@@ -328,6 +390,7 @@ fn cleanup(
     poisons: Query<(&Poison, &GridLocation, Entity), Without<Sprite>>,
 ) {
     for (_ground, grid_location, e) in grounds.iter() {
+        dbg!("doing ground");
         commands.entity(e).insert_bundle(SpriteBundle {
             sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
             material: ground_color(&mut materials),
