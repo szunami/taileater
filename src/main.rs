@@ -160,19 +160,87 @@ fn main() {
             )
             .add_system(editor.system())
             .run();
-    } 
-    else if args.last() == Some(&String::from("-m")) {
- 
-    
-    }    
-    else {
-        App::build()
-            .insert_resource(WindowDescriptor {
-                title: "TAILEATER".to_string(),
-                ..Default::default()
-            })
-            .add_plugins(DefaultPlugins)
+    } else if args.last() == Some(&String::from("-m")) {
+        let mut app = App::build();
+
+        app.insert_resource(WindowDescriptor {
+            title: "TAILEATER".to_string(),
+            ..Default::default()
+        });
+
+        #[cfg(target_arch = "wasm32")]
+        app.add_plugins(bevy_webgl2::DefaultPlugins);
+
+        #[cfg(target_arch = "x86_64")]
+        app.add_plugins(DefaultPlugins);
+
+        app.add_state(GameState::StartMenu)
             .register_type::<Ground>()
+            .register_type::<GridLocation>()
+            .register_type::<Snake>()
+            .register_type::<Food>()
+            .register_type::<Poison>()
+            .insert_resource(SnakeParts(vec![]))
+            .add_system(bevy::input::system::exit_on_esc_system.system())
+            // ingame stuff
+            .add_system_set(SystemSet::on_enter(GameState::InGame).with_system(setup.system()))
+            .add_system(SystemSet::on_update(GameState::InGame).with_system(cleanup.system()))
+            .add_system(
+                SystemSet::on_update(GameState::InGame)
+                    .with_system(food.system())
+                    .label(FoodLabel),
+            )
+            .add_system(
+                SystemSet::on_update(GameState::InGame)
+                    .with_system(poison.system())
+                    .label(PoisonLabel)
+                    .after(FoodLabel),
+            )
+            .add_system(
+                SystemSet::on_update(GameState::InGame)
+                    .with_system(snake_movement.system())
+                    .label(SnakeMovementLabel)
+                    .after(PoisonLabel),
+            )
+            .add_system(
+                SystemSet::on_update(GameState::InGame)
+                    .with_system(sprite.system().label(SpriteLabel).after(SnakeMovementLabel)),
+            )
+            .add_system(
+                SystemSet::on_update(GameState::InGame)
+                    .with_system(gravity.system())
+                    .label(GravityLabel)
+                    .after(SnakeMovementLabel),
+            )
+            .add_system(
+                SystemSet::on_update(GameState::InGame)
+                    .with_system(gridlocation_to_transform.system())
+                    .label(TransformLabel), // .after(GravityLabel),
+            )
+            .add_system(
+                SystemSet::on_update(GameState::InGame)
+                    .with_system(win.system())
+                    .label(WinLabel)
+                    .after(GravityLabel),
+            )
+            // gravity
+            // gridlocation to transform
+            .run();
+    } else {
+        let mut app = App::build();
+
+        app.insert_resource(WindowDescriptor {
+            title: "TAILEATER".to_string(),
+            ..Default::default()
+        });
+
+        #[cfg(target_arch = "wasm32")]
+        app.add_plugins(bevy_webgl2::DefaultPlugins);
+
+        #[cfg(target_arch = "x86_64")]
+        app.add_plugins(DefaultPlugins);
+
+        app.register_type::<Ground>()
             .register_type::<GridLocation>()
             .register_type::<Snake>()
             .register_type::<Food>()
@@ -216,19 +284,19 @@ fn setup(
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
 
-    let light_body = asset_server.load("sprites/tmp/light_worksheet.png");
+    let light_body = asset_server.load("sprites/drafts/light_worksheet.png");
     let light_body = TextureAtlas::from_grid(light_body, Vec2::new(96.0, 96.0), 17, 36);
     let light_body = texture_atlases.add(light_body);
 
-    let dark_body = asset_server.load("sprites/tmp/dark_worksheet.png");
+    let dark_body = asset_server.load("sprites/drafts/dark_worksheet.png");
     let dark_body = TextureAtlas::from_grid(dark_body, Vec2::new(96.0, 96.0), 17, 36);
     let dark_body = texture_atlases.add(dark_body);
 
-    let head = asset_server.load("sprites/tmp/head_thick.png");
+    let head = asset_server.load("sprites/drafts/head_thick.png");
     let head = TextureAtlas::from_grid(head, Vec2::new(32.0, 32.0), 4, 1);
     let head = texture_atlases.add(head);
 
-    let tail = asset_server.load("sprites/tmp/tail_thick.png");
+    let tail = asset_server.load("sprites/drafts/tail_thick.png");
     let tail = TextureAtlas::from_grid(tail, Vec2::new(32.0, 32.0), 4, 1);
     let tail = texture_atlases.add(tail);
 
@@ -240,7 +308,8 @@ fn setup(
     });
 
     let args: Vec<String> = env::args().collect();
-    let level = args.last().expect("Provide a filename!");
+    let level = "assets/scenes/drafts/playground.scn.ron";
+    // args.last().expect("Provide a filename!");
     let scene_handle: Handle<DynamicScene> = asset_server.load(format!("../{}", level).as_str());
     scene_spawner.spawn_dynamic(scene_handle);
 }
