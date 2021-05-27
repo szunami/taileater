@@ -212,19 +212,19 @@ fn setup(
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
 
-    let light_body = asset_server.load("sprites/tmp/light_worksheet.png");
+    let light_body = asset_server.load("sprites/drafts/light_worksheet.png");
     let light_body = TextureAtlas::from_grid(light_body, Vec2::new(96.0, 96.0), 17, 36);
     let light_body = texture_atlases.add(light_body);
 
-    let dark_body = asset_server.load("sprites/tmp/dark_worksheet.png");
+    let dark_body = asset_server.load("sprites/drafts/dark_worksheet.png");
     let dark_body = TextureAtlas::from_grid(dark_body, Vec2::new(96.0, 96.0), 17, 36);
     let dark_body = texture_atlases.add(dark_body);
 
-    let head = asset_server.load("sprites/tmp/head_thick.png");
+    let head = asset_server.load("sprites/drafts/head_thick.png");
     let head = TextureAtlas::from_grid(head, Vec2::new(32.0, 32.0), 4, 1);
     let head = texture_atlases.add(head);
 
-    let tail = asset_server.load("sprites/tmp/tail_thick.png");
+    let tail = asset_server.load("sprites/drafts/tail_thick.png");
     let tail = TextureAtlas::from_grid(tail, Vec2::new(32.0, 32.0), 4, 1);
     let tail = texture_atlases.add(tail);
 
