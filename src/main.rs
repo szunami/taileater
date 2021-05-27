@@ -212,7 +212,7 @@ fn setup(
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
 
-    let light_body = asset_server.load("sprites/tmp/head.png");
+    let light_body = asset_server.load("sprites/tmp/light_worksheet.png");
     let light_body = TextureAtlas::from_grid(light_body, Vec2::new(96.0, 96.0), 17, 36);
     let light_body = texture_atlases.add(light_body);
 
