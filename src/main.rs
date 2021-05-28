@@ -942,16 +942,16 @@ fn win(snake_parts: Res<SnakeParts>, snake_locations: Query<&GridLocation, With<
         return;
     }
 
-    let head_location = snake_locations
-        .get(*snake_parts.0.first().expect("snake head exists"))
-        .expect("head has location");
+    if let Ok(head_location) =
+        snake_locations.get(*snake_parts.0.first().expect("snake head exists"))
+    {
+        let tail_location = snake_locations
+            .get(*snake_parts.0.last().expect("snake tail exists"))
+            .expect("tail has location");
 
-    let tail_location = snake_locations
-        .get(*snake_parts.0.last().expect("snake tail exists"))
-        .expect("tail has location");
-
-    if head_location == tail_location {
-        println!("You won! Nice.");
+        if head_location == tail_location {
+            println!("You won! Nice.");
+        }
     }
 }
 
@@ -1715,6 +1715,94 @@ fn update_history(
         }
 
         let state = history.0.first().expect("got first one");
+
+        let mut new_snake_parts = vec![];
+
+        for (index, (grid_location, transition)) in state.snakes.iter().enumerate() {
+            let handle = match index {
+                0 => snake_assets.head.clone(),
+                n if n == (state.snakes.len() - 1) => snake_assets.tail.clone(),
+                n if n % 2 == 0 => snake_assets.light_body.clone(),
+                _ => snake_assets.dark_body.clone(),
+            };
+
+            new_snake_parts.push(
+                commands
+                    .spawn()
+                    .insert_bundle(SpriteSheetBundle {
+                        texture_atlas: handle,
+                        transform: Transform::from_translation(Vec3::new(
+                            grid_location.x as f32 * GRID_WIDTH,
+                            grid_location.y as f32 * GRID_WIDTH,
+                            0.,
+                        )),
+                        ..Default::default()
+                    })
+                    .insert(grid_location.clone())
+                    .insert(LocationQueue(vec![]))
+                    .insert(TransitionQueue(vec![transition.clone()]))
+                    .insert(transition.to)
+                    .insert(Snake)
+                    .id(),
+            );
+        }
+
+        *snake_parts = SnakeParts(new_snake_parts);
+
+        for food_grid_location in state.foods.iter() {
+            dbg!("inserting food");
+            commands
+                .spawn()
+                .insert_bundle(SpriteBundle {
+                    sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+                    material: food_color(&mut materials),
+                    transform: Transform::from_translation(Vec3::new(
+                        food_grid_location.x as f32 * GRID_WIDTH,
+                        food_grid_location.y as f32 * GRID_WIDTH,
+                        0.,
+                    )),
+                    ..Default::default()
+                })
+                .insert(food_grid_location.clone())
+                .insert(Food);
+        }
+
+        for poison_grid_location in state.poisons.iter() {
+            commands
+                .spawn()
+                .insert_bundle(SpriteBundle {
+                    sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+                    material: poison_color(&mut materials),
+                    transform: Transform::from_translation(Vec3::new(
+                        poison_grid_location.x as f32 * GRID_WIDTH,
+                        poison_grid_location.y as f32 * GRID_WIDTH,
+                        0.,
+                    )),
+                    ..Default::default()
+                })
+                .insert(poison_grid_location.clone())
+                .insert(Poison);
+        }
+    } else if keyboard_input.just_pressed(KeyCode::Z) {
+        if history.0.len() == 1 {
+            return;
+        }
+
+        for e in snake_parts.0.iter() {
+            commands.entity(*e).despawn_recursive();
+        }
+
+        for (e, _grid_location) in food_query.iter() {
+            commands.entity(e).despawn_recursive();
+        }
+
+        for (e, _grid_location) in poison_query.iter() {
+            commands.entity(e).despawn_recursive();
+        }
+
+        history.0.pop();
+
+        let state = history.0.last().expect("got last one");
 
         let mut new_snake_parts = vec![];
 
