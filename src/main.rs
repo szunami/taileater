@@ -182,74 +182,7 @@ fn main() {
                 })
                 .system(),
             )
-            .add_system(
-                (|mut commands: Commands,
-                  mut my_world: ResMut<MyWorld>,
-                  mut materials: ResMut<Assets<ColorMaterial>>,
-                  
-                  grounds: Query<(Entity, &GridLocation), (With<Ground>, Without<Sprite>)>,
-                  snakes: Query<(Entity, &GridLocation), (With<Snake>, Without<Sprite>)>,
-                  foods: Query<(Entity, &GridLocation), (With<Food>, Without<Sprite>)>,
-                  poisons: Query<(Entity, &GridLocation), (With<Poison>, Without<Sprite>)>| {
-                    for (e, grid_location) in grounds.iter() {
-                        my_world.0.spawn().insert(grid_location.clone()).insert(Ground);
-                        commands.entity(e).insert_bundle(SpriteBundle {
-                            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-                            transform: Transform::from_translation(Vec3::new(
-                                grid_location.x as f32 * GRID_WIDTH,
-                                grid_location.y as f32 * GRID_HEIGHT,
-                                0.
-                            )),
-                            material: ground_color(&mut materials),
-                            ..Default::default()
-                        });
-                    }
-                    
-                    for (e, grid_location) in snakes.iter() {
-                        my_world.0.spawn().insert(grid_location.clone()).insert(Snake);
-                        commands.entity(e).insert_bundle(SpriteBundle {
-                            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-                            transform: Transform::from_translation(Vec3::new(
-                                grid_location.x as f32 * GRID_WIDTH,
-                                grid_location.y as f32 * GRID_HEIGHT,
-                                0.
-                            )),
-                            material: snake_color(&mut materials),
-                            ..Default::default()
-                        });
-                    }
-                    
-                    for (e, grid_location) in foods.iter() {
-                        my_world.0.spawn().insert(grid_location.clone()).insert(Food);
-                        commands.entity(e).insert_bundle(SpriteBundle {
-                            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-                            transform: Transform::from_translation(Vec3::new(
-                                grid_location.x as f32 * GRID_WIDTH,
-                                grid_location.y as f32 * GRID_HEIGHT,
-                                0.
-                            )),
-                            material: food_color(&mut materials),
-                            ..Default::default()
-                        });
-                    }
-                    
-                    for (e, grid_location) in poisons.iter() {
-                        my_world.0.spawn().insert(grid_location.clone()).insert(Poison);
-                        commands.entity(e).insert_bundle(SpriteBundle {
-                            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-                            transform: Transform::from_translation(Vec3::new(
-                                grid_location.x as f32 * GRID_WIDTH,
-                                grid_location.y as f32 * GRID_HEIGHT,
-                                0.
-                            )),
-                            material: poison_color(&mut materials),
-                            ..Default::default()
-                        });
-                    }
-
-                })
-                .system(),
-            )
+            .add_system(level_editor_cleanup.system())
             .add_system(editor.system())
             .run();
     } else {
@@ -347,6 +280,89 @@ fn main() {
 }
 
 struct Logo;
+
+fn level_editor_cleanup(
+    mut commands: Commands,
+    mut my_world: ResMut<MyWorld>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+
+    grounds: Query<(Entity, &GridLocation), (With<Ground>, Without<Sprite>)>,
+    snakes: Query<(Entity, &GridLocation), (With<Snake>, Without<Sprite>)>,
+    foods: Query<(Entity, &GridLocation), (With<Food>, Without<Sprite>)>,
+    poisons: Query<(Entity, &GridLocation), (With<Poison>, Without<Sprite>)>,
+) {
+    for (e, grid_location) in grounds.iter() {
+        my_world
+            .0
+            .spawn()
+            .insert(grid_location.clone())
+            .insert(Ground);
+        commands.entity(e).insert_bundle(SpriteBundle {
+            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+            transform: Transform::from_translation(Vec3::new(
+                grid_location.x as f32 * GRID_WIDTH,
+                grid_location.y as f32 * GRID_HEIGHT,
+                0.,
+            )),
+            material: ground_color(&mut materials),
+            ..Default::default()
+        });
+    }
+
+    for (e, grid_location) in snakes.iter() {
+        my_world
+            .0
+            .spawn()
+            .insert(grid_location.clone())
+            .insert(Snake);
+        commands.entity(e).insert_bundle(SpriteBundle {
+            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+            transform: Transform::from_translation(Vec3::new(
+                grid_location.x as f32 * GRID_WIDTH,
+                grid_location.y as f32 * GRID_HEIGHT,
+                0.,
+            )),
+            material: snake_color(&mut materials),
+            ..Default::default()
+        });
+    }
+
+    for (e, grid_location) in foods.iter() {
+        my_world
+            .0
+            .spawn()
+            .insert(grid_location.clone())
+            .insert(Food);
+        commands.entity(e).insert_bundle(SpriteBundle {
+            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+            transform: Transform::from_translation(Vec3::new(
+                grid_location.x as f32 * GRID_WIDTH,
+                grid_location.y as f32 * GRID_HEIGHT,
+                0.,
+            )),
+            material: food_color(&mut materials),
+            ..Default::default()
+        });
+    }
+
+    for (e, grid_location) in poisons.iter() {
+        my_world
+            .0
+            .spawn()
+            .insert(grid_location.clone())
+            .insert(Poison);
+        commands.entity(e).insert_bundle(SpriteBundle {
+            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+            transform: Transform::from_translation(Vec3::new(
+                grid_location.x as f32 * GRID_WIDTH,
+                grid_location.y as f32 * GRID_HEIGHT,
+                0.,
+            )),
+            material: poison_color(&mut materials),
+            ..Default::default()
+        });
+    }
+}
 
 fn enter_start_menu(
     mut commands: Commands,
