@@ -724,6 +724,7 @@ fn snake_movement(
 
     if let Some(head) = snake_parts.0.first() {
         if let Ok((_grid_location, _queue, mut orientation)) = snakes.get_mut(*head) {
+            let old_orientation = orientation.clone();
             orientation.from = orientation.to.clone();
 
             if keyboard_input.just_pressed(KeyCode::A) {
@@ -742,6 +743,17 @@ fn snake_movement(
                 orientation.to = Direction::Up;
                 orientation.from = Direction::Down;
             }
+
+            // want to keep this updated so that undoing has latest sprite
+            transitions
+                .get_mut(*head)
+                .expect("head transition queue")
+                .0
+                .push(Transition {
+                    from: old_orientation,
+                    to: orientation.clone(),
+                    index: 17,
+                })
         }
     }
 }
@@ -1804,6 +1816,8 @@ fn update_history(
 
         let state = history.0.last().expect("got last one");
 
+        dbg!(state);
+
         let mut new_snake_parts = vec![];
 
         for (index, (grid_location, transition)) in state.snakes.iter().enumerate() {
@@ -1838,7 +1852,6 @@ fn update_history(
         *snake_parts = SnakeParts(new_snake_parts);
 
         for food_grid_location in state.foods.iter() {
-            dbg!("inserting food");
             commands
                 .spawn()
                 .insert_bundle(SpriteBundle {
@@ -1879,16 +1892,13 @@ fn update_history(
                 match latest_snapshot.snakes.first() {
                     Some((snapshot_grid_location, _transition)) => {
                         if head_grid_location == snapshot_grid_location {
-                            dbg!("no change", latest_snapshot);
                         } else {
-                            dbg!("change! need to update snapshot");
-
                             let mut snakes = vec![];
                             for e in snake_parts.0.iter() {
                                 let (grid_location, transition) =
                                     snake_query.get(*e).expect("snake part lookup");
 
-                                let transition =
+                                let mut transition =
                                     transition.0.last().cloned().unwrap_or_else(|| {
                                         dbg!("transition queue was empty, using default");
                                         Transition {
@@ -1903,6 +1913,8 @@ fn update_history(
                                             index: 17,
                                         }
                                     });
+
+                                transition.index = 17;
 
                                 snakes.push((grid_location.clone(), transition.clone()));
                             }
