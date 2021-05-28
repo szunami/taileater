@@ -116,6 +116,7 @@ enum GameState {
     InGame,
 }
 
+#[derive(Debug)]
 struct Snapshot {
     // in order of snakeparts!
     snakes: Vec<(GridLocation, Transition)>,
@@ -1685,19 +1686,28 @@ fn update_history(
 
     mut history: ResMut<GameHistory>,
     mut snake_parts: ResMut<SnakeParts>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
 
     keyboard_input: Res<Input<KeyCode>>,
     snake_assets: Res<SnakeAssets>,
 
     snake_query: Query<(&GridLocation, &TransitionQueue), With<Snake>>,
+    food_query: Query<(Entity, &GridLocation), With<Food>>,
+    poison_query: Query<(Entity, &GridLocation), With<Poison>>,
 ) {
     // update history with current snapshot if necessary
-    
-    dbg!("Updating history");
 
     if keyboard_input.just_pressed(KeyCode::R) {
         for e in snake_parts.0.iter() {
             commands.entity(*e).despawn_recursive();
+        }
+
+        for (e, _grid_location) in food_query.iter() {
+            commands.entity(e).despawn_recursive();
+        }
+
+        for (e, _grid_location) in poison_query.iter() {
+            commands.entity(e).despawn_recursive();
         }
 
         while history.0.len() > 1 {
@@ -1736,11 +1746,44 @@ fn update_history(
                     .id(),
             );
         }
-        
+
         *snake_parts = SnakeParts(new_snake_parts);
-        
-    }
-    else if let Some(head) = snake_parts.0.first() {
+
+        for food_grid_location in state.foods.iter() {
+            dbg!("inserting food");
+            commands
+                .spawn()
+                .insert_bundle(SpriteBundle {
+                    sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+                    material: food_color(&mut materials),
+                    transform: Transform::from_translation(Vec3::new(
+                        food_grid_location.x as f32 * GRID_WIDTH,
+                        food_grid_location.y as f32 * GRID_WIDTH,
+                        0.,
+                    )),
+                    ..Default::default()
+                })
+                .insert(food_grid_location.clone())
+                .insert(Food);
+        }
+
+        for poison_grid_location in state.poisons.iter() {
+            commands
+                .spawn()
+                .insert_bundle(SpriteBundle {
+                    sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+                    material: poison_color(&mut materials),
+                    transform: Transform::from_translation(Vec3::new(
+                        poison_grid_location.x as f32 * GRID_WIDTH,
+                        poison_grid_location.y as f32 * GRID_WIDTH,
+                        0.,
+                    )),
+                    ..Default::default()
+                })
+                .insert(poison_grid_location.clone())
+                .insert(Poison);
+        }
+    } else if let Some(head) = snake_parts.0.first() {
         let (head_grid_location, _transition) = snake_query.get(*head).expect("head exists");
 
         match history.0.last() {
@@ -1748,7 +1791,7 @@ fn update_history(
                 match latest_snapshot.snakes.first() {
                     Some((snapshot_grid_location, _transition)) => {
                         if head_grid_location == snapshot_grid_location {
-                            dbg!("no change");
+                            dbg!("no change", latest_snapshot);
                         } else {
                             dbg!("change! need to update snapshot");
 
@@ -1775,11 +1818,22 @@ fn update_history(
 
                                 snakes.push((grid_location.clone(), transition.clone()));
                             }
+
+                            let mut foods = vec![];
+                            for (e, grid_location) in food_query.iter() {
+                                foods.push(grid_location.clone());
+                            }
+
+                            let mut poisons = vec![];
+                            for (e, grid_location) in poison_query.iter() {
+                                poisons.push(grid_location.clone());
+                            }
+
                             history.0.push(Snapshot {
                                 snakes,
-                                foods: vec![],
-                                poisons: vec![],
-                            })
+                                foods,
+                                poisons,
+                            });
                         }
                     }
                     None => {
@@ -1813,10 +1867,20 @@ fn update_history(
 
                     snakes.push((grid_location.clone(), transition.clone()));
                 }
+
+                let mut foods = vec![];
+                for (e, grid_location) in food_query.iter() {
+                    foods.push(grid_location.clone());
+                }
+
+                let mut poisons = vec![];
+                for (e, grid_location) in poison_query.iter() {
+                    poisons.push(grid_location.clone());
+                }
                 history.0.push(Snapshot {
                     snakes,
-                    foods: vec![],
-                    poisons: vec![],
+                    foods,
+                    poisons,
                 })
             }
         }
