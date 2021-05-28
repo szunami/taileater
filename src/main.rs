@@ -2,6 +2,10 @@ use bevy::{prelude::*, reflect::TypeRegistry};
 use chrono::Local;
 use std::{collections::HashSet, path::Path};
 use std::{env, fs::File, io::Write};
+
+#[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
+pub struct HistoryLabel;
+
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
 pub struct FoodLabel;
 
@@ -111,6 +115,14 @@ enum GameState {
     StartMenu,
     InGame,
 }
+
+struct Snapshot {
+    // in order of snakeparts!
+    snakes: Vec<(GridLocation, Transition)>,
+    foods: Vec<GridLocation>,
+    poisons: Vec<GridLocation>,
+}
+struct GameHistory(Vec<Snapshot>);
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -266,6 +278,7 @@ fn main() {
             .register_type::<Food>()
             .register_type::<Poison>()
             .insert_resource(SnakeParts(vec![]))
+            .insert_resource(GameHistory(vec![]))
             .add_system(bevy::input::system::exit_on_esc_system.system())
             .add_system_set(
                 SystemSet::on_enter(GameState::StartMenu).with_system(enter_start_menu.system()),
@@ -284,8 +297,14 @@ fn main() {
             .add_system_set(SystemSet::on_update(GameState::InGame).with_system(cleanup.system()))
             .add_system_set(
                 SystemSet::on_update(GameState::InGame)
+                    .with_system(update_history.system())
+                    .label(HistoryLabel),
+            )
+            .add_system_set(
+                SystemSet::on_update(GameState::InGame)
                     .with_system(food.system())
-                    .label(FoodLabel),
+                    .label(FoodLabel)
+                    .after(HistoryLabel),
             )
             .add_system_set(
                 SystemSet::on_update(GameState::InGame)
@@ -1238,7 +1257,7 @@ fn sprite(
                         // TODO: this is a function of transition to / from
 
                         if index == 1 {
-                            dbg!(transition.clone());
+                            // dbg!(transition.clone());
                         }
 
                         let offset = match (transition.from, transition.to) {
@@ -1657,6 +1676,149 @@ fn sprite(
                     dbg!("Someone should look into this...");
                 }
             },
+        }
+    }
+}
+
+fn update_history(
+    mut commands: Commands,
+
+    mut history: ResMut<GameHistory>,
+    mut snake_parts: ResMut<SnakeParts>,
+
+    keyboard_input: Res<Input<KeyCode>>,
+    snake_assets: Res<SnakeAssets>,
+
+    snake_query: Query<(&GridLocation, &TransitionQueue), With<Snake>>,
+) {
+    // update history with current snapshot if necessary
+    
+    dbg!("Updating history");
+
+    if keyboard_input.just_pressed(KeyCode::R) {
+        for e in snake_parts.0.iter() {
+            commands.entity(*e).despawn_recursive();
+        }
+
+        while history.0.len() > 1 {
+            history.0.pop();
+        }
+
+        let state = history.0.first().expect("got first one");
+
+        let mut new_snake_parts = vec![];
+
+        for (index, (grid_location, transition)) in state.snakes.iter().enumerate() {
+            let handle = match index {
+                0 => snake_assets.head.clone(),
+                n if n == (state.snakes.len() - 1) => snake_assets.tail.clone(),
+                n if n % 2 == 0 => snake_assets.light_body.clone(),
+                _ => snake_assets.dark_body.clone(),
+            };
+
+            new_snake_parts.push(
+                commands
+                    .spawn()
+                    .insert_bundle(SpriteSheetBundle {
+                        texture_atlas: handle,
+                        transform: Transform::from_translation(Vec3::new(
+                            grid_location.x as f32 * GRID_WIDTH,
+                            grid_location.y as f32 * GRID_WIDTH,
+                            0.,
+                        )),
+                        ..Default::default()
+                    })
+                    .insert(grid_location.clone())
+                    .insert(LocationQueue(vec![]))
+                    .insert(TransitionQueue(vec![transition.clone()]))
+                    .insert(transition.to)
+                    .insert(Snake)
+                    .id(),
+            );
+        }
+        
+        *snake_parts = SnakeParts(new_snake_parts);
+        
+    }
+    else if let Some(head) = snake_parts.0.first() {
+        let (head_grid_location, _transition) = snake_query.get(*head).expect("head exists");
+
+        match history.0.last() {
+            Some(latest_snapshot) => {
+                match latest_snapshot.snakes.first() {
+                    Some((snapshot_grid_location, _transition)) => {
+                        if head_grid_location == snapshot_grid_location {
+                            dbg!("no change");
+                        } else {
+                            dbg!("change! need to update snapshot");
+
+                            let mut snakes = vec![];
+                            for e in snake_parts.0.iter() {
+                                let (grid_location, transition) =
+                                    snake_query.get(*e).expect("snake part lookup");
+
+                                let transition =
+                                    transition.0.last().cloned().unwrap_or_else(|| {
+                                        dbg!("transition queue was empty, using default");
+                                        Transition {
+                                            from: Orientation {
+                                                from: Direction::Left,
+                                                to: Direction::Right,
+                                            },
+                                            to: Orientation {
+                                                from: Direction::Left,
+                                                to: Direction::Right,
+                                            },
+                                            index: 17,
+                                        }
+                                    });
+
+                                snakes.push((grid_location.clone(), transition.clone()));
+                            }
+                            history.0.push(Snapshot {
+                                snakes,
+                                foods: vec![],
+                                poisons: vec![],
+                            })
+                        }
+                    }
+                    None => {
+                        // head appeared from nothing? That's unexpected...
+                        eprintln!("Unexpected behavior. Head appeared from nothing")
+                    }
+                }
+            }
+            None => {
+                dbg!("History is empty; bootstrapping");
+                let mut snakes = vec![];
+
+                for e in snake_parts.0.iter() {
+                    let (grid_location, transition) =
+                        snake_query.get(*e).expect("snake part lookup");
+
+                    let transition = transition.0.last().cloned().unwrap_or_else(|| {
+                        dbg!("transition queue was empty, using default");
+                        Transition {
+                            from: Orientation {
+                                from: Direction::Left,
+                                to: Direction::Right,
+                            },
+                            to: Orientation {
+                                from: Direction::Left,
+                                to: Direction::Right,
+                            },
+                            index: 17,
+                        }
+                    });
+
+                    snakes.push((grid_location.clone(), transition.clone()));
+                }
+                history.0.push(Snapshot {
+                    snakes,
+                    foods: vec![],
+                    poisons: vec![],
+                })
+            }
         }
     }
 }
