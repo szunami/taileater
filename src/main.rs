@@ -440,12 +440,12 @@ fn load_assets(
     let tail = TextureAtlas::from_grid(tail, Vec2::new(32.0, 32.0), 4, 1);
     let tail = texture_atlases.add(tail);
 
-    // *snake_assets = MaybeSnakeAssets(Some(SnakeAssets {
-    //     head,
-    //     tail,
-    //     light_body,
-    //     dark_body,
-    // }));
+    *snake_assets = MaybeSnakeAssets(Some(SnakeAssets {
+        head,
+        tail,
+        light_body,
+        dark_body,
+    }));
 }
 
 fn setup(
