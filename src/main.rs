@@ -70,6 +70,7 @@ struct Poison;
 
 struct SnakeParts(Vec<Entity>);
 
+struct MaybeSnakeAssets(Option<SnakeAssets>);
 struct SnakeAssets {
     head: Handle<TextureAtlas>,
     tail: Handle<TextureAtlas>,
@@ -148,16 +149,16 @@ fn main() {
                     let mut my_world = world.get_resource_mut::<MyWorld>().unwrap();
                     my_world.1 = real_type_registry;
 
-                    let asset_server = world.get_resource::<AssetServer>().expect("scene spawner");
-                    let level = "assets/scenes/drafts/downsizing_2.scn.ron";
-                    let scene_handle: Handle<DynamicScene> =
-                        asset_server.load(format!("../{}", level).as_str());
+                    // let asset_server = world.get_resource::<AssetServer>().expect("scene spawner");
+                    // let level = "assets/scenes/drafts/downsizing_2.scn.ron";
+                    // let scene_handle: Handle<DynamicScene> =
+                    //     asset_server.load(format!("../{}", level).as_str());
 
-                    let mut scene_spawner = world
-                        .get_resource_mut::<SceneSpawner>()
-                        .expect("scene spawner");
+                    // let mut scene_spawner = world
+                    //     .get_resource_mut::<SceneSpawner>()
+                    //     .expect("scene spawner");
 
-                    scene_spawner.spawn_dynamic(scene_handle);
+                    // scene_spawner.spawn_dynamic(scene_handle);
                 })
                 .exclusive_system(),
             )
@@ -211,11 +212,15 @@ fn main() {
             .register_type::<Snake>()
             .register_type::<Food>()
             .register_type::<Poison>()
+            .insert_resource(MaybeSnakeAssets(None))
             .insert_resource(SnakeParts(vec![]))
             .insert_resource(GameHistory(vec![]))
             .add_system(bevy::input::system::exit_on_esc_system.system())
             .add_system_set(
                 SystemSet::on_enter(GameState::StartMenu).with_system(enter_start_menu.system()),
+            )
+            .add_system_set(
+                SystemSet::on_enter(GameState::StartMenu).with_system(load_assets.system()),
             )
             .add_system_set(
                 SystemSet::on_update(GameState::StartMenu).with_system(update_start_menu.system()),
@@ -392,6 +397,7 @@ fn update_start_menu(
 
     mut q: Query<(&mut TextureAtlasSprite, &mut Timer), With<Logo>>,
 ) {
+    dbg!("updating start menu");
     for (mut sprite, mut timer) in q.iter_mut() {
         timer.tick(time.delta());
         if timer.just_finished() {
@@ -405,18 +411,19 @@ fn update_start_menu(
 }
 
 fn exit_start_menu(mut commands: Commands, mut q: Query<Entity, With<Logo>>) {
+    dbg!("exiting start menu");
     for e in q.iter_mut() {
         commands.entity(e).despawn_recursive();
     }
 }
 
-fn setup(
+fn load_assets(
     mut commands: Commands,
-
     asset_server: Res<AssetServer>,
-    mut scene_spawner: ResMut<SceneSpawner>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    mut snake_assets: ResMut<MaybeSnakeAssets>,
 ) {
+    dbg!("loading assets");
     let light_body = asset_server.load("sprites/drafts/light_worksheet.png");
     let light_body = TextureAtlas::from_grid(light_body, Vec2::new(96.0, 96.0), 17, 36);
     let light_body = texture_atlases.add(light_body);
@@ -433,13 +440,20 @@ fn setup(
     let tail = TextureAtlas::from_grid(tail, Vec2::new(32.0, 32.0), 4, 1);
     let tail = texture_atlases.add(tail);
 
-    commands.insert_resource(SnakeAssets {
-        head,
-        tail,
-        light_body,
-        dark_body,
-    });
+    // *snake_assets = MaybeSnakeAssets(Some(SnakeAssets {
+    //     head,
+    //     tail,
+    //     light_body,
+    //     dark_body,
+    // }));
+}
 
+fn setup(
+    mut commands: Commands,
+
+    asset_server: Res<AssetServer>,
+    mut scene_spawner: ResMut<SceneSpawner>,
+) {
     let args: Vec<String> = env::args().collect();
     if let Some(level) = args.last() {
         let scene_handle: Handle<DynamicScene> =
@@ -456,13 +470,19 @@ fn cleanup(
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut snake_parts: ResMut<SnakeParts>,
 
-    snake_assets: Res<SnakeAssets>,
+    snake_assets: Res<MaybeSnakeAssets>,
 
     grounds: Query<(&Ground, &GridLocation, Entity), Without<Sprite>>,
     snakes: Query<(&Snake, &GridLocation, Entity), Without<TextureAtlasSprite>>,
     foods: Query<(&Food, &GridLocation, Entity), Without<Sprite>>,
     poisons: Query<(&Poison, &GridLocation, Entity), Without<Sprite>>,
 ) {
+    if snake_assets.0.is_none() {
+        return;
+    }
+
+    let snake_assets = snake_assets.0.as_ref().expect("fully loaded");
+
     for (_ground, grid_location, e) in grounds.iter() {
         commands.entity(e).insert_bundle(SpriteBundle {
             sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
@@ -836,11 +856,17 @@ fn food(
 
     mut snake_parts: ResMut<SnakeParts>,
 
-    assets: Res<SnakeAssets>,
+    snake_assets: Res<MaybeSnakeAssets>,
 
     snake_locations: Query<(&GridLocation, &Transform, &Orientation), (With<Snake>, Without<Food>)>,
     food_locations: Query<(&GridLocation, Entity), (With<Food>, Without<Snake>)>,
 ) {
+    if snake_assets.0.is_none() {
+        return;
+    }
+
+    let snake_assets = snake_assets.0.as_ref().expect("fully loaded");
+
     if snake_parts.0.is_empty() {
         return;
     }
@@ -861,9 +887,9 @@ fn food(
 
             let texture_atlas = {
                 if snake_parts.0.len() % 2 == 0 {
-                    assets.dark_body.clone()
+                    snake_assets.dark_body.clone()
                 } else {
-                    assets.light_body.clone()
+                    snake_assets.light_body.clone()
                 }
             };
 
@@ -1717,12 +1743,17 @@ fn update_history(
     mut materials: ResMut<Assets<ColorMaterial>>,
 
     keyboard_input: Res<Input<KeyCode>>,
-    snake_assets: Res<SnakeAssets>,
+    snake_assets: Res<MaybeSnakeAssets>,
 
     snake_query: Query<(&GridLocation, &TransitionQueue), With<Snake>>,
     food_query: Query<(Entity, &GridLocation), With<Food>>,
     poison_query: Query<(Entity, &GridLocation), With<Poison>>,
 ) {
+    if snake_assets.0.is_none() {
+        return;
+    }
+
+    let snake_assets = snake_assets.0.as_ref().expect("loaded");
     // update history with current snapshot if necessary
 
     if keyboard_input.just_pressed(KeyCode::R) {
