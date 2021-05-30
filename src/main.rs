@@ -601,16 +601,16 @@ fn snake_movement(
 ) {
     // TODO: don't allow x and y at the same damn time
     let mut diff = GridLocation { x: 0, y: 0 };
-    if keyboard_input.just_pressed(KeyCode::A) {
+    if keyboard_input.just_pressed(KeyCode::A) || keyboard_input.just_pressed(KeyCode::Left) {
         diff.x -= 1;
     }
-    if keyboard_input.just_pressed(KeyCode::D) {
+    if keyboard_input.just_pressed(KeyCode::D) || keyboard_input.just_pressed(KeyCode::Right) {
         diff.x += 1;
     }
-    if keyboard_input.just_pressed(KeyCode::S) {
+    if keyboard_input.just_pressed(KeyCode::S) || keyboard_input.just_pressed(KeyCode::Down) {
         diff.y -= 1;
     }
-    if keyboard_input.just_pressed(KeyCode::W) {
+    if keyboard_input.just_pressed(KeyCode::W) || keyboard_input.just_pressed(KeyCode::Up) {
         diff.y += 1;
     }
 
@@ -733,16 +733,20 @@ fn snake_movement(
                 Direction::Right => Direction::Left,
             };
 
-            if keyboard_input.just_pressed(KeyCode::A) {
+            if keyboard_input.just_pressed(KeyCode::A) || keyboard_input.just_pressed(KeyCode::Left)
+            {
                 orientation.to = Direction::Left;
             }
-            if keyboard_input.just_pressed(KeyCode::D) {
+            if keyboard_input.just_pressed(KeyCode::D)
+                || keyboard_input.just_pressed(KeyCode::Right)
+            {
                 orientation.to = Direction::Right;
             }
-            if keyboard_input.just_pressed(KeyCode::S) {
+            if keyboard_input.just_pressed(KeyCode::S) || keyboard_input.just_pressed(KeyCode::Down)
+            {
                 orientation.to = Direction::Down;
             }
-            if keyboard_input.just_pressed(KeyCode::W) {
+            if keyboard_input.just_pressed(KeyCode::W) || keyboard_input.just_pressed(KeyCode::Up) {
                 orientation.to = Direction::Up;
             }
 
@@ -763,19 +767,23 @@ fn snake_movement(
             let old_orientation = orientation.clone();
             orientation.from = orientation.to.clone();
 
-            if keyboard_input.just_pressed(KeyCode::A) {
+            if keyboard_input.just_pressed(KeyCode::A) || keyboard_input.just_pressed(KeyCode::Left)
+            {
                 orientation.to = Direction::Left;
                 orientation.from = Direction::Right;
             }
-            if keyboard_input.just_pressed(KeyCode::D) {
+            if keyboard_input.just_pressed(KeyCode::D)
+                || keyboard_input.just_pressed(KeyCode::Right)
+            {
                 orientation.to = Direction::Right;
                 orientation.from = Direction::Left;
             }
-            if keyboard_input.just_pressed(KeyCode::S) {
+            if keyboard_input.just_pressed(KeyCode::S) || keyboard_input.just_pressed(KeyCode::Down)
+            {
                 orientation.to = Direction::Down;
                 orientation.from = Direction::Up;
             }
-            if keyboard_input.just_pressed(KeyCode::W) {
+            if keyboard_input.just_pressed(KeyCode::W) || keyboard_input.just_pressed(KeyCode::Up) {
                 orientation.to = Direction::Up;
                 orientation.from = Direction::Down;
             }
