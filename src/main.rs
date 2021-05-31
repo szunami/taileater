@@ -1959,103 +1959,104 @@ fn update_history(
                 .insert(Poison);
         }
     } else if let Some(head) = snake_parts.0.first() {
-        let (head_grid_location, _transition) = snake_query.get(*head).expect("head exists");
+        // FIX THIS;
+        if let Ok((head_grid_location, _transition)) = snake_query.get(*head) {
+            match history.0.last() {
+                Some(latest_snapshot) => {
+                    match latest_snapshot.snakes.first() {
+                        Some((snapshot_grid_location, _transition)) => {
+                            if head_grid_location == snapshot_grid_location {
+                            } else {
+                                let mut snakes = vec![];
+                                for e in snake_parts.0.iter() {
+                                    let (grid_location, transition) =
+                                        snake_query.get(*e).expect("snake part lookup");
 
-        match history.0.last() {
-            Some(latest_snapshot) => {
-                match latest_snapshot.snakes.first() {
-                    Some((snapshot_grid_location, _transition)) => {
-                        if head_grid_location == snapshot_grid_location {
-                        } else {
-                            let mut snakes = vec![];
-                            for e in snake_parts.0.iter() {
-                                let (grid_location, transition) =
-                                    snake_query.get(*e).expect("snake part lookup");
+                                    let mut transition =
+                                        transition.0.last().cloned().unwrap_or_else(|| {
+                                            dbg!("transition queue was empty, using default");
+                                            Transition {
+                                                from: Orientation {
+                                                    from: Direction::Left,
+                                                    to: Direction::Right,
+                                                },
+                                                to: Orientation {
+                                                    from: Direction::Left,
+                                                    to: Direction::Right,
+                                                },
+                                                index: 17,
+                                            }
+                                        });
 
-                                let mut transition =
-                                    transition.0.last().cloned().unwrap_or_else(|| {
-                                        dbg!("transition queue was empty, using default");
-                                        Transition {
-                                            from: Orientation {
-                                                from: Direction::Left,
-                                                to: Direction::Right,
-                                            },
-                                            to: Orientation {
-                                                from: Direction::Left,
-                                                to: Direction::Right,
-                                            },
-                                            index: 17,
-                                        }
-                                    });
+                                    transition.index = 17;
 
-                                transition.index = 17;
+                                    snakes.push((grid_location.clone(), transition.clone()));
+                                }
 
-                                snakes.push((grid_location.clone(), transition.clone()));
+                                let mut foods = vec![];
+                                for (e, grid_location) in food_query.iter() {
+                                    foods.push(grid_location.clone());
+                                }
+
+                                let mut poisons = vec![];
+                                for (e, grid_location) in poison_query.iter() {
+                                    poisons.push(grid_location.clone());
+                                }
+
+                                history.0.push(Snapshot {
+                                    snakes,
+                                    foods,
+                                    poisons,
+                                });
                             }
-
-                            let mut foods = vec![];
-                            for (e, grid_location) in food_query.iter() {
-                                foods.push(grid_location.clone());
-                            }
-
-                            let mut poisons = vec![];
-                            for (e, grid_location) in poison_query.iter() {
-                                poisons.push(grid_location.clone());
-                            }
-
-                            history.0.push(Snapshot {
-                                snakes,
-                                foods,
-                                poisons,
-                            });
+                        }
+                        None => {
+                            // head appeared from nothing? That's unexpected...
+                            eprintln!("Unexpected behavior. Head appeared from nothing")
                         }
                     }
-                    None => {
-                        // head appeared from nothing? That's unexpected...
-                        eprintln!("Unexpected behavior. Head appeared from nothing")
+                }
+                None => {
+                    dbg!("History is empty; bootstrapping");
+                    let mut snakes = vec![];
+
+                    for e in snake_parts.0.iter() {
+                        let (grid_location, transition) =
+                            snake_query.get(*e).expect("snake part lookup");
+
+                        let transition = transition.0.last().cloned().unwrap_or_else(|| {
+                            dbg!("transition queue was empty, using default");
+                            Transition {
+                                from: Orientation {
+                                    from: Direction::Left,
+                                    to: Direction::Right,
+                                },
+                                to: Orientation {
+                                    from: Direction::Left,
+                                    to: Direction::Right,
+                                },
+                                index: 17,
+                            }
+                        });
+
+                        snakes.push((grid_location.clone(), transition.clone()));
                     }
+
+                    let mut foods = vec![];
+                    for (e, grid_location) in food_query.iter() {
+                        foods.push(grid_location.clone());
+                    }
+
+                    let mut poisons = vec![];
+                    for (e, grid_location) in poison_query.iter() {
+                        poisons.push(grid_location.clone());
+                    }
+                    history.0.push(Snapshot {
+                        snakes,
+                        foods,
+                        poisons,
+                    })
                 }
-            }
-            None => {
-                dbg!("History is empty; bootstrapping");
-                let mut snakes = vec![];
-
-                for e in snake_parts.0.iter() {
-                    let (grid_location, transition) =
-                        snake_query.get(*e).expect("snake part lookup");
-
-                    let transition = transition.0.last().cloned().unwrap_or_else(|| {
-                        dbg!("transition queue was empty, using default");
-                        Transition {
-                            from: Orientation {
-                                from: Direction::Left,
-                                to: Direction::Right,
-                            },
-                            to: Orientation {
-                                from: Direction::Left,
-                                to: Direction::Right,
-                            },
-                            index: 17,
-                        }
-                    });
-
-                    snakes.push((grid_location.clone(), transition.clone()));
-                }
-
-                let mut foods = vec![];
-                for (e, grid_location) in food_query.iter() {
-                    foods.push(grid_location.clone());
-                }
-
-                let mut poisons = vec![];
-                for (e, grid_location) in poison_query.iter() {
-                    poisons.push(grid_location.clone());
-                }
-                history.0.push(Snapshot {
-                    snakes,
-                    foods,
-                    poisons,
-                })
             }
         }
     }
@@ -2086,8 +2087,6 @@ fn enter_win(
 
         let (_tail_xform, tail_orientation) = snakes.get(*tail).expect("snake parts lookup");
 
-        dbg!(head_orientation, tail_orientation);
-
         let glowing_index = glowing_index(head_orientation.from, tail_orientation.to);
 
         let transform = head_xform.clone();
@@ -2117,14 +2116,13 @@ fn enter_win(
             .spawn_bundle(SpriteSheetBundle {
                 sprite: TextureAtlasSprite {
                     index: head_to_orb_index * 5,
-                    color,
                     ..Default::default()
                 },
                 texture_atlas: snake_assets.head_to_orb.clone(),
                 transform,
                 ..Default::default()
             })
-            .insert(GlowingSnake);
+            .insert(HeadToOrb);
     }
 
     for e in snake_parts.0[1..(snake_parts.0.len() - 1)].iter() {
@@ -2146,7 +2144,7 @@ fn enter_win(
                 transform,
                 ..Default::default()
             })
-            .insert(HeadToOrb);
+            .insert(GlowingSnake);
     }
 }
 
