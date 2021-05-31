@@ -76,6 +76,7 @@ struct SnakeAssets {
     tail: Handle<TextureAtlas>,
     light_body: Handle<TextureAtlas>,
     dark_body: Handle<TextureAtlas>,
+    glowing_body: Handle<TextureAtlas>,
 }
 
 const GRID_WIDTH: f32 = 32.0;
@@ -115,6 +116,7 @@ struct TransitionQueue(Vec<Transition>);
 enum GameState {
     StartMenu,
     InGame,
+    Win,
 }
 
 #[derive(Debug)]
@@ -278,8 +280,8 @@ fn main() {
                     .label(WinLabel)
                     .after(GravityLabel),
             )
-            // gravity
-            // gridlocation to transform
+            .add_system_set(SystemSet::on_enter(GameState::Win).with_system(enter_win.system()))
+            .add_system_set(SystemSet::on_update(GameState::Win).with_system(update_win.system()))
             .run();
     }
 }
@@ -440,11 +442,16 @@ fn load_assets(
     let tail = TextureAtlas::from_grid(tail, Vec2::new(32.0, 32.0), 4, 1);
     let tail = texture_atlases.add(tail);
 
+    let glowing_body = asset_server.load("sprites/drafts/glowing_snake.png");
+    let glowing_body = TextureAtlas::from_grid(glowing_body, Vec2::new(32.0, 32.0), 6, 1);
+    let glowing_body = texture_atlases.add(glowing_body);
+
     *snake_assets = MaybeSnakeAssets(Some(SnakeAssets {
         head,
         tail,
         light_body,
         dark_body,
+        glowing_body,
     }));
 }
 
@@ -999,20 +1006,27 @@ fn gridlocation_to_transform(mut q: Query<(&mut LocationQueue, &mut Transform)>)
     }
 }
 
-fn win(snake_parts: Res<SnakeParts>, snake_locations: Query<&GridLocation, With<Snake>>) {
+fn win(
+    snake_parts: Res<SnakeParts>,
+    snake_locations: Query<(&GridLocation, &Transform), With<Snake>>,
+    mut state: ResMut<State<GameState>>,
+) {
     if snake_parts.0.len() <= 2 {
         return;
     }
 
-    if let Ok(head_location) =
+    if let Ok((head_grid_location, head_xform)) =
         snake_locations.get(*snake_parts.0.first().expect("snake head exists"))
     {
-        let tail_location = snake_locations
+        let (tail_location, tail_xform) = snake_locations
             .get(*snake_parts.0.last().expect("snake tail exists"))
             .expect("tail has location");
 
-        if head_location == tail_location {
+        if head_grid_location == tail_location
+            && head_xform.translation.distance(tail_xform.translation) < 0.001
+        {
             println!("You won! Nice.");
+            state.set(GameState::Win);
         }
     }
 }
@@ -2039,5 +2053,73 @@ fn update_history(
                 })
             }
         }
+    }
+}
+
+struct GlowingSnake;
+
+// spawn a bunch of GlowingSnakes
+// spawn head to orb transition
+fn enter_win(
+    mut commands: Commands,
+
+    snake_parts: Res<SnakeParts>,
+    snake_assets: Res<MaybeSnakeAssets>,
+
+    snakes: Query<(&Transform, &Orientation), With<Snake>>,
+) {
+    let snake_assets = snake_assets.0.as_ref().expect("snake assets");
+    let head = snake_parts.0.first().expect("head exists");
+    // spawn SnakeToOrb
+
+    for e in snake_parts.0[1..].iter() {
+        // spawn glowing snake; choose index based on orientation
+        // TODO: choose based on orientation
+        let index = 0;
+
+        let (xform, orientation) = snakes.get(*e).expect("snake parts lookup");
+
+        let index = match (orientation.from, orientation.to) {
+            (Direction::Up, Direction::Down) => 0,
+            (Direction::Up, Direction::Left) => 4,
+            (Direction::Up, Direction::Right) => 5,
+            (Direction::Down, Direction::Up) => 0,
+            (Direction::Down, Direction::Left) => 3,
+            (Direction::Down, Direction::Right) => 2,
+            (Direction::Left, Direction::Up) => 4,
+            (Direction::Left, Direction::Down) => 3,
+            (Direction::Left, Direction::Right) => 0,
+            (Direction::Right, Direction::Up) => 5,
+            (Direction::Right, Direction::Down) => 2,
+            (Direction::Right, Direction::Left) => 0,
+            _ => {
+                eprintln!("Unexpcted orientation in win");
+                1000
+            }
+        };
+
+        commands
+            .spawn_bundle(SpriteSheetBundle {
+                sprite: TextureAtlasSprite {
+                    index,
+                    ..Default::default()
+                },
+                texture_atlas: snake_assets.glowing_body.clone(),
+                transform: xform.clone(),
+                ..Default::default()
+            })
+            .insert(GlowingSnake);
+    }
+}
+
+// fade out non-glowing snakes
+// orb transition
+fn update_win(mut snakes: Query<(&mut TextureAtlasSprite), With<Snake>>) {
+    // bye bye friends
+
+    for mut sprite in snakes.iter_mut() {
+        let new_a = (sprite.color.a() - 0.2).max(0.);
+
+        sprite.color.set_a(new_a);
     }
 }
