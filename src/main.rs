@@ -399,7 +399,6 @@ fn update_start_menu(
 
     mut q: Query<(&mut TextureAtlasSprite, &mut Timer), With<Logo>>,
 ) {
-    dbg!("updating start menu");
     for (mut sprite, mut timer) in q.iter_mut() {
         timer.tick(time.delta());
         if timer.just_finished() {
@@ -434,8 +433,8 @@ fn load_assets(
     let dark_body = TextureAtlas::from_grid(dark_body, Vec2::new(96.0, 96.0), 17, 36);
     let dark_body = texture_atlases.add(dark_body);
 
-    let head = asset_server.load("sprites/drafts/head_thick.png");
-    let head = TextureAtlas::from_grid(head, Vec2::new(32.0, 32.0), 4, 1);
+    let head = asset_server.load("sprites/drafts/head_v2_open.png");
+    let head = TextureAtlas::from_grid(head, Vec2::new(96.0, 96.0), 4, 1);
     let head = texture_atlases.add(head);
 
     let tail = asset_server.load("sprites/drafts/tail_thick.png");
@@ -2069,57 +2068,98 @@ fn enter_win(
     snakes: Query<(&Transform, &Orientation), With<Snake>>,
 ) {
     let snake_assets = snake_assets.0.as_ref().expect("snake assets");
-    let head = snake_parts.0.first().expect("head exists");
-    // spawn SnakeToOrb
 
-    for e in snake_parts.0[1..].iter() {
-        // spawn glowing snake; choose index based on orientation
-        // TODO: choose based on orientation
-        let index = 0;
+    {
+        let head = snake_parts.0.first().expect("head exists");
 
-        let (xform, orientation) = snakes.get(*e).expect("snake parts lookup");
+        let (head_xform, head_orientation) = snakes.get(*head).expect("snake parts lookup");
 
-        let index = match (orientation.from, orientation.to) {
-            (Direction::Up, Direction::Down) => 0,
-            (Direction::Up, Direction::Left) => 4,
-            (Direction::Up, Direction::Right) => 5,
-            (Direction::Down, Direction::Up) => 0,
-            (Direction::Down, Direction::Left) => 3,
-            (Direction::Down, Direction::Right) => 2,
-            (Direction::Left, Direction::Up) => 4,
-            (Direction::Left, Direction::Down) => 3,
-            (Direction::Left, Direction::Right) => 0,
-            (Direction::Right, Direction::Up) => 5,
-            (Direction::Right, Direction::Down) => 2,
-            (Direction::Right, Direction::Left) => 0,
-            _ => {
-                eprintln!("Unexpcted orientation in win");
-                1000
-            }
-        };
+        let tail = snake_parts.0.last().expect("head exists");
+
+        let (_tail_xform, tail_orientation) = snakes.get(*tail).expect("snake parts lookup");
+
+        dbg!(head_orientation, tail_orientation);
+
+        let index = glowing_index(head_orientation.from, tail_orientation.to);
+
+        let transform = head_xform.clone();
+        let color = Color::rgba(1.0, 1.0, 1.0, 0.0);
 
         commands
             .spawn_bundle(SpriteSheetBundle {
                 sprite: TextureAtlasSprite {
                     index,
+                    color,
                     ..Default::default()
                 },
                 texture_atlas: snake_assets.glowing_body.clone(),
-                transform: xform.clone(),
+                transform,
+                ..Default::default()
+            })
+            .insert(GlowingSnake);
+    }
+
+    // spawn SnakeToOrb
+
+    for e in snake_parts.0[1..(snake_parts.0.len() - 1)].iter() {
+        let (xform, orientation) = snakes.get(*e).expect("snake parts lookup");
+
+        let index = glowing_index(orientation.from, orientation.to);
+
+        let transform = xform.clone();
+        let color = Color::rgba(1.0, 1.0, 1.0, 0.0);
+
+        commands
+            .spawn_bundle(SpriteSheetBundle {
+                sprite: TextureAtlasSprite {
+                    index,
+                    color,
+                    ..Default::default()
+                },
+                texture_atlas: snake_assets.glowing_body.clone(),
+                transform,
                 ..Default::default()
             })
             .insert(GlowingSnake);
     }
 }
 
+fn glowing_index(from: Direction, to: Direction) -> u32 {
+    match (from, to) {
+        (Direction::Up, Direction::Down) => 0,
+        (Direction::Up, Direction::Left) => 4,
+        (Direction::Up, Direction::Right) => 5,
+        (Direction::Down, Direction::Up) => 0,
+        (Direction::Down, Direction::Left) => 3,
+        (Direction::Down, Direction::Right) => 2,
+        (Direction::Left, Direction::Up) => 4,
+        (Direction::Left, Direction::Down) => 3,
+        (Direction::Left, Direction::Right) => 0,
+        (Direction::Right, Direction::Up) => 5,
+        (Direction::Right, Direction::Down) => 2,
+        (Direction::Right, Direction::Left) => 0,
+        _ => {
+            eprintln!("Unexpcted orientation in win");
+            1000
+        }
+    }
+}
+
 // fade out non-glowing snakes
 // orb transition
-fn update_win(mut snakes: Query<(&mut TextureAtlasSprite), With<Snake>>) {
+fn update_win(
+    mut snakes: Query<(&mut TextureAtlasSprite), (With<Snake>, Without<GlowingSnake>)>,
+    mut glowing_snakes: Query<(&mut TextureAtlasSprite), (With<GlowingSnake>, Without<Snake>)>,
+) {
     // bye bye friends
 
     for mut sprite in snakes.iter_mut() {
-        let new_a = (sprite.color.a() - 0.2).max(0.);
+        let new_a = (sprite.color.a() - 0.1).max(0.);
+        sprite.color.set_a(new_a);
+    }
 
+    for mut sprite in glowing_snakes.iter_mut() {
+        let new_a = (sprite.color.a() + 0.1).min(1.);
         sprite.color.set_a(new_a);
     }
 }
