@@ -2066,6 +2066,8 @@ struct GlowingSnake;
 
 struct HeadToOrb;
 
+struct SnakePartTarget(usize);
+
 // spawn a bunch of GlowingSnakes
 // spawn head to orb transition
 fn enter_win(
@@ -2122,6 +2124,7 @@ fn enter_win(
                 transform,
                 ..Default::default()
             })
+            .insert(SnakePartTarget(snake_parts.0.len() - 2))
             .insert(HeadToOrb);
     }
 
@@ -2172,6 +2175,10 @@ fn glowing_index(from: Direction, to: Direction) -> u32 {
 // fade out non-glowing snakes
 // orb transition
 fn update_win(
+    snake_parts: Res<SnakeParts>,
+
+    target_lookup: Query<&Transform, (With<Snake>, Without<HeadToOrb>)>,
+
     mut snakes: Query<
         (&mut TextureAtlasSprite),
         (With<Snake>, Without<GlowingSnake>, Without<HeadToOrb>),
@@ -2181,7 +2188,11 @@ fn update_win(
         (With<GlowingSnake>, Without<Snake>, Without<HeadToOrb>),
     >,
     mut head_to_orb: Query<
-        (&mut TextureAtlasSprite),
+        (
+            &mut SnakePartTarget,
+            &mut TextureAtlasSprite,
+            &mut Transform,
+        ),
         (With<HeadToOrb>, Without<Snake>, Without<GlowingSnake>),
     >,
 ) {
@@ -2197,9 +2208,32 @@ fn update_win(
         sprite.color.set_a(new_a);
     }
 
-    for mut sprite in head_to_orb.iter_mut() {
+    for (mut target, mut sprite, mut xform) in head_to_orb.iter_mut() {
         if sprite.index % 5 != 4 {
             sprite.index += 1;
+        } else {
+            let target_e = snake_parts.0.get(target.0).expect("target lookup");
+
+            let target_xform = target_lookup.get(*target_e).expect("target lookup");
+
+            // move towards target
+
+            let mut delta = target_xform.translation - xform.translation;
+
+            if (delta.x != 0.) {
+                delta.x = RATE * delta.x.signum();
+            }
+
+            if (delta.y != 0.) {
+                delta.y = RATE * delta.y.signum();
+            }
+
+            xform.translation += delta;
+
+            if xform.translation.distance(target_xform.translation) < 0.001 {
+                dbg!("changing");
+                target.0 = (snake_parts.0.len() + target.0 - 1) % snake_parts.0.len();
+            }
         }
     }
 }
