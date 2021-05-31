@@ -447,7 +447,7 @@ fn load_assets(
     let glowing_body = texture_atlases.add(glowing_body);
 
     let head_to_orb = asset_server.load("sprites/tmp/head_to_orb-Sheet.png");
-    let head_to_orb = TextureAtlas::from_grid(head_to_orb, Vec2::new(96.0, 96.0), 5, 4);
+    let head_to_orb = TextureAtlas::from_grid(head_to_orb, Vec2::new(96.0, 96.0), 6, 5);
     let head_to_orb = texture_atlases.add(head_to_orb);
 
     *snake_assets = MaybeSnakeAssets(Some(SnakeAssets {
@@ -2125,6 +2125,7 @@ fn enter_win(
                 ..Default::default()
             })
             .insert(SnakePartTarget(snake_parts.0.len() - 2))
+            .insert(Timer::from_seconds(0.1, true))
             .insert(HeadToOrb);
     }
 
@@ -2175,6 +2176,8 @@ fn glowing_index(from: Direction, to: Direction) -> u32 {
 // fade out non-glowing snakes
 // orb transition
 fn update_win(
+    time: Res<Time>,
+
     snake_parts: Res<SnakeParts>,
 
     target_lookup: Query<&Transform, (With<Snake>, Without<HeadToOrb>)>,
@@ -2192,6 +2195,7 @@ fn update_win(
             &mut SnakePartTarget,
             &mut TextureAtlasSprite,
             &mut Transform,
+            &mut Timer,
         ),
         (With<HeadToOrb>, Without<Snake>, Without<GlowingSnake>),
     >,
@@ -2208,10 +2212,18 @@ fn update_win(
         sprite.color.set_a(new_a);
     }
 
-    for (mut target, mut sprite, mut xform) in head_to_orb.iter_mut() {
-        if sprite.index % 5 != 4 {
+    for (mut target, mut sprite, mut xform, mut timer) in head_to_orb.iter_mut() {
+        timer.tick(time.delta());
+
+        if sprite.index < 24 && sprite.index % 6 != 5 {
             sprite.index += 1;
+        } else if sprite.index < 24 {
+            sprite.index = 24;
         } else {
+            if timer.just_finished() {
+                sprite.index = 24 + ((1 + sprite.index) % 6);
+            }
+
             let target_e = snake_parts.0.get(target.0).expect("target lookup");
 
             let target_xform = target_lookup.get(*target_e).expect("target lookup");
