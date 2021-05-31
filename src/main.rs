@@ -77,6 +77,7 @@ struct SnakeAssets {
     light_body: Handle<TextureAtlas>,
     dark_body: Handle<TextureAtlas>,
     glowing_body: Handle<TextureAtlas>,
+    head_to_orb: Handle<TextureAtlas>,
 }
 
 const GRID_WIDTH: f32 = 32.0;
@@ -445,12 +446,17 @@ fn load_assets(
     let glowing_body = TextureAtlas::from_grid(glowing_body, Vec2::new(32.0, 32.0), 6, 1);
     let glowing_body = texture_atlases.add(glowing_body);
 
+    let head_to_orb = asset_server.load("sprites/tmp/head_to_orb-Sheet.png");
+    let head_to_orb = TextureAtlas::from_grid(head_to_orb, Vec2::new(96.0, 96.0), 5, 4);
+    let head_to_orb = texture_atlases.add(head_to_orb);
+
     *snake_assets = MaybeSnakeAssets(Some(SnakeAssets {
         head,
         tail,
         light_body,
         dark_body,
         glowing_body,
+        head_to_orb,
     }));
 }
 
@@ -2057,6 +2063,8 @@ fn update_history(
 
 struct GlowingSnake;
 
+struct HeadToOrb;
+
 // spawn a bunch of GlowingSnakes
 // spawn head to orb transition
 fn enter_win(
@@ -2080,7 +2088,7 @@ fn enter_win(
 
         dbg!(head_orientation, tail_orientation);
 
-        let index = glowing_index(head_orientation.from, tail_orientation.to);
+        let glowing_index = glowing_index(head_orientation.from, tail_orientation.to);
 
         let transform = head_xform.clone();
         let color = Color::rgba(1.0, 1.0, 1.0, 0.0);
@@ -2088,7 +2096,7 @@ fn enter_win(
         commands
             .spawn_bundle(SpriteSheetBundle {
                 sprite: TextureAtlasSprite {
-                    index,
+                    index: glowing_index,
                     color,
                     ..Default::default()
                 },
@@ -2097,9 +2105,27 @@ fn enter_win(
                 ..Default::default()
             })
             .insert(GlowingSnake);
-    }
 
-    // spawn SnakeToOrb
+        let head_to_orb_index = match head_orientation.to {
+            Direction::Up => 3,
+            Direction::Down => 1,
+            Direction::Left => 2,
+            Direction::Right => 0,
+        };
+
+        commands
+            .spawn_bundle(SpriteSheetBundle {
+                sprite: TextureAtlasSprite {
+                    index: head_to_orb_index * 5,
+                    color,
+                    ..Default::default()
+                },
+                texture_atlas: snake_assets.head_to_orb.clone(),
+                transform,
+                ..Default::default()
+            })
+            .insert(GlowingSnake);
+    }
 
     for e in snake_parts.0[1..(snake_parts.0.len() - 1)].iter() {
         let (xform, orientation) = snakes.get(*e).expect("snake parts lookup");
@@ -2120,7 +2146,7 @@ fn enter_win(
                 transform,
                 ..Default::default()
             })
-            .insert(GlowingSnake);
+            .insert(HeadToOrb);
     }
 }
 
@@ -2148,8 +2174,18 @@ fn glowing_index(from: Direction, to: Direction) -> u32 {
 // fade out non-glowing snakes
 // orb transition
 fn update_win(
-    mut snakes: Query<(&mut TextureAtlasSprite), (With<Snake>, Without<GlowingSnake>)>,
-    mut glowing_snakes: Query<(&mut TextureAtlasSprite), (With<GlowingSnake>, Without<Snake>)>,
+    mut snakes: Query<
+        (&mut TextureAtlasSprite),
+        (With<Snake>, Without<GlowingSnake>, Without<HeadToOrb>),
+    >,
+    mut glowing_snakes: Query<
+        (&mut TextureAtlasSprite),
+        (With<GlowingSnake>, Without<Snake>, Without<HeadToOrb>),
+    >,
+    mut head_to_orb: Query<
+        (&mut TextureAtlasSprite),
+        (With<HeadToOrb>, Without<Snake>, Without<GlowingSnake>),
+    >,
 ) {
     // bye bye friends
 
@@ -2161,5 +2197,11 @@ fn update_win(
     for mut sprite in glowing_snakes.iter_mut() {
         let new_a = (sprite.color.a() + 0.1).min(1.);
         sprite.color.set_a(new_a);
+    }
+
+    for mut sprite in head_to_orb.iter_mut() {
+        if sprite.index % 5 != 4 {
+            sprite.index += 1;
+        }
     }
 }
