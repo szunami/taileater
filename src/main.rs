@@ -1,5 +1,6 @@
 use bevy::{prelude::*, reflect::TypeRegistry};
 use chrono::Local;
+use std::collections::HashMap;
 use std::{collections::HashSet, path::Path};
 use std::{env, fs::File, io::Write};
 
@@ -116,6 +117,7 @@ struct TransitionQueue(Vec<Transition>);
 #[derive(Clone, Eq, PartialEq, Debug, Hash)]
 enum GameState {
     StartMenu,
+    LevelSelect,
     InGame,
     Win,
 }
@@ -233,6 +235,20 @@ fn main() {
             )
             .add_system_set(
                 SystemSet::on_update(GameState::StartMenu).with_system(update_start_menu.system()),
+            )
+            // add here
+            .add_system_set(
+                SystemSet::on_enter(GameState::LevelSelect)
+                    .with_system(setup_level_select.system()),
+            )
+            .add_system_set(
+                SystemSet::on_enter(GameState::LevelSelect).with_system(enter_level.system()),
+            )
+            .add_system_set(
+                SystemSet::on_update(GameState::LevelSelect).with_system(update_selected.system()),
+            )
+            .add_system_set(
+                SystemSet::on_update(GameState::LevelSelect).with_system(display_selected.system()),
             )
             // ingame stuff
             .add_system_set(SystemSet::on_enter(GameState::InGame).with_system(setup.system()))
@@ -2244,6 +2260,162 @@ fn update_win(
             if xform.translation.distance(target_xform.translation) < 0.001 {
                 dbg!("changing");
                 target.0 = (snake_parts.0.len() + target.0 - 1) % snake_parts.0.len();
+            }
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+struct Selected(GridLocation, LevelId);
+
+struct LevelId(usize);
+
+fn setup_level_select(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+) {
+    // ui camera
+    // root node
+    // left vertical fill (content)
+    commands
+        .spawn_bundle(NodeBundle {
+            style: Style {
+                justify_content: JustifyContent::Center,
+                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                flex_direction: FlexDirection::Column,
+                align_items: AlignItems::Center,
+                ..Default::default()
+            },
+            material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+            ..Default::default()
+        })
+        .with_children(|parent| {
+            parent
+                .spawn_bundle(NodeBundle {
+                    style: Style {
+                        justify_content: JustifyContent::Center,
+                        size: Size::new(Val::Percent(100.0), Val::Percent(20.0)),
+                        align_items: AlignItems::Center,
+                        ..Default::default()
+                    },
+                    material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+                    ..Default::default()
+                })
+                .with_children(|parent| {
+                    let n = 5;
+
+                    for i in 0..n {
+                        parent
+                            .spawn_bundle(NodeBundle {
+                                style: Style {
+                                    justify_content: JustifyContent::Center,
+                                    size: Size::new(
+                                        Val::Percent(100.0 / n as f32),
+                                        Val::Percent(100.0),
+                                    ),
+                                    align_items: AlignItems::Center,
+                                    ..Default::default()
+                                },
+                                material: materials.add(Color::rgb(0.15, 0.8, 0.15).into()),
+                                ..Default::default()
+                            })
+                            .insert(GridLocation { x: i, y: 0 })
+                            .insert(LevelId(i as usize))
+                            .with_children(|parent| {
+                                parent.spawn_bundle(TextBundle {
+                                    text: Text::with_section(
+                                        format!("Level {}", i),
+                                        TextStyle {
+                                            font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                                            font_size: 30.0,
+                                            color: Color::WHITE,
+                                        },
+                                        TextAlignment {
+                                            vertical: VerticalAlign::Center,
+                                            horizontal: HorizontalAlign::Center,
+                                        },
+                                    ),
+                                    ..Default::default()
+                                });
+                            });
+                    }
+                });
+        });
+}
+
+fn update_selected(
+    keyboard_input: Res<Input<KeyCode>>,
+
+    mut selected: ResMut<Selected>,
+
+    q: Query<(&GridLocation, &LevelId)>,
+) {
+    let valid_grids = {
+        let mut tmp = HashMap::new();
+        for (grid_location, level_id) in q.iter() {
+            tmp.insert(grid_location.clone(), level_id.clone());
+        }
+        tmp
+    };
+
+    if keyboard_input.just_pressed(KeyCode::D) {
+        if let Some(level_id) = valid_grids.get(&GridLocation {
+            x: selected.0.x + 1,
+            y: selected.0.y,
+        }) {
+            *selected = Selected(
+                GridLocation {
+                    x: selected.0.x + 1,
+                    y: selected.0.y,
+                },
+                *level_id.clone(),
+            );
+        }
+    }
+
+    if keyboard_input.just_pressed(KeyCode::A) {
+        if let Some(level_id) = valid_grids.get(&GridLocation {
+            x: selected.0.x - 1,
+            y: selected.0.y,
+        }) {
+            *selected = Selected(
+                GridLocation {
+                    x: selected.0.x - 1,
+                    y: selected.0.y,
+                },
+                *level_id.clone(),
+            );
+        }
+    }
+}
+
+fn display_selected(
+    mut materials: ResMut<Assets<ColorMaterial>>,
+
+    selected: Res<Selected>,
+
+    mut q: Query<(&GridLocation, &mut Handle<ColorMaterial>)>,
+) {
+    for (grid_location, mut handle) in q.iter_mut() {
+        if *grid_location == selected.0 {
+            *handle = materials.add(Color::rgb(0.15, 0.9, 0.15).into());
+        } else {
+            *handle = materials.add(Color::rgb(0.15, 0.5, 0.15).into());
+        }
+    }
+}
+
+fn enter_level(
+    selected: Res<Selected>,
+    keyboard_input: Res<Input<KeyCode>>,
+
+    q: Query<(&GridLocation, &LevelId)>,
+) {
+    if keyboard_input.just_pressed(KeyCode::Return) {
+        for (grid_location, level_id) in q.iter() {
+            if selected.0 == *grid_location {
+                dbg!("Entering level: {}", level_id.0);
             }
         }
     }
