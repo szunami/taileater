@@ -210,13 +210,13 @@ fn main() {
         #[cfg(target_arch = "x86_64")]
         app.add_plugins(DefaultPlugins);
 
-        // start menu stuff
         app.add_state(GameState::StartMenu)
             .register_type::<Ground>()
             .register_type::<GridLocation>()
             .register_type::<Snake>()
             .register_type::<Food>()
             .register_type::<Poison>()
+            .insert_resource(Selected(GridLocation { x: 0, y: 0 }, LevelId(0)))
             .insert_resource(MaybeSnakeAssets(None))
             .insert_resource(SnakeParts(vec![]))
             .insert_resource(GameHistory(vec![]))
@@ -236,19 +236,21 @@ fn main() {
             .add_system_set(
                 SystemSet::on_update(GameState::StartMenu).with_system(update_start_menu.system()),
             )
-            // add here
             .add_system_set(
                 SystemSet::on_enter(GameState::LevelSelect)
                     .with_system(setup_level_select.system()),
             )
             .add_system_set(
-                SystemSet::on_enter(GameState::LevelSelect).with_system(enter_level.system()),
+                SystemSet::on_update(GameState::LevelSelect).with_system(enter_level.system()),
             )
             .add_system_set(
                 SystemSet::on_update(GameState::LevelSelect).with_system(update_selected.system()),
             )
             .add_system_set(
                 SystemSet::on_update(GameState::LevelSelect).with_system(display_selected.system()),
+            )
+            .add_system_set(
+                SystemSet::on_exit(GameState::LevelSelect).with_system(exit_levelselect.system()),
             )
             // ingame stuff
             .add_system_set(SystemSet::on_enter(GameState::InGame).with_system(setup.system()))
@@ -424,7 +426,7 @@ fn update_start_menu(
     }
 
     if time.seconds_since_startup() > 3. {
-        state.set(GameState::InGame);
+        state.set(GameState::LevelSelect).ok();
     }
 }
 
@@ -480,16 +482,13 @@ fn setup(
     mut commands: Commands,
 
     asset_server: Res<AssetServer>,
+    level: Res<Selected>,
     mut scene_spawner: ResMut<SceneSpawner>,
 ) {
-    let args: Vec<String> = env::args().collect();
-    if let Some(level) = args.last() {
-        let scene_handle: Handle<DynamicScene> =
-            asset_server.load(format!("../{}", level).as_str());
-        scene_spawner.spawn_dynamic(scene_handle);
-    } else {
-        eprintln!("No level provided.");
-    }
+    dbg!("setup");
+    let scene_handle: Handle<DynamicScene> =
+        asset_server.load(format!("scenes/prod/{}.scn.ron", level.1.0).as_str());
+    scene_spawner.spawn_dynamic(scene_handle);
 }
 
 // spawning scenes is async, we don't have a good callback yet
@@ -1045,7 +1044,7 @@ fn win(
             && head_xform.translation.distance(tail_xform.translation) < 0.001
         {
             println!("You won! Nice.");
-            state.set(GameState::Win);
+            state.set(GameState::Win).ok();
         }
     }
 }
@@ -2268,6 +2267,7 @@ fn update_win(
 #[derive(Clone, Debug)]
 struct Selected(GridLocation, LevelId);
 
+#[derive(Clone, Debug)]
 struct LevelId(usize);
 
 fn setup_level_select(
@@ -2369,7 +2369,7 @@ fn update_selected(
                     x: selected.0.x + 1,
                     y: selected.0.y,
                 },
-                *level_id.clone(),
+                level_id.clone(),
             );
         }
     }
@@ -2384,7 +2384,7 @@ fn update_selected(
                     x: selected.0.x - 1,
                     y: selected.0.y,
                 },
-                *level_id.clone(),
+                level_id.clone(),
             );
         }
     }
@@ -2407,6 +2407,8 @@ fn display_selected(
 }
 
 fn enter_level(
+    mut state: ResMut<State<GameState>>,
+
     selected: Res<Selected>,
     keyboard_input: Res<Input<KeyCode>>,
 
@@ -2416,7 +2418,17 @@ fn enter_level(
         for (grid_location, level_id) in q.iter() {
             if selected.0 == *grid_location {
                 dbg!("Entering level: {}", level_id.0);
+
+                state.set(GameState::InGame).ok();
             }
         }
+    }
+}
+
+fn exit_levelselect(mut commands: Commands,
+q: Query<(&Node, Entity)>) {
+    
+    for (_node, e) in q.iter() {
+        commands.entity(e).despawn_recursive();
     }
 }
