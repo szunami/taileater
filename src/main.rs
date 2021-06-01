@@ -252,9 +252,11 @@ fn main() {
             .add_system_set(
                 SystemSet::on_exit(GameState::LevelSelect).with_system(exit_levelselect.system()),
             )
-            // ingame stuff
             .add_system_set(SystemSet::on_enter(GameState::InGame).with_system(setup.system()))
             .add_system_set(SystemSet::on_update(GameState::InGame).with_system(cleanup.system()))
+            .add_system_set(
+                SystemSet::on_update(GameState::InGame).with_system(back_to_levelselect.system()),
+            )
             .add_system_set(
                 SystemSet::on_update(GameState::InGame)
                     .with_system(update_history.system())
@@ -301,6 +303,9 @@ fn main() {
             )
             .add_system_set(SystemSet::on_enter(GameState::Win).with_system(enter_win.system()))
             .add_system_set(SystemSet::on_update(GameState::Win).with_system(update_win.system()))
+            .add_system_set(
+                SystemSet::on_update(GameState::Win).with_system(back_to_levelselect.system()),
+            )
             .run();
     }
 }
@@ -487,7 +492,7 @@ fn setup(
 ) {
     dbg!("setup");
     let scene_handle: Handle<DynamicScene> =
-        asset_server.load(format!("scenes/prod/{}.scn.ron", level.1.0).as_str());
+        asset_server.load(format!("scenes/prod/{}.scn.ron", level.1 .0).as_str());
     scene_spawner.spawn_dynamic(scene_handle);
 }
 
@@ -2238,27 +2243,27 @@ fn update_win(
                 sprite.index = 24 + ((1 + sprite.index) % 6);
             }
 
-            let target_e = snake_parts.0.get(target.0).expect("target lookup");
+            if let Some(target_e) = snake_parts.0.get(target.0) {
+                if let Ok(target_xform) = target_lookup.get(*target_e) {
+                    // move towards target
 
-            let target_xform = target_lookup.get(*target_e).expect("target lookup");
+                    let mut delta = target_xform.translation - xform.translation;
 
-            // move towards target
+                    if (delta.x != 0.) {
+                        delta.x = RATE * delta.x.signum();
+                    }
 
-            let mut delta = target_xform.translation - xform.translation;
+                    if (delta.y != 0.) {
+                        delta.y = RATE * delta.y.signum();
+                    }
 
-            if (delta.x != 0.) {
-                delta.x = RATE * delta.x.signum();
-            }
+                    xform.translation += delta;
 
-            if (delta.y != 0.) {
-                delta.y = RATE * delta.y.signum();
-            }
-
-            xform.translation += delta;
-
-            if xform.translation.distance(target_xform.translation) < 0.001 {
-                dbg!("changing");
-                target.0 = (snake_parts.0.len() + target.0 - 1) % snake_parts.0.len();
+                    if xform.translation.distance(target_xform.translation) < 0.001 {
+                        dbg!("changing");
+                        target.0 = (snake_parts.0.len() + target.0 - 1) % snake_parts.0.len();
+                    }
+                }
             }
         }
     }
@@ -2425,10 +2430,51 @@ fn enter_level(
     }
 }
 
-fn exit_levelselect(mut commands: Commands,
-q: Query<(&Node, Entity)>) {
-    
+fn exit_levelselect(mut commands: Commands, q: Query<(&Node, Entity)>) {
     for (_node, e) in q.iter() {
         commands.entity(e).despawn_recursive();
+    }
+}
+
+fn back_to_levelselect(
+    mut commands: Commands,
+
+    mut state: ResMut<State<GameState>>,
+    mut snake_parts: ResMut<SnakeParts>,
+
+    keyboard_input: Res<Input<KeyCode>>,
+
+    grounds: Query<(&Ground, Entity)>,
+    snakes: Query<(&Snake, Entity)>,
+    foods: Query<(&Food, Entity)>,
+    poisons: Query<(&Poison, Entity)>,
+
+    glowers: Query<(&GlowingSnake, Entity)>,
+    orbs: Query<(&HeadToOrb, Entity)>,
+) {
+    if keyboard_input.just_pressed(KeyCode::Q) {
+        for (_ground, e) in grounds.iter() {
+            commands.entity(e).despawn_recursive();
+        }
+        for (_snake, e) in snakes.iter() {
+            commands.entity(e).despawn_recursive();
+        }
+        for (_food, e) in foods.iter() {
+            commands.entity(e).despawn_recursive();
+        }
+        for (_poison, e) in poisons.iter() {
+            commands.entity(e).despawn_recursive();
+        }
+
+        for (_glow, e) in glowers.iter() {
+            commands.entity(e).despawn_recursive();
+        }
+        for (_orb, e) in orbs.iter() {
+            commands.entity(e).despawn_recursive();
+        }
+
+        snake_parts.0.clear();
+
+        state.set(GameState::LevelSelect).unwrap();
     }
 }
