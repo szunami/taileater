@@ -843,11 +843,9 @@ fn gravity(
                 y: snake_grid_location.y + distance,
             })
             .is_none()
+            && snake_grid_location.y + distance > -50
         {
             distance -= 1;
-            if distance < -50 {
-                break;
-            }
         }
         snake_fall = snake_fall.max(distance + 1);
     }
@@ -1967,6 +1965,7 @@ fn update_history(
                         Some((snapshot_grid_location, _transition)) => {
                             if head_grid_location == snapshot_grid_location {
                             } else {
+                                dbg!("New state.");
                                 let mut snakes = vec![];
                                 for e in snake_parts.0.iter() {
                                     let (grid_location, transition) =
@@ -1974,7 +1973,7 @@ fn update_history(
 
                                     let mut transition =
                                         transition.0.last().cloned().unwrap_or_else(|| {
-                                            dbg!("transition queue was empty, using default");
+                                            // dbg!("transition queue was empty, using default");
                                             Transition {
                                                 from: Orientation {
                                                     from: Direction::Left,
