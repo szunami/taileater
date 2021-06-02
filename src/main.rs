@@ -79,6 +79,8 @@ struct SnakeAssets {
     dark_body: Handle<TextureAtlas>,
     glowing_body: Handle<TextureAtlas>,
     head_to_orb: Handle<TextureAtlas>,
+    poison: Handle<ColorMaterial>,
+    food: Handle<ColorMaterial>,
 }
 
 const GRID_WIDTH: f32 = 32.0;
@@ -155,7 +157,7 @@ fn main() {
                     my_world.1 = real_type_registry;
 
                     // let asset_server = world.get_resource::<AssetServer>().expect("scene spawner");
-                    // let level = "assets/scenes/drafts/downsizing_2.scn.ron";
+                    // let level = "assets/scenes/drafts/max_food.scn.ron";
                     // let scene_handle: Handle<DynamicScene> =
                     //     asset_server.load(format!("../{}", level).as_str());
 
@@ -445,6 +447,7 @@ fn exit_start_menu(mut commands: Commands, mut q: Query<Entity, With<Logo>>) {
 fn load_assets(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     mut snake_assets: ResMut<MaybeSnakeAssets>,
 ) {
@@ -457,12 +460,12 @@ fn load_assets(
     let dark_body = TextureAtlas::from_grid(dark_body, Vec2::new(96.0, 96.0), 17, 36);
     let dark_body = texture_atlases.add(dark_body);
 
-    let head = asset_server.load("sprites/drafts/head_v2_open.png");
+    let head = asset_server.load("sprites/drafts/head_v3.png");
     let head = TextureAtlas::from_grid(head, Vec2::new(96.0, 96.0), 4, 1);
     let head = texture_atlases.add(head);
 
-    let tail = asset_server.load("sprites/drafts/tail_thick.png");
-    let tail = TextureAtlas::from_grid(tail, Vec2::new(32.0, 32.0), 4, 1);
+    let tail = asset_server.load("sprites/drafts/tail_v2.png");
+    let tail = TextureAtlas::from_grid(tail, Vec2::new(96.0, 96.0), 4, 1);
     let tail = texture_atlases.add(tail);
 
     let glowing_body = asset_server.load("sprites/drafts/glowing_snake.png");
@@ -473,6 +476,12 @@ fn load_assets(
     let head_to_orb = TextureAtlas::from_grid(head_to_orb, Vec2::new(96.0, 96.0), 6, 5);
     let head_to_orb = texture_atlases.add(head_to_orb);
 
+    let poison: Handle<ColorMaterial> =
+        materials.add(asset_server.load("sprites/drafts/poison.png").into());
+
+    let food: Handle<ColorMaterial> =
+        materials.add(asset_server.load("sprites/drafts/apple.png").into());
+
     *snake_assets = MaybeSnakeAssets(Some(SnakeAssets {
         head,
         tail,
@@ -480,6 +489,8 @@ fn load_assets(
         dark_body,
         glowing_body,
         head_to_orb,
+        poison,
+        food,
     }));
 }
 
@@ -489,11 +500,13 @@ fn setup(
     asset_server: Res<AssetServer>,
     level: Res<Selected>,
     mut scene_spawner: ResMut<SceneSpawner>,
+    mut bg_color: ResMut<ClearColor>,
 ) {
-    dbg!("setup");
     let scene_handle: Handle<DynamicScene> =
         asset_server.load(format!("scenes/prod/{}.scn.ron", level.1 .0).as_str());
     scene_spawner.spawn_dynamic(scene_handle);
+
+    *bg_color = ClearColor(Color::rgb(87. / 255., 114. / 255., 119. / 255.));
 }
 
 // spawning scenes is async, we don't have a good callback yet
@@ -531,7 +544,7 @@ fn cleanup(
     for (_food, grid_location, e) in foods.iter() {
         commands.entity(e).insert_bundle(SpriteBundle {
             sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-            material: food_color(&mut materials),
+            material: snake_assets.food.clone(),
             transform: Transform::from_translation(Vec3::new(
                 grid_location.x as f32 * GRID_WIDTH,
                 grid_location.y as f32 * GRID_HEIGHT,
@@ -544,7 +557,7 @@ fn cleanup(
     for (_poison, grid_location, e) in poisons.iter() {
         commands.entity(e).insert_bundle(SpriteBundle {
             sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-            material: poison_color(&mut materials),
+            material: snake_assets.poison.clone().into(),
             transform: Transform::from_translation(Vec3::new(
                 grid_location.x as f32 * GRID_WIDTH,
                 grid_location.y as f32 * GRID_HEIGHT,
@@ -631,6 +644,9 @@ fn snake_movement(
 
     mut transitions: Query<&mut TransitionQueue, With<Snake>>,
 ) {
+    if snake_parts.0.len() == 0 {
+        return;
+    }
     // TODO: don't allow x and y at the same damn time
     let mut diff = GridLocation { x: 0, y: 0 };
     if keyboard_input.just_pressed(KeyCode::A) || keyboard_input.just_pressed(KeyCode::Left) {
@@ -1859,7 +1875,7 @@ fn update_history(
                 .spawn()
                 .insert_bundle(SpriteBundle {
                     sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-                    material: food_color(&mut materials),
+                    material: snake_assets.food.clone(),
                     transform: Transform::from_translation(Vec3::new(
                         food_grid_location.x as f32 * GRID_WIDTH,
                         food_grid_location.y as f32 * GRID_WIDTH,
@@ -1876,7 +1892,7 @@ fn update_history(
                 .spawn()
                 .insert_bundle(SpriteBundle {
                     sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-                    material: poison_color(&mut materials),
+                    material: snake_assets.poison.clone(),
                     transform: Transform::from_translation(Vec3::new(
                         poison_grid_location.x as f32 * GRID_WIDTH,
                         poison_grid_location.y as f32 * GRID_WIDTH,
@@ -1948,7 +1964,7 @@ fn update_history(
                 .spawn()
                 .insert_bundle(SpriteBundle {
                     sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-                    material: food_color(&mut materials),
+                    material: snake_assets.food.clone(),
                     transform: Transform::from_translation(Vec3::new(
                         food_grid_location.x as f32 * GRID_WIDTH,
                         food_grid_location.y as f32 * GRID_WIDTH,
@@ -1965,7 +1981,7 @@ fn update_history(
                 .spawn()
                 .insert_bundle(SpriteBundle {
                     sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-                    material: poison_color(&mut materials),
+                    material: snake_assets.poison.clone(),
                     transform: Transform::from_translation(Vec3::new(
                         poison_grid_location.x as f32 * GRID_WIDTH,
                         poison_grid_location.y as f32 * GRID_WIDTH,
@@ -2280,9 +2296,6 @@ fn setup_level_select(
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    // ui camera
-    // root node
-    // left vertical fill (content)
     commands
         .spawn_bundle(NodeBundle {
             style: Style {
