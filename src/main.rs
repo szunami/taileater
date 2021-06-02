@@ -81,6 +81,7 @@ struct SnakeAssets {
     head_to_orb: Handle<TextureAtlas>,
     poison: Handle<ColorMaterial>,
     food: Handle<ColorMaterial>,
+    ground: Handle<ColorMaterial>,
 }
 
 const GRID_WIDTH: f32 = 32.0;
@@ -482,6 +483,9 @@ fn load_assets(
     let food: Handle<ColorMaterial> =
         materials.add(asset_server.load("sprites/drafts/apple.png").into());
 
+    let ground: Handle<ColorMaterial> =
+        materials.add(asset_server.load("sprites/drafts/ground.png").into());
+
     *snake_assets = MaybeSnakeAssets(Some(SnakeAssets {
         head,
         tail,
@@ -491,6 +495,7 @@ fn load_assets(
         head_to_orb,
         poison,
         food,
+        ground,
     }));
 }
 
@@ -531,7 +536,7 @@ fn cleanup(
     for (_ground, grid_location, e) in grounds.iter() {
         commands.entity(e).insert_bundle(SpriteBundle {
             sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-            material: ground_color(&mut materials),
+            material: snake_assets.ground.clone(),
             transform: Transform::from_translation(Vec3::new(
                 grid_location.x as f32 * GRID_WIDTH,
                 grid_location.y as f32 * GRID_HEIGHT,
