@@ -82,6 +82,7 @@ struct SnakeAssets {
     poison: Handle<ColorMaterial>,
     food: Handle<ColorMaterial>,
     ground: Handle<ColorMaterial>,
+    wall: Handle<ColorMaterial>,
 }
 
 const GRID_WIDTH: f32 = 32.0;
@@ -239,6 +240,10 @@ fn main() {
             .add_system_set(
                 SystemSet::on_update(GameState::StartMenu).with_system(update_start_menu.system()),
             )
+            // This is a little messy; need to handle quitting game + winning
+            .add_system_set(
+                SystemSet::on_enter(GameState::LevelSelect).with_system(exit_ingame.system()),
+            )
             .add_system_set(
                 SystemSet::on_enter(GameState::LevelSelect)
                     .with_system(setup_level_select.system()),
@@ -256,6 +261,7 @@ fn main() {
                 SystemSet::on_exit(GameState::LevelSelect).with_system(exit_levelselect.system()),
             )
             .add_system_set(SystemSet::on_enter(GameState::InGame).with_system(setup.system()))
+            .add_system_set(SystemSet::on_enter(GameState::InGame).with_system(wall.system()))
             .add_system_set(SystemSet::on_update(GameState::InGame).with_system(cleanup.system()))
             .add_system_set(
                 SystemSet::on_update(GameState::InGame).with_system(back_to_levelselect.system()),
@@ -486,6 +492,9 @@ fn load_assets(
     let ground: Handle<ColorMaterial> =
         materials.add(asset_server.load("sprites/drafts/ground.png").into());
 
+    let wall: Handle<ColorMaterial> =
+        materials.add(asset_server.load("sprites/drafts/wall.png").into());
+
     *snake_assets = MaybeSnakeAssets(Some(SnakeAssets {
         head,
         tail,
@@ -496,6 +505,7 @@ fn load_assets(
         poison,
         food,
         ground,
+        wall,
     }));
 }
 
@@ -2494,5 +2504,35 @@ fn back_to_levelselect(
         snake_parts.0.clear();
 
         state.set(GameState::LevelSelect).unwrap();
+    }
+}
+
+struct Wall;
+
+fn wall(mut commands: Commands, snake_assets: Res<MaybeSnakeAssets>) {
+    let snake_assets = snake_assets.0.as_ref().expect("fully loaded");
+
+    for x in -10..10 {
+        for y in -10..10 {
+            commands
+                .spawn()
+                .insert_bundle(SpriteBundle {
+                    sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+                    material: snake_assets.wall.clone(),
+                    transform: Transform::from_translation(Vec3::new(
+                        x as f32 * GRID_WIDTH,
+                        y as f32 * GRID_HEIGHT,
+                        0.,
+                    )),
+                    ..Default::default()
+                })
+                .insert(Wall);
+        }
+    }
+}
+
+fn exit_ingame(mut commands: Commands, q: Query<(&Wall, Entity)>) {
+    for (_wall, e) in q.iter() {
+        commands.entity(e).despawn_recursive();
     }
 }
