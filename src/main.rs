@@ -1029,7 +1029,7 @@ fn poison(
     }
 }
 
-const RATE: f32 = 4.0;
+const RATE: f32 = 8.0;
 
 fn gridlocation_to_transform(mut q: Query<(&mut LocationQueue, &mut Transform)>) {
     for (mut location_queue, mut xform) in q.iter_mut() {
@@ -1386,10 +1386,6 @@ fn sprite(
                 Ok((_orientation, mut sprite, mut transition_queue)) => {
                     if let Some(transition) = transition_queue.0.first_mut() {
                         // TODO: this is a function of transition to / from
-
-                        if index == 1 {
-                            // dbg!(transition.clone());
-                        }
 
                         let offset = match (transition.from, transition.to) {
                             (
@@ -1794,11 +1790,12 @@ fn sprite(
                                 1000
                             }
                         };
-                        transition.index = (transition.index + 1).min(16);
+
+                        transition.index = (transition.index + 1).min(4);
 
                         sprite.index = offset * 5 + transition.index;
 
-                        if transition.index == 5 {
+                        if transition.index == 4 {
                             transition_queue.0.remove(0);
                         }
                     }
