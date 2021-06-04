@@ -1029,7 +1029,7 @@ fn poison(
     }
 }
 
-const RATE: f32 = 2.0;
+const RATE: f32 = 4.0;
 
 fn gridlocation_to_transform(mut q: Query<(&mut LocationQueue, &mut Transform)>) {
     for (mut location_queue, mut xform) in q.iter_mut() {
