@@ -459,12 +459,12 @@ fn load_assets(
     mut snake_assets: ResMut<MaybeSnakeAssets>,
 ) {
     dbg!("loading assets");
-    let light_body = asset_server.load("sprites/drafts/light_worksheet.png");
-    let light_body = TextureAtlas::from_grid(light_body, Vec2::new(96.0, 96.0), 17, 36);
+    let light_body = asset_server.load("sprites/tmp/body_v2_transitions/body_v2_worksheet.png");
+    let light_body = TextureAtlas::from_grid(light_body, Vec2::new(96.0, 96.0), 5, 36);
     let light_body = texture_atlases.add(light_body);
 
-    let dark_body = asset_server.load("sprites/drafts/dark_worksheet.png");
-    let dark_body = TextureAtlas::from_grid(dark_body, Vec2::new(96.0, 96.0), 17, 36);
+    let dark_body = asset_server.load("sprites/tmp/body_v2_transitions/body_v2_worksheet.png");
+    let dark_body = TextureAtlas::from_grid(dark_body, Vec2::new(96.0, 96.0), 5, 36);
     let dark_body = texture_atlases.add(dark_body);
 
     let head = asset_server.load("sprites/drafts/head_v3.png");
@@ -859,7 +859,7 @@ fn snake_movement(
                 .push(Transition {
                     from: old_orientation,
                     to: orientation.clone(),
-                    index: 17,
+                    index: 4,
                 })
         }
     }
@@ -1796,9 +1796,9 @@ fn sprite(
                         };
                         transition.index = (transition.index + 1).min(16);
 
-                        sprite.index = offset * 17 + transition.index;
+                        sprite.index = offset * 5 + transition.index;
 
-                        if transition.index == 16 {
+                        if transition.index == 5 {
                             transition_queue.0.remove(0);
                         }
                     }
@@ -2034,11 +2034,11 @@ fn update_history(
                                                     from: Direction::Left,
                                                     to: Direction::Right,
                                                 },
-                                                index: 17,
+                                                index: 4,
                                             }
                                         });
 
-                                    transition.index = 17;
+                                    transition.index = 4;
 
                                     snakes.push((grid_location.clone(), transition.clone()));
                                 }
@@ -2085,7 +2085,7 @@ fn update_history(
                                     from: Direction::Left,
                                     to: Direction::Right,
                                 },
-                                index: 17,
+                                index: 4,
                             }
                         });
 
