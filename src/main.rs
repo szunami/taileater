@@ -459,11 +459,11 @@ fn load_assets(
     mut snake_assets: ResMut<MaybeSnakeAssets>,
 ) {
     dbg!("loading assets");
-    let light_body = asset_server.load("sprites/tmp/body_v2_transitions/body_v2_worksheet.png");
+    let light_body = asset_server.load("sprites/tmp/body_v2_workshee_scaled.png");
     let light_body = TextureAtlas::from_grid(light_body, Vec2::new(96.0, 96.0), 5, 36);
     let light_body = texture_atlases.add(light_body);
 
-    let dark_body = asset_server.load("sprites/tmp/body_v2_transitions/body_v2_worksheet.png");
+    let dark_body = asset_server.load("sprites/tmp/body_v2_workshee_scaled.png");
     let dark_body = TextureAtlas::from_grid(dark_body, Vec2::new(96.0, 96.0), 5, 36);
     let dark_body = texture_atlases.add(dark_body);
 
@@ -2528,8 +2528,15 @@ fn wall(mut commands: Commands, snake_assets: Res<MaybeSnakeAssets>) {
     }
 }
 
-fn exit_ingame(mut commands: Commands, q: Query<(&Wall, Entity)>) {
+fn exit_ingame(
+    mut commands: Commands,
+    q: Query<(&Wall, Entity)>,
+    mut game_history: ResMut<GameHistory>,
+) {
     for (_wall, e) in q.iter() {
         commands.entity(e).despawn_recursive();
     }
+
+    // need to clear gamestate too!
+    *game_history = GameHistory(vec![]);
 }
