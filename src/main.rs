@@ -459,7 +459,7 @@ fn load_assets(
     mut snake_assets: ResMut<MaybeSnakeAssets>,
 ) {
     dbg!("loading assets");
-    let light_body = asset_server.load("sprites/tmp/body_v2_workshee_scaled.png");
+    let light_body = asset_server.load("sprites/tmp/body_v2_workshee_scaled_light.png");
     let light_body = TextureAtlas::from_grid(light_body, Vec2::new(96.0, 96.0), 5, 36);
     let light_body = texture_atlases.add(light_body);
 
