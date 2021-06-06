@@ -332,6 +332,7 @@ fn main() {
                     .after(GravityLabel),
             )
             .add_system_set(SystemSet::on_enter(GameState::Win).with_system(enter_win.system()))
+            .add_system_set(SystemSet::on_enter(GameState::Win).with_system(save_win.system()))
             .add_system_set(SystemSet::on_update(GameState::Win).with_system(update_win.system()))
             .add_system_set(
                 SystemSet::on_update(GameState::Win).with_system(back_to_levelselect.system()),
@@ -2220,6 +2221,11 @@ fn enter_win(
     }
 }
 
+fn save_win(mut beat_levels: ResMut<BeatLevels>, selected: Res<Selected>) {
+    beat_levels.0.insert(selected.1.clone());
+    save_beat_levels(&*beat_levels);
+}
+
 fn glowing_index(from: Direction, to: Direction) -> u32 {
     match (from, to) {
         (Direction::Up, Direction::Down) => 0,
@@ -2562,9 +2568,11 @@ fn exit_ingame(
     *game_history = GameHistory(vec![]);
 }
 
+const SAVE_FILE: &str = "0.sav";
+
 fn load_beat_levels(mut commands: Commands) {
     // TODO: handle browserstorage case
-    let beat_levels = match File::open(Path::new("0.sav")) {
+    let beat_levels = match File::open(Path::new(SAVE_FILE)) {
         Ok(file) => {
             let reader = BufReader::new(file);
             match serde_json::from_reader::<_, SaveState>(reader) {
@@ -2572,18 +2580,37 @@ fn load_beat_levels(mut commands: Commands) {
                     SaveState::v1(v) => v.beat_levels,
                 },
                 Err(e) => {
-                    eprintln!("Failed to deser 0.sav. Err was {}", e);
+                    eprintln!("Failed to deser {}. Err was {}", SAVE_FILE, e);
                     BeatLevels(HashSet::new())
                 }
             }
         }
         Err(e) => {
-            eprintln!("Failed to open 0.sav. Err was {}", e);
+            eprintln!("Failed to open {}. Err was {}", SAVE_FILE, e);
             BeatLevels(HashSet::new())
         }
     };
 
     commands.insert_resource(beat_levels);
+}
+
+fn save_beat_levels(beat_levels: &BeatLevels) {
+    match serde_json::to_vec(beat_levels) {
+        Ok(data) => match File::create(SAVE_FILE) {
+            Ok(mut f) => match f.write_all(&data) {
+                Ok(_) => {
+                    dbg!("Saved to {}", SAVE_FILE);
+                }
+                Err(e) => {
+                    eprintln!("Failed to save to {}, error was {}", SAVE_FILE, e);
+                }
+            },
+            Err(e) => {
+                eprintln!("Failed to create {}. Error was {}", SAVE_FILE, e);
+            }
+        },
+        Err(_) => todo!(),
+    }
 }
 
 #[cfg(test)]
