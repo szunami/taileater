@@ -2563,20 +2563,27 @@ fn exit_ingame(
 }
 
 fn load_beat_levels(mut commands: Commands) {
-    // let beat_levels = match File::open(Path::new("0.sav")) {
-    //     Ok(file) => {
-    //         let reader = BufReader::new(file);
-    //         let v: SaveState  = serde_json::from_reader(reader);
-    //         // TODO: read from browserstorage if on web
-    //         HashSet::new()
-    //     }
-    //     Err(e) => {
-    //         eprintln!("Failed to open save file: {}", e);
-    //         HashSet::new()
-    //     }
-    // };
+    // TODO: handle browserstorage case
+    let beat_levels = match File::open(Path::new("0.sav")) {
+        Ok(file) => {
+            let reader = BufReader::new(file);
+            match serde_json::from_reader::<_, SaveState>(reader) {
+                Ok(v) => match v {
+                    SaveState::v1(v) => v.beat_levels,
+                },
+                Err(e) => {
+                    eprintln!("Failed to deser 0.sav. Err was {}", e);
+                    BeatLevels(HashSet::new())
+                }
+            }
+        }
+        Err(e) => {
+            eprintln!("Failed to open 0.sav. Err was {}", e);
+            BeatLevels(HashSet::new())
+        }
+    };
 
-    // commands.insert_resource(BeatLevels(beat_levels));
+    commands.insert_resource(beat_levels);
 }
 
 #[cfg(test)]
