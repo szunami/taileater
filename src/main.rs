@@ -176,16 +176,16 @@ fn main() {
                     let mut my_world = world.get_resource_mut::<MyWorld>().unwrap();
                     my_world.1 = real_type_registry;
 
-                    let asset_server = world.get_resource::<AssetServer>().expect("scene spawner");
-                    let level = "assets/scenes/drafts/crossroads.scn.ron";
-                    let scene_handle: Handle<DynamicScene> =
-                        asset_server.load(format!("../{}", level).as_str());
+                    // let asset_server = world.get_resource::<AssetServer>().expect("scene spawner");
+                    // let level = "assets/scenes/drafts/crossroads.scn.ron";
+                    // let scene_handle: Handle<DynamicScene> =
+                    //     asset_server.load(format!("../{}", level).as_str());
 
-                    let mut scene_spawner = world
-                        .get_resource_mut::<SceneSpawner>()
-                        .expect("scene spawner");
+                    // let mut scene_spawner = world
+                    //     .get_resource_mut::<SceneSpawner>()
+                    //     .expect("scene spawner");
 
-                    scene_spawner.spawn_dynamic(scene_handle);
+                    // scene_spawner.spawn_dynamic(scene_handle);
                 })
                 .exclusive_system(),
             )
