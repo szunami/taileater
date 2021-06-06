@@ -1,8 +1,13 @@
 use bevy::{prelude::*, reflect::TypeRegistry};
 use chrono::Local;
+use serde_json::Value;
 use std::collections::HashMap;
+use std::io::BufReader;
 use std::{collections::HashSet, path::Path};
 use std::{env, fs::File, io::Write};
+
+use serde::{Deserialize, Serialize};
+// use serde_json::Result;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
 pub struct HistoryLabel;
@@ -135,6 +140,19 @@ struct Snapshot {
 }
 struct GameHistory(Vec<Snapshot>);
 
+#[derive(Serialize, Deserialize)]
+struct BeatLevels(HashSet<LevelId>);
+
+#[derive(Serialize, Deserialize)]
+enum SaveState {
+    v1(SaveStateV1),
+}
+
+#[derive(Serialize, Deserialize)]
+struct SaveStateV1 {
+    beat_levels: BeatLevels,
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -227,6 +245,9 @@ fn main() {
             .add_system(bevy::input::system::exit_on_esc_system.system())
             .add_system_set(
                 SystemSet::on_enter(GameState::StartMenu).with_system(enter_start_menu.system()),
+            )
+            .add_system_set(
+                SystemSet::on_enter(GameState::StartMenu).with_system(load_beat_levels.system()),
             )
             .add_system_set(
                 SystemSet::on_enter(GameState::StartMenu).with_system(load_assets.system()),
@@ -2300,7 +2321,7 @@ fn update_win(
 #[derive(Clone, Debug)]
 struct Selected(GridLocation, LevelId);
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq, Hash)]
 struct LevelId(usize);
 
 fn setup_level_select(
@@ -2539,4 +2560,54 @@ fn exit_ingame(
 
     // need to clear gamestate too!
     *game_history = GameHistory(vec![]);
+}
+
+fn load_beat_levels(mut commands: Commands) {
+    // let beat_levels = match File::open(Path::new("0.sav")) {
+    //     Ok(file) => {
+    //         let reader = BufReader::new(file);
+    //         let v: SaveState  = serde_json::from_reader(reader);
+    //         // TODO: read from browserstorage if on web
+    //         HashSet::new()
+    //     }
+    //     Err(e) => {
+    //         eprintln!("Failed to open save file: {}", e);
+    //         HashSet::new()
+    //     }
+    // };
+
+    // commands.insert_resource(BeatLevels(beat_levels));
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{collections::HashSet, fs::File, io::BufReader, iter::FromIterator, path::Path};
+
+    use serde_json::Error;
+
+    use crate::{BeatLevels, LevelId, SaveState, SaveStateV1};
+
+    #[test]
+    fn it_works() {
+        let levels = HashSet::from_iter(vec![LevelId(0), LevelId(3), LevelId(10)]);
+
+        let save_state = SaveState::v1(SaveStateV1 {
+            beat_levels: BeatLevels(levels.clone()),
+        });
+
+        let sav = dbg!(serde_json::to_string(&save_state));
+        assert!(sav.is_ok());
+
+        let sav = sav.expect("it worked");
+
+        let data: Result<SaveState, _> = serde_json::from_str(&sav);
+
+        let data = data.expect("it works");
+
+        match data {
+            SaveState::v1(data) => {
+                assert_eq!(data.beat_levels.0, levels);
+            }
+        }
+    }
 }

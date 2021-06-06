@@ -2620,6 +2620,8 @@ dependencies = [
  "bevy_webgl2",
  "chrono",
  "itertools",
+ "serde",
+ "serde_json",
  "wasm-bindgen",
  "web-sys",
  "winit",
