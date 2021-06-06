@@ -140,7 +140,7 @@ struct Snapshot {
 }
 struct GameHistory(Vec<Snapshot>);
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 struct BeatLevels(HashSet<LevelId>);
 
 #[derive(Serialize, Deserialize)]
@@ -2223,7 +2223,7 @@ fn enter_win(
 
 fn save_win(mut beat_levels: ResMut<BeatLevels>, selected: Res<Selected>) {
     beat_levels.0.insert(selected.1.clone());
-    save_beat_levels(&*beat_levels);
+    save_beat_levels(beat_levels.clone());
 }
 
 fn glowing_index(from: Direction, to: Direction) -> u32 {
@@ -2334,6 +2334,8 @@ fn setup_level_select(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+
+    beat_levels: Res<BeatLevels>,
 ) {
     commands
         .spawn_bundle(NodeBundle {
@@ -2363,6 +2365,16 @@ fn setup_level_select(
                     let n = 5;
 
                     for i in 0..n {
+                        let level_id = LevelId(i as usize);
+
+                        let font_color = {
+                            if beat_levels.0.contains(&level_id) {
+                                Color::BLUE
+                            } else {
+                                Color::WHITE
+                            }
+                        };
+
                         parent
                             .spawn_bundle(NodeBundle {
                                 style: Style {
@@ -2378,7 +2390,7 @@ fn setup_level_select(
                                 ..Default::default()
                             })
                             .insert(GridLocation { x: i, y: 0 })
-                            .insert(LevelId(i as usize))
+                            .insert(level_id)
                             .with_children(|parent| {
                                 parent.spawn_bundle(TextBundle {
                                     text: Text::with_section(
@@ -2386,7 +2398,7 @@ fn setup_level_select(
                                         TextStyle {
                                             font: asset_server.load("fonts/FiraSans-Bold.ttf"),
                                             font_size: 30.0,
-                                            color: Color::WHITE,
+                                            color: font_color,
                                         },
                                         TextAlignment {
                                             vertical: VerticalAlign::Center,
@@ -2594,8 +2606,10 @@ fn load_beat_levels(mut commands: Commands) {
     commands.insert_resource(beat_levels);
 }
 
-fn save_beat_levels(beat_levels: &BeatLevels) {
-    match serde_json::to_vec(beat_levels) {
+fn save_beat_levels(beat_levels: BeatLevels) {
+    let wrapped = SaveState::v1(SaveStateV1 { beat_levels });
+
+    match serde_json::to_vec(&wrapped) {
         Ok(data) => match File::create(SAVE_FILE) {
             Ok(mut f) => match f.write_all(&data) {
                 Ok(_) => {
