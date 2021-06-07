@@ -2228,10 +2228,10 @@ fn save_win(mut beat_levels: ResMut<BeatLevels>, selected: Res<Selected>) {
 
 fn glowing_index(from: Direction, to: Direction) -> u32 {
     match (from, to) {
-        (Direction::Up, Direction::Down) => 0,
+        (Direction::Up, Direction::Down) => 1,
         (Direction::Up, Direction::Left) => 4,
         (Direction::Up, Direction::Right) => 5,
-        (Direction::Down, Direction::Up) => 0,
+        (Direction::Down, Direction::Up) => 1,
         (Direction::Down, Direction::Left) => 3,
         (Direction::Down, Direction::Right) => 2,
         (Direction::Left, Direction::Up) => 4,
