@@ -2396,7 +2396,7 @@ fn setup_level_select(
                                     text: Text::with_section(
                                         format!("Level {}", i),
                                         TextStyle {
-                                            font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                                            font: asset_server.load("fonts/AsepriteFont.ttf"),
                                             font_size: 30.0,
                                             color: font_color,
                                         },
