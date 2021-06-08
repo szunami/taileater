@@ -2420,7 +2420,6 @@ fn setup_level_select(
             ..Default::default()
         })
         .with_children(|root| {
-            
             root.spawn_bundle(NodeBundle {
                 style: Style {
                     justify_content: JustifyContent::Center,
@@ -2430,14 +2429,14 @@ fn setup_level_select(
                 },
                 material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
                 ..Default::default()
-            }).with_children(|row| {
-                
+            })
+            .with_children(|row| {
                 row.spawn_bundle(TextBundle {
                     text: Text::with_section(
                         "PICK A LEVEL",
                         TextStyle {
                             font: asset_server.load("fonts/AsepriteFont.ttf"),
-                            font_size: 32.0,
+                            font_size: 64.0,
                             color: Color::WHITE,
                         },
                         TextAlignment {
@@ -2448,7 +2447,7 @@ fn setup_level_select(
                     ..Default::default()
                 });
             });
-                
+
             root.spawn_bundle(NodeBundle {
                 style: Style {
                     justify_content: JustifyContent::Center,
@@ -2490,15 +2489,15 @@ fn setup_level_select(
                     ..Default::default()
                 })
                 .insert(LevelId(0))
-                .insert(GridLocation{x: 0, y: 0})
+                .insert(GridLocation { x: 0, y: 0 })
                 .with_children(|image| {
                     image.spawn_bundle(TextBundle {
                         text: Text::with_section(
                             "0",
                             TextStyle {
                                 font: asset_server.load("fonts/AsepriteFont.ttf"),
-                                font_size: 32.0,
-                                color: Color::WHITE,
+                                font_size: 64.0,
+                                color: Color::rgb(232. / 255., 193. / 255., 112. / 255.),
                             },
                             TextAlignment {
                                 vertical: VerticalAlign::Center,
@@ -2523,14 +2522,14 @@ fn setup_level_select(
                     ..Default::default()
                 })
                 .insert(LevelId(1))
-                .insert(GridLocation{x: 1, y: 0})
+                .insert(GridLocation { x: 1, y: 0 })
                 .with_children(|image| {
                     image.spawn_bundle(TextBundle {
                         text: Text::with_section(
                             "1",
                             TextStyle {
                                 font: asset_server.load("fonts/AsepriteFont.ttf"),
-                                font_size: 32.0,
+                                font_size: 64.0,
                                 color: Color::WHITE,
                             },
                             TextAlignment {
@@ -2556,14 +2555,14 @@ fn setup_level_select(
                     ..Default::default()
                 })
                 .insert(LevelId(2))
-                .insert(GridLocation{x: 2, y: 0})
+                .insert(GridLocation { x: 2, y: 0 })
                 .with_children(|image| {
                     image.spawn_bundle(TextBundle {
                         text: Text::with_section(
                             "2",
                             TextStyle {
                                 font: asset_server.load("fonts/AsepriteFont.ttf"),
-                                font_size: 32.0,
+                                font_size: 64.0,
                                 color: Color::WHITE,
                             },
                             TextAlignment {
@@ -2589,14 +2588,14 @@ fn setup_level_select(
                     ..Default::default()
                 })
                 .insert(LevelId(3))
-                .insert(GridLocation{x: 3, y: 0})
+                .insert(GridLocation { x: 3, y: 0 })
                 .with_children(|image| {
                     image.spawn_bundle(TextBundle {
                         text: Text::with_section(
                             "3",
                             TextStyle {
                                 font: asset_server.load("fonts/AsepriteFont.ttf"),
-                                font_size: 32.0,
+                                font_size: 64.0,
                                 color: Color::WHITE,
                             },
                             TextAlignment {
@@ -2622,14 +2621,14 @@ fn setup_level_select(
                     ..Default::default()
                 })
                 .insert(LevelId(4))
-                .insert(GridLocation{x: 4, y: 0})
+                .insert(GridLocation { x: 4, y: 0 })
                 .with_children(|image| {
                     image.spawn_bundle(TextBundle {
                         text: Text::with_section(
                             "4",
                             TextStyle {
                                 font: asset_server.load("fonts/AsepriteFont.ttf"),
-                                font_size: 32.0,
+                                font_size: 64.0,
                                 color: Color::WHITE,
                             },
                             TextAlignment {
@@ -2655,14 +2654,14 @@ fn setup_level_select(
                     ..Default::default()
                 })
                 .insert(LevelId(5))
-                .insert(GridLocation{x: 5, y: 0})
+                .insert(GridLocation { x: 5, y: 0 })
                 .with_children(|image| {
                     image.spawn_bundle(TextBundle {
                         text: Text::with_section(
                             "5",
                             TextStyle {
                                 font: asset_server.load("fonts/AsepriteFont.ttf"),
-                                font_size: 32.0,
+                                font_size: 64.0,
                                 color: Color::WHITE,
                             },
                             TextAlignment {
@@ -2688,23 +2687,14 @@ fn setup_level_select(
                     ..Default::default()
                 })
                 .insert(LevelId(6))
-                .insert(GridLocation{x: 6, y: 0})
+                .insert(GridLocation { x: 6, y: 0 })
                 .with_children(|image| {
-                    
-                    
-                    
-                    
                     image.spawn_bundle(TextBundle {
-                        style: Style {
-                            border: Rect::all(Val::Px(100.0)),
-                            
-                          ..Default::default()  
-                        },
                         text: Text::with_section(
                             "6",
                             TextStyle {
                                 font: asset_server.load("fonts/AsepriteFont.ttf"),
-                                font_size: 32.0,
+                                font_size: 64.0,
                                 color: Color::WHITE,
                             },
                             TextAlignment {
@@ -2769,16 +2759,17 @@ fn display_selected(
     mut materials: ResMut<Assets<ColorMaterial>>,
 
     selected: Res<Selected>,
+    asset_server: Res<AssetServer>,
 
     mut q: Query<(&GridLocation, &mut Handle<ColorMaterial>)>,
 ) {
-    for (grid_location, mut handle) in q.iter_mut() {
-        // if *grid_location == selected.0 {
-        //     *handle = materials.add(Color::rgb(0.15, 0.9, 0.15).into());
-        // } else {
-        //     *handle = materials.add(Color::rgb(0.15, 0.5, 0.15).into());
-        // }
-    }
+    for (grid_location, mut handle) in q.iter_mut() {}
+
+    // if *grid_location == selected.0 {
+    //     *handle = materials.add(Color::rgb(0.15, 0.9, 0.15).into());
+    // } else {
+    //     *handle = materials.add(Color::rgb(0.15, 0.5, 0.15).into());
+    // }
 }
 
 fn enter_level(
@@ -2929,7 +2920,9 @@ fn save_beat_levels(beat_levels: BeatLevels) {
                 eprintln!("Failed to create {}. Error was {}", SAVE_FILE, e);
             }
         },
-        Err(_) => todo!(),
+        Err(e) => {
+            eprintln!("Failed to create {}. Error was {}", SAVE_FILE, e);
+        }
     }
 }
 
