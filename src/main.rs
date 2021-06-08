@@ -2408,6 +2408,7 @@ fn setup_level_select(
     beat_levels: Res<BeatLevels>,
 ) {
     commands
+        // root node
         .spawn_bundle(NodeBundle {
             style: Style {
                 justify_content: JustifyContent::Center,
@@ -2420,6 +2421,74 @@ fn setup_level_select(
             ..Default::default()
         })
         .with_children(|parent| {
+            // row
+            parent
+                .spawn_bundle(NodeBundle {
+                    style: Style {
+                        justify_content: JustifyContent::Center,
+                        size: Size::new(Val::Percent(100.0), Val::Percent(20.0)),
+                        align_items: AlignItems::Center,
+                        ..Default::default()
+                    },
+                    material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+                    ..Default::default()
+                })
+                .with_children(|parent| {
+                    let n = 8;
+
+                    for i in 0..n {
+                        let level_id = LevelId(i as usize);
+
+                        let font_color = {
+                            if beat_levels.0.contains(&level_id) {
+                                Color::BLUE
+                            } else {
+                                Color::WHITE
+                            }
+                        };
+
+                        parent
+                            .spawn_bundle(ImageBundle {
+                                style: Style {
+                                    justify_content: JustifyContent::Center,
+                                    size: Size::new(
+                                        Val::Percent(100.0 / 8 as f32),
+                                        Val::Percent(100.0),
+                                    ),
+                                    align_items: AlignItems::Center,
+                                    ..Default::default()
+                                },
+                                material: materials.add(
+                                    Color::ALICE_BLUE.into()
+                                    // asset_server
+                                    //     .load("sprites/tmp/level_select/tail.png")
+                                    //     .into(),
+                                ),
+
+                                ..Default::default()
+                            })
+                            .insert(GridLocation { x: i, y: 0 })
+                            .insert(level_id);
+                            // .with_children(|parent| {
+                            //     parent.spawn_bundle(TextBundle {
+                            //         text: Text::with_section(
+                            //             format!("{}", i),
+                            //             TextStyle {
+                            //                 font: asset_server.load("fonts/AsepriteFont.ttf"),
+                            //                 font_size: 30.0,
+                            //                 color: font_color,
+                            //             },
+                            //             TextAlignment {
+                            //                 vertical: VerticalAlign::Center,
+                            //                 horizontal: HorizontalAlign::Center,
+                            //             },
+                            //         ),
+                            //         ..Default::default()
+                            //     });
+                            // });
+                    }
+                });
+
             parent
                 .spawn_bundle(NodeBundle {
                     style: Style {
