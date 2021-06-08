@@ -1022,23 +1022,27 @@ fn poison(
 
     mut snake_parts: ResMut<SnakeParts>,
 
-    snake_locations: Query<
-        (&GridLocation, &Transform, &Orientation),
+    mut snake_locations: Query<
+        (&mut GridLocation, &Transform, &Orientation),
         (With<Snake>, Without<Poison>),
     >,
+
+    mut snake_location_queues: Query<&mut LocationQueue>,
+
     poison_locations: Query<(&GridLocation, Entity), (With<Poison>, Without<Snake>)>,
 ) {
     if snake_parts.0.is_empty() {
         return;
     }
 
-    let head_location = match snake_locations.get(*snake_parts.0.first().expect("head exists")) {
-        Ok(x) => x.0,
+    let head_location = match snake_locations.get_mut(*snake_parts.0.first().expect("head exists"))
+    {
+        Ok(x) => x.0.clone(),
         Err(_) => return,
     };
 
     for (poison_location, poison_entity) in poison_locations.iter() {
-        if poison_location == head_location {
+        if poison_location == &head_location {
             // despawn poison!
             commands.entity(poison_entity).despawn_recursive();
 
@@ -1051,9 +1055,26 @@ fn poison(
 
             dbg!("despawning", to_despawn_index);
 
+            let new_tail_location = snake_locations
+                .get_mut(to_despawn)
+                .expect("still exists for now")
+                .0
+                .clone();
+
             commands.entity(to_despawn).despawn_recursive();
 
-            // TODO: update transitions / locations?
+            if snake_parts.0.len() > 1 {
+                let tail_entity = *snake_parts.0.last().expect("tail exists");
+                let mut tail_location =
+                    snake_locations.get_mut(tail_entity).expect("tail lookup").0;
+
+                *tail_location = new_tail_location.clone();
+
+                let mut tail_location_queue = snake_location_queues
+                    .get_mut(tail_entity)
+                    .expect("tail lookup");
+                tail_location_queue.0.push(new_tail_location);
+            }
         }
     }
 }
