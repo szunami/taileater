@@ -288,6 +288,18 @@ fn main() {
                 SystemSet::on_update(GameState::InGame).with_system(back_to_levelselect.system()),
             )
             .add_system_set(
+                SystemSet::on_update(GameState::InGame).with_system(
+                    (|snake_parts: Res<SnakeParts>, q: Query<&Transform>| {
+                        if let Some(tail_e) = snake_parts.0.last() {
+                            if let Ok(tail_xform) = q.get(*tail_e) {
+                                dbg!(tail_xform);
+                            }
+                        }
+                    })
+                    .system(),
+                ),
+            )
+            .add_system_set(
                 SystemSet::on_update(GameState::InGame)
                     .with_system(update_history.system())
                     .label(HistoryLabel),
@@ -660,7 +672,7 @@ fn cleanup(
                 transform: Transform::from_translation(Vec3::new(
                     tail_grid_location.x as f32 * GRID_WIDTH,
                     tail_grid_location.y as f32 * GRID_HEIGHT,
-                    0.,
+                    1.,
                 )),
                 ..Default::default()
             });
@@ -984,18 +996,23 @@ fn food(
             commands.entity(food_entity).despawn_recursive();
 
             let texture_atlas = {
-                if snake_parts.0.len() % 2 == 0 {
+                if snake_parts.0.len() == 1 {
+                    snake_assets.tail.clone()
+                } else if snake_parts.0.len() % 2 == 0 {
                     snake_assets.dark_body.clone()
                 } else {
                     snake_assets.light_body.clone()
                 }
             };
 
+            let mut xform = tail_xform.clone();
+            xform.translation.z = 0.;
+
             let new_snake = commands
                 .spawn()
                 .insert_bundle(SpriteSheetBundle {
                     texture_atlas,
-                    transform: *tail_xform,
+                    transform: xform,
                     ..Default::default()
                 })
                 .insert(tail_location.clone())
@@ -1028,6 +1045,7 @@ fn poison(
     >,
 
     mut snake_location_queues: Query<&mut LocationQueue>,
+    mut snake_transition_queues: Query<&mut TransitionQueue>,
 
     poison_locations: Query<(&GridLocation, Entity), (With<Poison>, Without<Snake>)>,
 ) {
@@ -1055,25 +1073,35 @@ fn poison(
 
             dbg!("despawning", to_despawn_index);
 
-            let new_tail_location = snake_locations
+            let (to_despawn_loc, _xform, to_despawn_orientation) = snake_locations
                 .get_mut(to_despawn)
-                .expect("still exists for now")
-                .0
-                .clone();
+                .expect("still exists for now");
+
+            let new_tail_location = to_despawn_loc.clone();
+            let new_tail_orientation = to_despawn_orientation.clone();
 
             commands.entity(to_despawn).despawn_recursive();
 
             if snake_parts.0.len() > 1 {
                 let tail_entity = *snake_parts.0.last().expect("tail exists");
-                let mut tail_location =
-                    snake_locations.get_mut(tail_entity).expect("tail lookup").0;
+                let (mut tail_location, _tail_xform, tail_orientation) =
+                    snake_locations.get_mut(tail_entity).expect("tail lookup");
 
                 *tail_location = new_tail_location.clone();
 
                 let mut tail_location_queue = snake_location_queues
                     .get_mut(tail_entity)
                     .expect("tail lookup");
-                tail_location_queue.0.push(new_tail_location);
+                tail_location_queue.0.push(new_tail_location.clone());
+
+                let mut tail_transition_queue = snake_transition_queues
+                    .get_mut(tail_entity)
+                    .expect("tail lookup");
+                tail_transition_queue.0.push(Transition {
+                    from: tail_orientation.clone(),
+                    to: new_tail_orientation.clone(),
+                    index: 0,
+                });
             }
         }
     }
@@ -1101,7 +1129,7 @@ fn gridlocation_to_transform(mut q: Query<(&mut LocationQueue, &mut Transform)>)
 
             if xform
                 .translation
-                .distance(Vec3::new(target_x, target_y, 0.))
+                .distance(Vec3::new(target_x, target_y, xform.translation.z))
                 <= f32::EPSILON
             {
                 location_queue.0.remove(0);
@@ -1863,8 +1891,6 @@ fn update_history(
 
     mut history: ResMut<GameHistory>,
     mut snake_parts: ResMut<SnakeParts>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-
     keyboard_input: Res<Input<KeyCode>>,
     snake_assets: Res<MaybeSnakeAssets>,
 
@@ -1908,6 +1934,14 @@ fn update_history(
                 _ => snake_assets.dark_body.clone(),
             };
 
+            let z = {
+                if index == state.snakes.len() - 1 {
+                    1.
+                } else {
+                    0.
+                }
+            };
+
             new_snake_parts.push(
                 commands
                     .spawn()
@@ -1916,7 +1950,7 @@ fn update_history(
                         transform: Transform::from_translation(Vec3::new(
                             grid_location.x as f32 * GRID_WIDTH,
                             grid_location.y as f32 * GRID_WIDTH,
-                            0.,
+                            z,
                         )),
                         ..Default::default()
                     })
@@ -1998,6 +2032,14 @@ fn update_history(
                 _ => snake_assets.dark_body.clone(),
             };
 
+            let z = {
+                if index == state.snakes.len() - 1 {
+                    1.
+                } else {
+                    0.
+                }
+            };
+
             new_snake_parts.push(
                 commands
                     .spawn()
@@ -2006,7 +2048,7 @@ fn update_history(
                         transform: Transform::from_translation(Vec3::new(
                             grid_location.x as f32 * GRID_WIDTH,
                             grid_location.y as f32 * GRID_WIDTH,
-                            0.,
+                            z,
                         )),
                         ..Default::default()
                     })
