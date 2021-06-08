@@ -2417,139 +2417,168 @@ fn setup_level_select(
                 align_items: AlignItems::Center,
                 ..Default::default()
             },
-            material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
             ..Default::default()
         })
-        .with_children(|parent| {
-            // row
-            parent
-                .spawn_bundle(NodeBundle {
+        .with_children(|root| {
+            root.spawn_bundle(NodeBundle {
+                style: Style {
+                    justify_content: JustifyContent::Center,
+                    size: Size::new(Val::Percent(100.0), Val::Percent(20.0)),
+                    align_items: AlignItems::Center,
+                    ..Default::default()
+                },
+                material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+                ..Default::default()
+            })
+            .with_children(|row| {
+                row.spawn_bundle(ImageBundle {
                     style: Style {
                         justify_content: JustifyContent::Center,
-                        size: Size::new(Val::Percent(100.0), Val::Percent(20.0)),
+                        size: Size::new(Val::Percent(100.0 / 8 as f32), Val::Percent(100.0)),
                         align_items: AlignItems::Center,
                         ..Default::default()
                     },
-                    material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+                    material: materials.add(asset_server.load("sprites/drafts/head_v2.png").into()),
                     ..Default::default()
                 })
-                .with_children(|parent| {
-                    let n = 8;
-
-                    for i in 0..n {
-                        let level_id = LevelId(i as usize);
-
-                        let font_color = {
-                            if beat_levels.0.contains(&level_id) {
-                                Color::BLUE
-                            } else {
-                                Color::WHITE
-                            }
-                        };
-
-                        parent
-                            .spawn_bundle(ImageBundle {
-                                style: Style {
-                                    justify_content: JustifyContent::Center,
-                                    size: Size::new(
-                                        Val::Percent(100.0 / 8 as f32),
-                                        Val::Percent(100.0),
-                                    ),
-                                    align_items: AlignItems::Center,
-                                    ..Default::default()
-                                },
-                                material: materials.add(
-                                    Color::ALICE_BLUE.into()
-                                    // asset_server
-                                    //     .load("sprites/tmp/level_select/tail.png")
-                                    //     .into(),
-                                ),
-
-                                ..Default::default()
-                            })
-                            .insert(GridLocation { x: i, y: 0 })
-                            .insert(level_id);
-                            // .with_children(|parent| {
-                            //     parent.spawn_bundle(TextBundle {
-                            //         text: Text::with_section(
-                            //             format!("{}", i),
-                            //             TextStyle {
-                            //                 font: asset_server.load("fonts/AsepriteFont.ttf"),
-                            //                 font_size: 30.0,
-                            //                 color: font_color,
-                            //             },
-                            //             TextAlignment {
-                            //                 vertical: VerticalAlign::Center,
-                            //                 horizontal: HorizontalAlign::Center,
-                            //             },
-                            //         ),
-                            //         ..Default::default()
-                            //     });
-                            // });
-                    }
-                });
-
-            parent
-                .spawn_bundle(NodeBundle {
-                    style: Style {
-                        justify_content: JustifyContent::Center,
-                        size: Size::new(Val::Percent(100.0), Val::Percent(20.0)),
-                        align_items: AlignItems::Center,
+                .with_children(|image| {
+                    image.spawn_bundle(TextBundle {
+                        text: Text::with_section(
+                            "Left",
+                            TextStyle {
+                                font: asset_server.load("fonts/AsepriteFont.ttf"),
+                                font_size: 30.0,
+                                color: Color::WHITE,
+                            },
+                            TextAlignment {
+                                vertical: VerticalAlign::Center,
+                                horizontal: HorizontalAlign::Center,
+                            },
+                        ),
                         ..Default::default()
-                    },
-                    material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
-                    ..Default::default()
-                })
-                .with_children(|parent| {
-                    let n = 5;
-
-                    for i in 0..n {
-                        let level_id = LevelId(i as usize);
-
-                        let font_color = {
-                            if beat_levels.0.contains(&level_id) {
-                                Color::BLUE
-                            } else {
-                                Color::WHITE
-                            }
-                        };
-
-                        parent
-                            .spawn_bundle(NodeBundle {
-                                style: Style {
-                                    justify_content: JustifyContent::Center,
-                                    size: Size::new(
-                                        Val::Percent(100.0 / n as f32),
-                                        Val::Percent(100.0),
-                                    ),
-                                    align_items: AlignItems::Center,
-                                    ..Default::default()
-                                },
-                                material: materials.add(Color::rgb(0.15, 0.8, 0.15).into()),
-                                ..Default::default()
-                            })
-                            .insert(GridLocation { x: i, y: 0 })
-                            .insert(level_id)
-                            .with_children(|parent| {
-                                parent.spawn_bundle(TextBundle {
-                                    text: Text::with_section(
-                                        format!("Level {}", i),
-                                        TextStyle {
-                                            font: asset_server.load("fonts/AsepriteFont.ttf"),
-                                            font_size: 30.0,
-                                            color: font_color,
-                                        },
-                                        TextAlignment {
-                                            vertical: VerticalAlign::Center,
-                                            horizontal: HorizontalAlign::Center,
-                                        },
-                                    ),
-                                    ..Default::default()
-                                });
-                            });
-                    }
+                    });
                 });
+            });
         });
+
+    // // row
+    // parent
+    //     .spawn_bundle()
+    //     .with_children(|parent| {
+    //         let n = 8;
+
+    //         for i in 0..n {
+    //             let level_id = LevelId(i as usize);
+
+    //             let font_color = {
+    //                 if beat_levels.0.contains(&level_id) {
+    //                     Color::BLUE
+    //                 } else {
+    //                     Color::WHITE
+    //                 }
+    //             };
+
+    //             parent
+    //                 .spawn_bundle(ImageBundle {
+    //                     style: Style {
+    //                         justify_content: JustifyContent::Center,
+    //                         size: Size::new(
+    //                             Val::Percent(100.0 / 8 as f32),
+    //                             Val::Percent(100.0),
+    //                         ),
+    //                         align_items: AlignItems::Center,
+    //                         ..Default::default()
+    //                     },
+    //                     material: materials.add(
+    //                         asset_server
+    //                             .load("sprites/drafts/head_v2.png")
+    //                             .into(),
+    //                     ),
+
+    //                     ..Default::default()
+    //                 })
+    //                 .insert(GridLocation { x: i, y: 0 })
+    //                 .insert(level_id);
+    //                 // .with_children(|parent| {
+    //                 //     parent.spawn_bundle(TextBundle {
+    //                 //         text: Text::with_section(
+    //                 //             format!("{}", i),
+    //                 //             TextStyle {
+    //                 //                 font: asset_server.load("fonts/AsepriteFont.ttf"),
+    //                 //                 font_size: 30.0,
+    //                 //                 color: font_color,
+    //                 //             },
+    //                 //             TextAlignment {
+    //                 //                 vertical: VerticalAlign::Center,
+    //                 //                 horizontal: HorizontalAlign::Center,
+    //                 //             },
+    //                 //         ),
+    //                 //         ..Default::default()
+    //                 //     });
+    //                 // });
+    //         }
+    //     });
+
+    // parent
+    //     .spawn_bundle(NodeBundle {
+    //         style: Style {
+    //             justify_content: JustifyContent::Center,
+    //             size: Size::new(Val::Percent(100.0), Val::Percent(20.0)),
+    //             align_items: AlignItems::Center,
+    //             ..Default::default()
+    //         },
+    //         material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+    //         ..Default::default()
+    //     })
+    //     .with_children(|parent| {
+    //         let n = 5;
+
+    //         for i in 0..n {
+    //             let level_id = LevelId(i as usize);
+
+    //             let font_color = {
+    //                 if beat_levels.0.contains(&level_id) {
+    //                     Color::BLUE
+    //                 } else {
+    //                     Color::WHITE
+    //                 }
+    //             };
+
+    //             parent
+    //                 .spawn_bundle(NodeBundle {
+    //                     style: Style {
+    //                         justify_content: JustifyContent::Center,
+    //                         size: Size::new(
+    //                             Val::Percent(100.0 / n as f32),
+    //                             Val::Percent(100.0),
+    //                         ),
+    //                         align_items: AlignItems::Center,
+    //                         ..Default::default()
+    //                     },
+    //                     material: materials.add(Color::rgb(0.15, 0.8, 0.15).into()),
+    //                     ..Default::default()
+    //                 })
+    //                 .insert(GridLocation { x: i, y: 0 })
+    //                 .insert(level_id)
+    //                 .with_children(|parent| {
+    //                     parent.spawn_bundle(TextBundle {
+    //                         text: Text::with_section(
+    //                             format!("Level {}", i),
+    //                             TextStyle {
+    //                                 font: asset_server.load("fonts/AsepriteFont.ttf"),
+    //                                 font_size: 30.0,
+    //                                 color: font_color,
+    //                             },
+    //                             TextAlignment {
+    //                                 vertical: VerticalAlign::Center,
+    //                                 horizontal: HorizontalAlign::Center,
+    //                             },
+    //                         ),
+    //                         ..Default::default()
+    //                     });
+    //                 });
+    //         }
+    //     });
 }
 
 fn update_selected(
