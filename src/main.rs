@@ -1,6 +1,6 @@
 use bevy::{prelude::*, reflect::TypeRegistry};
 use chrono::Local;
-use serde_json::Value;
+
 use std::collections::HashMap;
 use std::io::BufReader;
 use std::{collections::HashSet, path::Path};
@@ -684,6 +684,13 @@ fn snake_movement(
     if snake_parts.0.len() == 0 {
         return;
     }
+
+    for (grid_location, _queue, _orientation) in snakes.iter_mut() {
+        if grid_location.y < -40 {
+            return;
+        }
+    }
+
     // TODO: don't allow x and y at the same damn time
     let mut diff = GridLocation { x: 0, y: 0 };
     if keyboard_input.just_pressed(KeyCode::A) || keyboard_input.just_pressed(KeyCode::Left) {
