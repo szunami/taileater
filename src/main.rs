@@ -2413,17 +2413,46 @@ fn setup_level_select(
             style: Style {
                 justify_content: JustifyContent::Center,
                 size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                flex_direction: FlexDirection::Column,
+                flex_direction: FlexDirection::ColumnReverse,
                 align_items: AlignItems::Center,
                 ..Default::default()
             },
             ..Default::default()
         })
         .with_children(|root| {
+            
             root.spawn_bundle(NodeBundle {
                 style: Style {
                     justify_content: JustifyContent::Center,
-                    size: Size::new(Val::Percent(100.0), Val::Percent(20.0)),
+                    size: Size::new(Val::Percent(100.0), Val::Percent(100. / 6.)),
+                    align_items: AlignItems::Center,
+                    ..Default::default()
+                },
+                material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+                ..Default::default()
+            }).with_children(|row| {
+                
+                row.spawn_bundle(TextBundle {
+                    text: Text::with_section(
+                        "PICK A LEVEL",
+                        TextStyle {
+                            font: asset_server.load("fonts/AsepriteFont.ttf"),
+                            font_size: 32.0,
+                            color: Color::WHITE,
+                        },
+                        TextAlignment {
+                            vertical: VerticalAlign::Center,
+                            horizontal: HorizontalAlign::Center,
+                        },
+                    ),
+                    ..Default::default()
+                });
+            });
+                
+            root.spawn_bundle(NodeBundle {
+                style: Style {
+                    justify_content: JustifyContent::Center,
+                    size: Size::new(Val::Percent(100.0), Val::Percent(100. / 6.)),
                     align_items: AlignItems::Center,
                     ..Default::default()
                 },
@@ -2438,16 +2467,244 @@ fn setup_level_select(
                         align_items: AlignItems::Center,
                         ..Default::default()
                     },
-                    material: materials.add(asset_server.load("sprites/drafts/head_v2.png").into()),
+                    material: materials.add(
+                        asset_server
+                            .load("sprites/tmp/level_select/tail.png")
+                            .into(),
+                    ),
+                    ..Default::default()
+                });
+
+                row.spawn_bundle(ImageBundle {
+                    style: Style {
+                        justify_content: JustifyContent::Center,
+                        size: Size::new(Val::Percent(100.0 / 8.), Val::Percent(100.0)),
+                        align_items: AlignItems::Center,
+                        ..Default::default()
+                    },
+                    material: materials.add(
+                        asset_server
+                            .load("sprites/tmp/level_select/body_lr_dark.png")
+                            .into(),
+                    ),
                     ..Default::default()
                 })
+                .insert(LevelId(0))
+                .insert(GridLocation{x: 0, y: 0})
                 .with_children(|image| {
                     image.spawn_bundle(TextBundle {
                         text: Text::with_section(
-                            "Left",
+                            "0",
                             TextStyle {
                                 font: asset_server.load("fonts/AsepriteFont.ttf"),
-                                font_size: 30.0,
+                                font_size: 32.0,
+                                color: Color::WHITE,
+                            },
+                            TextAlignment {
+                                vertical: VerticalAlign::Center,
+                                horizontal: HorizontalAlign::Center,
+                            },
+                        ),
+                        ..Default::default()
+                    });
+                });
+                row.spawn_bundle(ImageBundle {
+                    style: Style {
+                        justify_content: JustifyContent::Center,
+                        size: Size::new(Val::Percent(100.0 / 8.), Val::Percent(100.0)),
+                        align_items: AlignItems::Center,
+                        ..Default::default()
+                    },
+                    material: materials.add(
+                        asset_server
+                            .load("sprites/tmp/level_select/body_lr_light.png")
+                            .into(),
+                    ),
+                    ..Default::default()
+                })
+                .insert(LevelId(1))
+                .insert(GridLocation{x: 1, y: 0})
+                .with_children(|image| {
+                    image.spawn_bundle(TextBundle {
+                        text: Text::with_section(
+                            "1",
+                            TextStyle {
+                                font: asset_server.load("fonts/AsepriteFont.ttf"),
+                                font_size: 32.0,
+                                color: Color::WHITE,
+                            },
+                            TextAlignment {
+                                vertical: VerticalAlign::Center,
+                                horizontal: HorizontalAlign::Center,
+                            },
+                        ),
+                        ..Default::default()
+                    });
+                });
+                row.spawn_bundle(ImageBundle {
+                    style: Style {
+                        justify_content: JustifyContent::Center,
+                        size: Size::new(Val::Percent(100.0 / 8.), Val::Percent(100.0)),
+                        align_items: AlignItems::Center,
+                        ..Default::default()
+                    },
+                    material: materials.add(
+                        asset_server
+                            .load("sprites/tmp/level_select/body_lr_light.png")
+                            .into(),
+                    ),
+                    ..Default::default()
+                })
+                .insert(LevelId(2))
+                .insert(GridLocation{x: 2, y: 0})
+                .with_children(|image| {
+                    image.spawn_bundle(TextBundle {
+                        text: Text::with_section(
+                            "2",
+                            TextStyle {
+                                font: asset_server.load("fonts/AsepriteFont.ttf"),
+                                font_size: 32.0,
+                                color: Color::WHITE,
+                            },
+                            TextAlignment {
+                                vertical: VerticalAlign::Center,
+                                horizontal: HorizontalAlign::Center,
+                            },
+                        ),
+                        ..Default::default()
+                    });
+                });
+                row.spawn_bundle(ImageBundle {
+                    style: Style {
+                        justify_content: JustifyContent::Center,
+                        size: Size::new(Val::Percent(100.0 / 8.), Val::Percent(100.0)),
+                        align_items: AlignItems::Center,
+                        ..Default::default()
+                    },
+                    material: materials.add(
+                        asset_server
+                            .load("sprites/tmp/level_select/body_lr_dark.png")
+                            .into(),
+                    ),
+                    ..Default::default()
+                })
+                .insert(LevelId(3))
+                .insert(GridLocation{x: 3, y: 0})
+                .with_children(|image| {
+                    image.spawn_bundle(TextBundle {
+                        text: Text::with_section(
+                            "3",
+                            TextStyle {
+                                font: asset_server.load("fonts/AsepriteFont.ttf"),
+                                font_size: 32.0,
+                                color: Color::WHITE,
+                            },
+                            TextAlignment {
+                                vertical: VerticalAlign::Center,
+                                horizontal: HorizontalAlign::Center,
+                            },
+                        ),
+                        ..Default::default()
+                    });
+                });
+                row.spawn_bundle(ImageBundle {
+                    style: Style {
+                        justify_content: JustifyContent::Center,
+                        size: Size::new(Val::Percent(100.0 / 8.), Val::Percent(100.0)),
+                        align_items: AlignItems::Center,
+                        ..Default::default()
+                    },
+                    material: materials.add(
+                        asset_server
+                            .load("sprites/tmp/level_select/body_lr_light.png")
+                            .into(),
+                    ),
+                    ..Default::default()
+                })
+                .insert(LevelId(4))
+                .insert(GridLocation{x: 4, y: 0})
+                .with_children(|image| {
+                    image.spawn_bundle(TextBundle {
+                        text: Text::with_section(
+                            "4",
+                            TextStyle {
+                                font: asset_server.load("fonts/AsepriteFont.ttf"),
+                                font_size: 32.0,
+                                color: Color::WHITE,
+                            },
+                            TextAlignment {
+                                vertical: VerticalAlign::Center,
+                                horizontal: HorizontalAlign::Center,
+                            },
+                        ),
+                        ..Default::default()
+                    });
+                });
+                row.spawn_bundle(ImageBundle {
+                    style: Style {
+                        justify_content: JustifyContent::Center,
+                        size: Size::new(Val::Percent(100.0 / 8.), Val::Percent(100.0)),
+                        align_items: AlignItems::Center,
+                        ..Default::default()
+                    },
+                    material: materials.add(
+                        asset_server
+                            .load("sprites/tmp/level_select/body_lr_light.png")
+                            .into(),
+                    ),
+                    ..Default::default()
+                })
+                .insert(LevelId(5))
+                .insert(GridLocation{x: 5, y: 0})
+                .with_children(|image| {
+                    image.spawn_bundle(TextBundle {
+                        text: Text::with_section(
+                            "5",
+                            TextStyle {
+                                font: asset_server.load("fonts/AsepriteFont.ttf"),
+                                font_size: 32.0,
+                                color: Color::WHITE,
+                            },
+                            TextAlignment {
+                                vertical: VerticalAlign::Center,
+                                horizontal: HorizontalAlign::Center,
+                            },
+                        ),
+                        ..Default::default()
+                    });
+                });
+                row.spawn_bundle(ImageBundle {
+                    style: Style {
+                        justify_content: JustifyContent::Center,
+                        size: Size::new(Val::Percent(100.0 / 8.), Val::Percent(100.0)),
+                        align_items: AlignItems::Center,
+                        ..Default::default()
+                    },
+                    material: materials.add(
+                        asset_server
+                            .load("sprites/tmp/level_select/body_lr_light.png")
+                            .into(),
+                    ),
+                    ..Default::default()
+                })
+                .insert(LevelId(6))
+                .insert(GridLocation{x: 6, y: 0})
+                .with_children(|image| {
+                    
+                    
+                    
+                    
+                    image.spawn_bundle(TextBundle {
+                        style: Style {
+                            border: Rect::all(Val::Px(100.0)),
+                            
+                          ..Default::default()  
+                        },
+                        text: Text::with_section(
+                            "6",
+                            TextStyle {
+                                font: asset_server.load("fonts/AsepriteFont.ttf"),
+                                font_size: 32.0,
                                 color: Color::WHITE,
                             },
                             TextAlignment {
@@ -2460,125 +2717,6 @@ fn setup_level_select(
                 });
             });
         });
-
-    // // row
-    // parent
-    //     .spawn_bundle()
-    //     .with_children(|parent| {
-    //         let n = 8;
-
-    //         for i in 0..n {
-    //             let level_id = LevelId(i as usize);
-
-    //             let font_color = {
-    //                 if beat_levels.0.contains(&level_id) {
-    //                     Color::BLUE
-    //                 } else {
-    //                     Color::WHITE
-    //                 }
-    //             };
-
-    //             parent
-    //                 .spawn_bundle(ImageBundle {
-    //                     style: Style {
-    //                         justify_content: JustifyContent::Center,
-    //                         size: Size::new(
-    //                             Val::Percent(100.0 / 8 as f32),
-    //                             Val::Percent(100.0),
-    //                         ),
-    //                         align_items: AlignItems::Center,
-    //                         ..Default::default()
-    //                     },
-    //                     material: materials.add(
-    //                         asset_server
-    //                             .load("sprites/drafts/head_v2.png")
-    //                             .into(),
-    //                     ),
-
-    //                     ..Default::default()
-    //                 })
-    //                 .insert(GridLocation { x: i, y: 0 })
-    //                 .insert(level_id);
-    //                 // .with_children(|parent| {
-    //                 //     parent.spawn_bundle(TextBundle {
-    //                 //         text: Text::with_section(
-    //                 //             format!("{}", i),
-    //                 //             TextStyle {
-    //                 //                 font: asset_server.load("fonts/AsepriteFont.ttf"),
-    //                 //                 font_size: 30.0,
-    //                 //                 color: font_color,
-    //                 //             },
-    //                 //             TextAlignment {
-    //                 //                 vertical: VerticalAlign::Center,
-    //                 //                 horizontal: HorizontalAlign::Center,
-    //                 //             },
-    //                 //         ),
-    //                 //         ..Default::default()
-    //                 //     });
-    //                 // });
-    //         }
-    //     });
-
-    // parent
-    //     .spawn_bundle(NodeBundle {
-    //         style: Style {
-    //             justify_content: JustifyContent::Center,
-    //             size: Size::new(Val::Percent(100.0), Val::Percent(20.0)),
-    //             align_items: AlignItems::Center,
-    //             ..Default::default()
-    //         },
-    //         material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
-    //         ..Default::default()
-    //     })
-    //     .with_children(|parent| {
-    //         let n = 5;
-
-    //         for i in 0..n {
-    //             let level_id = LevelId(i as usize);
-
-    //             let font_color = {
-    //                 if beat_levels.0.contains(&level_id) {
-    //                     Color::BLUE
-    //                 } else {
-    //                     Color::WHITE
-    //                 }
-    //             };
-
-    //             parent
-    //                 .spawn_bundle(NodeBundle {
-    //                     style: Style {
-    //                         justify_content: JustifyContent::Center,
-    //                         size: Size::new(
-    //                             Val::Percent(100.0 / n as f32),
-    //                             Val::Percent(100.0),
-    //                         ),
-    //                         align_items: AlignItems::Center,
-    //                         ..Default::default()
-    //                     },
-    //                     material: materials.add(Color::rgb(0.15, 0.8, 0.15).into()),
-    //                     ..Default::default()
-    //                 })
-    //                 .insert(GridLocation { x: i, y: 0 })
-    //                 .insert(level_id)
-    //                 .with_children(|parent| {
-    //                     parent.spawn_bundle(TextBundle {
-    //                         text: Text::with_section(
-    //                             format!("Level {}", i),
-    //                             TextStyle {
-    //                                 font: asset_server.load("fonts/AsepriteFont.ttf"),
-    //                                 font_size: 30.0,
-    //                                 color: font_color,
-    //                             },
-    //                             TextAlignment {
-    //                                 vertical: VerticalAlign::Center,
-    //                                 horizontal: HorizontalAlign::Center,
-    //                             },
-    //                         ),
-    //                         ..Default::default()
-    //                     });
-    //                 });
-    //         }
-    //     });
 }
 
 fn update_selected(
@@ -2635,11 +2773,11 @@ fn display_selected(
     mut q: Query<(&GridLocation, &mut Handle<ColorMaterial>)>,
 ) {
     for (grid_location, mut handle) in q.iter_mut() {
-        if *grid_location == selected.0 {
-            *handle = materials.add(Color::rgb(0.15, 0.9, 0.15).into());
-        } else {
-            *handle = materials.add(Color::rgb(0.15, 0.5, 0.15).into());
-        }
+        // if *grid_location == selected.0 {
+        //     *handle = materials.add(Color::rgb(0.15, 0.9, 0.15).into());
+        // } else {
+        //     *handle = materials.add(Color::rgb(0.15, 0.5, 0.15).into());
+        // }
     }
 }
 
