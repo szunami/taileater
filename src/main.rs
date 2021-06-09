@@ -292,7 +292,7 @@ fn main() {
                     (|snake_parts: Res<SnakeParts>, q: Query<&Transform>| {
                         if let Some(tail_e) = snake_parts.0.last() {
                             if let Ok(tail_xform) = q.get(*tail_e) {
-                                dbg!(tail_xform);
+                                // dbg!(tail_xform);
                             }
                         }
                     })
@@ -1154,8 +1154,9 @@ fn win(
             .get(*snake_parts.0.last().expect("snake tail exists"))
             .expect("tail has location");
 
+        // ignore z in this calculation!
         if head_grid_location == tail_location
-            && head_xform.translation.distance(tail_xform.translation) < 0.001
+            && head_xform.translation.truncate().distance(tail_xform.translation.truncate()) < 0.001
         {
             println!("You won! Nice.");
             state.set(GameState::Win).ok();
