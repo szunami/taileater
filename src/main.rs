@@ -2483,7 +2483,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_lr_dark.png",
+                    "sprites/tmp/level_select/body_lr_light.png",
                     LevelId(0),
                     GridLocation { x: 0, y: 0 },
                 );
@@ -2492,7 +2492,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_lr_light.png",
+                    "sprites/tmp/level_select/body_lr_dark.png",
                     LevelId(1),
                     GridLocation { x: 1, y: 0 },
                 );
@@ -2501,7 +2501,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_lr_dark.png",
+                    "sprites/tmp/level_select/body_lr_light.png",
                     LevelId(2),
                     GridLocation { x: 2, y: 0 },
                 );
@@ -2510,7 +2510,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_lr_light.png",
+                    "sprites/tmp/level_select/body_lr_dark.png",
                     LevelId(3),
                     GridLocation { x: 3, y: 0 },
                 );
@@ -2519,7 +2519,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_lr_dark.png",
+                    "sprites/tmp/level_select/body_lr_light.png",
                     LevelId(4),
                     GridLocation { x: 4, y: 0 },
                 );
@@ -2528,7 +2528,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_ld_light.png",
+                    "sprites/tmp/level_select/body_ld_dark.png",
                     LevelId(5),
                     GridLocation { x: 5, y: 0 },
                 );
@@ -2576,7 +2576,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_rd_light.png",
+                    "sprites/tmp/level_select/body_rd_dark.png",
                     LevelId(11),
                     GridLocation { x: 0, y },
                 );
@@ -2585,7 +2585,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_rl_dark.png",
+                    "sprites/tmp/level_select/body_rl_light.png",
                     LevelId(10),
                     GridLocation { x: 1, y },
                 );
@@ -2594,7 +2594,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_rl_light.png",
+                    "sprites/tmp/level_select/body_rl_dark.png",
                     LevelId(9),
                     GridLocation { x: 2, y },
                 );
@@ -2603,7 +2603,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_rl_dark.png",
+                    "sprites/tmp/level_select/body_rl_light.png",
                     LevelId(8),
                     GridLocation { x: 3, y },
                 );
@@ -2612,7 +2612,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_rl_light.png",
+                    "sprites/tmp/level_select/body_rl_dark.png",
                     LevelId(7),
                     GridLocation { x: 4, y },
                 );
@@ -2621,7 +2621,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_ul_dark.png",
+                    "sprites/tmp/level_select/body_ul_light.png",
                     LevelId(6),
                     GridLocation { x: 5, y },
                 );
@@ -2669,7 +2669,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_ur_dark.png",
+                    "sprites/tmp/level_select/body_ur_light.png",
                     LevelId(12),
                     GridLocation { x: 0, y },
                 );
@@ -2678,7 +2678,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_lr_light.png",
+                    "sprites/tmp/level_select/body_lr_dark.png",
                     LevelId(13),
                     GridLocation { x: 1, y },
                 );
@@ -2687,7 +2687,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_lr_dark.png",
+                    "sprites/tmp/level_select/body_lr_light.png",
                     LevelId(14),
                     GridLocation { x: 2, y },
                 );
@@ -2696,7 +2696,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_lr_light.png",
+                    "sprites/tmp/level_select/body_lr_dark.png",
                     LevelId(15),
                     GridLocation { x: 3, y },
                 );
@@ -2705,7 +2705,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_lr_dark.png",
+                    "sprites/tmp/level_select/body_lr_light.png",
                     LevelId(16),
                     GridLocation { x: 4, y },
                 );
@@ -2714,7 +2714,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_ld_light.png",
+                    "sprites/tmp/level_select/body_ld_dark.png",
                     LevelId(17),
                     GridLocation { x: 5, y },
                 );
@@ -2731,7 +2731,7 @@ fn setup_level_select(
                     ..Default::default()
                 });
             });
-            
+
             root.spawn_bundle(NodeBundle {
                 style: Style {
                     justify_content: JustifyContent::Center,
@@ -2762,7 +2762,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_rd_light.png",
+                    "sprites/tmp/level_select/body_rd_dark.png",
                     LevelId(23),
                     GridLocation { x: 0, y },
                 );
@@ -2771,7 +2771,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_rl_dark.png",
+                    "sprites/tmp/level_select/body_rl_light.png",
                     LevelId(22),
                     GridLocation { x: 1, y },
                 );
@@ -2780,7 +2780,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_rl_light.png",
+                    "sprites/tmp/level_select/body_rl_dark.png",
                     LevelId(21),
                     GridLocation { x: 2, y },
                 );
@@ -2789,7 +2789,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_rl_dark.png",
+                    "sprites/tmp/level_select/body_rl_light.png",
                     LevelId(20),
                     GridLocation { x: 3, y },
                 );
@@ -2798,7 +2798,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_rl_light.png",
+                    "sprites/tmp/level_select/body_rl_dark.png",
                     LevelId(19),
                     GridLocation { x: 4, y },
                 );
@@ -2807,7 +2807,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_ul_dark.png",
+                    "sprites/tmp/level_select/body_ul_light.png",
                     LevelId(18),
                     GridLocation { x: 5, y },
                 );
@@ -2824,7 +2824,7 @@ fn setup_level_select(
                     ..Default::default()
                 });
             });
-            
+
             root.spawn_bundle(NodeBundle {
                 style: Style {
                     justify_content: JustifyContent::Center,
@@ -2855,7 +2855,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_ur_dark.png",
+                    "sprites/tmp/level_select/body_ur_light.png",
                     LevelId(24),
                     GridLocation { x: 0, y },
                 );
@@ -2864,7 +2864,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_lr_light.png",
+                    "sprites/tmp/level_select/body_lr_dark.png",
                     LevelId(25),
                     GridLocation { x: 1, y },
                 );
@@ -2873,7 +2873,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_lr_dark.png",
+                    "sprites/tmp/level_select/body_lr_light.png",
                     LevelId(26),
                     GridLocation { x: 2, y },
                 );
@@ -2882,7 +2882,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_lr_light.png",
+                    "sprites/tmp/level_select/body_lr_dark.png",
                     LevelId(27),
                     GridLocation { x: 3, y },
                 );
@@ -2891,7 +2891,7 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_lr_dark.png",
+                    "sprites/tmp/level_select/body_lr_light.png",
                     LevelId(28),
                     GridLocation { x: 4, y },
                 );
@@ -2900,25 +2900,26 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/tmp/level_select/body_ld_light.png",
+                    "sprites/tmp/level_select/body_lr_dark.png",
                     LevelId(29),
                     GridLocation { x: 5, y },
                 );
 
-                row.spawn_bundle(NodeBundle {
+                row.spawn_bundle(ImageBundle {
                     style: Style {
                         justify_content: JustifyContent::Center,
                         size: Size::new(Val::Percent(100.0 / 8 as f32), Val::Percent(100.0)),
                         align_items: AlignItems::Center,
                         ..Default::default()
                     },
-                    material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
-
+                    material: materials.add(
+                        asset_server
+                            .load("sprites/tmp/level_select/head.png")
+                            .into(),
+                    ),
                     ..Default::default()
                 });
             });
-            
-            
         });
 }
 
@@ -2932,7 +2933,6 @@ fn level(
     level_id: LevelId,
     grid_location: GridLocation,
 ) {
-    
     row.spawn_bundle(ImageBundle {
         style: Style {
             justify_content: JustifyContent::Center,
