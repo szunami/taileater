@@ -207,6 +207,59 @@ fn main() {
                         .insert(GridLocation { x: 0, y: 0 })
                         .insert(Cursor)
                         .id();
+
+                    commands
+                        .spawn()
+                        .insert_bundle(SpriteBundle {
+                            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+                            transform: Transform::from_translation(Vec3::new(
+                                -11. * GRID_WIDTH,
+                                -11. * GRID_HEIGHT,
+                                0.,
+                            )),
+                            material: poison_color(&mut materials),
+                            ..Default::default()
+                        })
+                        .id();
+                    commands
+                        .spawn()
+                        .insert_bundle(SpriteBundle {
+                            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+                            transform: Transform::from_translation(Vec3::new(
+                                -11. * GRID_WIDTH,
+                                11. * GRID_HEIGHT,
+                                0.,
+                            )),
+                            material: poison_color(&mut materials),
+                            ..Default::default()
+                        })
+                        .id();
+                    commands
+                        .spawn()
+                        .insert_bundle(SpriteBundle {
+                            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+                            transform: Transform::from_translation(Vec3::new(
+                                11. * GRID_WIDTH,
+                                -11. * GRID_HEIGHT,
+                                0.,
+                            )),
+                            material: poison_color(&mut materials),
+                            ..Default::default()
+                        })
+                        .id();
+                    commands
+                        .spawn()
+                        .insert_bundle(SpriteBundle {
+                            sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
+                            transform: Transform::from_translation(Vec3::new(
+                                11. * GRID_WIDTH,
+                                11. * GRID_HEIGHT,
+                                0.,
+                            )),
+                            material: poison_color(&mut materials),
+                            ..Default::default()
+                        })
+                        .id();
                 })
                 .system(),
             )
@@ -3151,8 +3204,8 @@ struct Wall;
 fn wall(mut commands: Commands, snake_assets: Res<MaybeSnakeAssets>) {
     let snake_assets = snake_assets.0.as_ref().expect("fully loaded");
 
-    for x in -10..10 {
-        for y in -10..10 {
+    for x in -10..11 {
+        for y in -10..11 {
             commands
                 .spawn()
                 .insert_bundle(SpriteBundle {
