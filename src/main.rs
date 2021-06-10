@@ -190,12 +190,38 @@ fn main() {
                 .exclusive_system(),
             )
             .add_startup_system(
-                (|mut commands: Commands, mut materials: ResMut<Assets<ColorMaterial>>| {
+                (|mut commands: Commands,
+                  mut materials: ResMut<Assets<ColorMaterial>>,
+                  asset_server: Res<AssetServer>| {
                     commands
                         .spawn()
                         .insert_bundle(OrthographicCameraBundle::new_2d())
                         .insert(MainCamera);
                     commands.spawn_bundle(UiCameraBundle::default());
+
+                    commands.spawn_bundle(TextBundle {
+                        text: Text {
+                            sections: vec![TextSection {
+                                value: "".to_string(),
+                                style: TextStyle {
+                                    font: asset_server.load("fonts/AsepriteFont.ttf"),
+                                    font_size: 40.0,
+                                    color: Color::rgb(0.5, 0.5, 1.0),
+                                },
+                            }],
+                            ..Default::default()
+                        },
+                        style: Style {
+                            position_type: PositionType::Absolute,
+                            position: Rect {
+                                top: Val::Px(5.0),
+                                left: Val::Px(5.0),
+                                ..Default::default()
+                            },
+                            ..Default::default()
+                        },
+                        ..Default::default()
+                    });
 
                     commands
                         .spawn()
@@ -265,6 +291,20 @@ fn main() {
             )
             .add_system(level_editor_cleanup.system())
             .add_system(editor.system())
+            .add_system(
+                (|mut query: Query<&mut Text>, cursors: Query<&Transform, With<Cursor>>| {
+                    for x in cursors.iter() {
+                        for mut text in query.iter_mut() {
+                            text.sections[0].value = format!(
+                                "({}, {})",
+                                (x.translation.x / GRID_WIDTH) as i32,
+                                (x.translation.y / GRID_HEIGHT) as i32
+                            );
+                        }
+                    }
+                })
+                .system(),
+            )
             .run();
     } else {
         let mut app = App::build();
