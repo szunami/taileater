@@ -1,203 +1,5 @@
 [
   (
-    entity: 7,
-    components: [
-      {
-        "type": "taileater::GridLocation",
-        "struct": {
-          "x": {
-            "type": "i32",
-            "value": 4,
-          },
-          "y": {
-            "type": "i32",
-            "value": -6,
-          },
-        },
-      },
-      {
-        "type": "taileater::Ground",
-        "struct": {},
-      },
-    ],
-  ),
-  (
-    entity: 6,
-    components: [
-      {
-        "type": "taileater::GridLocation",
-        "struct": {
-          "x": {
-            "type": "i32",
-            "value": 0,
-          },
-          "y": {
-            "type": "i32",
-            "value": -6,
-          },
-        },
-      },
-      {
-        "type": "taileater::Ground",
-        "struct": {},
-      },
-    ],
-  ),
-  (
-    entity: 9,
-    components: [
-      {
-        "type": "taileater::GridLocation",
-        "struct": {
-          "x": {
-            "type": "i32",
-            "value": 1,
-          },
-          "y": {
-            "type": "i32",
-            "value": -6,
-          },
-        },
-      },
-      {
-        "type": "taileater::Ground",
-        "struct": {},
-      },
-    ],
-  ),
-  (
-    entity: 11,
-    components: [
-      {
-        "type": "taileater::GridLocation",
-        "struct": {
-          "x": {
-            "type": "i32",
-            "value": 2,
-          },
-          "y": {
-            "type": "i32",
-            "value": -6,
-          },
-        },
-      },
-      {
-        "type": "taileater::Ground",
-        "struct": {},
-      },
-    ],
-  ),
-  (
-    entity: 8,
-    components: [
-      {
-        "type": "taileater::GridLocation",
-        "struct": {
-          "x": {
-            "type": "i32",
-            "value": 3,
-          },
-          "y": {
-            "type": "i32",
-            "value": -6,
-          },
-        },
-      },
-      {
-        "type": "taileater::Ground",
-        "struct": {},
-      },
-    ],
-  ),
-  (
-    entity: 1,
-    components: [
-      {
-        "type": "taileater::GridLocation",
-        "struct": {
-          "x": {
-            "type": "i32",
-            "value": -1,
-          },
-          "y": {
-            "type": "i32",
-            "value": -6,
-          },
-        },
-      },
-      {
-        "type": "taileater::Ground",
-        "struct": {},
-      },
-    ],
-  ),
-  (
-    entity: 0,
-    components: [
-      {
-        "type": "taileater::GridLocation",
-        "struct": {
-          "x": {
-            "type": "i32",
-            "value": -2,
-          },
-          "y": {
-            "type": "i32",
-            "value": -6,
-          },
-        },
-      },
-      {
-        "type": "taileater::Ground",
-        "struct": {},
-      },
-    ],
-  ),
-  (
-    entity: 2,
-    components: [
-      {
-        "type": "taileater::GridLocation",
-        "struct": {
-          "x": {
-            "type": "i32",
-            "value": -3,
-          },
-          "y": {
-            "type": "i32",
-            "value": -6,
-          },
-        },
-      },
-      {
-        "type": "taileater::Ground",
-        "struct": {},
-      },
-    ],
-  ),
-  (
-    entity: 3,
-    components: [
-      {
-        "type": "taileater::GridLocation",
-        "struct": {
-          "x": {
-            "type": "i32",
-            "value": -4,
-          },
-          "y": {
-            "type": "i32",
-            "value": -6,
-          },
-        },
-      },
-      {
-        "type": "taileater::Ground",
-        "struct": {},
-      },
-    ],
-  ),
-  (
     entity: 4,
     components: [
       {
@@ -205,11 +7,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": -5,
+            "value": -9,
           },
           "y": {
             "type": "i32",
-            "value": -6,
+            "value": -9,
           },
         },
       },
@@ -227,11 +29,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": -6,
+            "value": -8,
           },
           "y": {
             "type": "i32",
-            "value": -6,
+            "value": -9,
           },
         },
       },
@@ -242,7 +44,29 @@
     ],
   ),
   (
-    entity: 10,
+    entity: 0,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": -7,
+          },
+          "y": {
+            "type": "i32",
+            "value": -9,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 1,
     components: [
       {
         "type": "taileater::GridLocation",
@@ -253,7 +77,95 @@
           },
           "y": {
             "type": "i32",
+            "value": -9,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 6,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
             "value": -5,
+          },
+          "y": {
+            "type": "i32",
+            "value": -9,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 7,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": -4,
+          },
+          "y": {
+            "type": "i32",
+            "value": -9,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 8,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": -3,
+          },
+          "y": {
+            "type": "i32",
+            "value": -9,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 9,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": -2,
+          },
+          "y": {
+            "type": "i32",
+            "value": -9,
           },
         },
       },
@@ -271,33 +183,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": -6,
+            "value": -2,
           },
           "y": {
             "type": "i32",
-            "value": -4,
-          },
-        },
-      },
-      {
-        "type": "taileater::Ground",
-        "struct": {},
-      },
-    ],
-  ),
-  (
-    entity: 12,
-    components: [
-      {
-        "type": "taileater::GridLocation",
-        "struct": {
-          "x": {
-            "type": "i32",
-            "value": -6,
-          },
-          "y": {
-            "type": "i32",
-            "value": -3,
+            "value": -8,
           },
         },
       },
@@ -315,11 +205,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": -6,
+            "value": -2,
           },
           "y": {
             "type": "i32",
-            "value": -2,
+            "value": -7,
           },
         },
       },
@@ -337,11 +227,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": -6,
+            "value": -2,
           },
           "y": {
             "type": "i32",
-            "value": -1,
+            "value": -6,
           },
         },
       },
@@ -359,11 +249,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": -6,
+            "value": -1,
           },
           "y": {
             "type": "i32",
-            "value": 0,
+            "value": -6,
           },
         },
       },
@@ -381,11 +271,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": -6,
+            "value": -1,
           },
           "y": {
             "type": "i32",
-            "value": 1,
+            "value": -5,
           },
         },
       },
@@ -403,11 +293,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": -6,
+            "value": -1,
           },
           "y": {
             "type": "i32",
-            "value": 2,
+            "value": -4,
           },
         },
       },
@@ -425,11 +315,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": -6,
+            "value": -1,
           },
           "y": {
             "type": "i32",
-            "value": 3,
+            "value": -3,
           },
         },
       },
@@ -447,11 +337,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": -6,
+            "value": -3,
           },
           "y": {
             "type": "i32",
-            "value": 4,
+            "value": -3,
           },
         },
       },
@@ -469,11 +359,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": -6,
+            "value": -1,
           },
           "y": {
             "type": "i32",
-            "value": 5,
+            "value": -2,
           },
         },
       },
@@ -484,29 +374,7 @@
     ],
   ),
   (
-    entity: 22,
-    components: [
-      {
-        "type": "taileater::GridLocation",
-        "struct": {
-          "x": {
-            "type": "i32",
-            "value": -6,
-          },
-          "y": {
-            "type": "i32",
-            "value": 6,
-          },
-        },
-      },
-      {
-        "type": "taileater::Ground",
-        "struct": {},
-      },
-    ],
-  ),
-  (
-    entity: 23,
+    entity: 51,
     components: [
       {
         "type": "taileater::GridLocation",
@@ -517,52 +385,8 @@
           },
           "y": {
             "type": "i32",
-            "value": 6,
-          },
-        },
-      },
-      {
-        "type": "taileater::Ground",
-        "struct": {},
-      },
-    ],
-  ),
-  (
-    entity: 24,
-    components: [
-      {
-        "type": "taileater::GridLocation",
-        "struct": {
-          "x": {
-            "type": "i32",
-            "value": -4,
-          },
-          "y": {
-            "type": "i32",
-            "value": 6,
-          },
-        },
-      },
-      {
-        "type": "taileater::Ground",
-        "struct": {},
-      },
-    ],
-  ),
-  (
-    entity: 25,
-    components: [
-      {
-        "type": "taileater::GridLocation",
-        "struct": {
-          "x": {
-            "type": "i32",
             "value": -3,
           },
-          "y": {
-            "type": "i32",
-            "value": 6,
-          },
         },
       },
       {
@@ -572,18 +396,40 @@
     ],
   ),
   (
-    entity: 26,
+    entity: 107,
     components: [
       {
         "type": "taileater::GridLocation",
         "struct": {
           "x": {
+            "type": "i32",
+            "value": 1,
+          },
+          "y": {
             "type": "i32",
             "value": -2,
           },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 106,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 2,
+          },
           "y": {
             "type": "i32",
-            "value": 6,
+            "value": -2,
           },
         },
       },
@@ -594,40 +440,18 @@
     ],
   ),
   (
-    entity: 27,
+    entity: 105,
     components: [
       {
         "type": "taileater::GridLocation",
         "struct": {
           "x": {
             "type": "i32",
-            "value": -1,
+            "value": 3,
           },
           "y": {
             "type": "i32",
-            "value": 6,
-          },
-        },
-      },
-      {
-        "type": "taileater::Ground",
-        "struct": {},
-      },
-    ],
-  ),
-  (
-    entity: 28,
-    components: [
-      {
-        "type": "taileater::GridLocation",
-        "struct": {
-          "x": {
-            "type": "i32",
-            "value": 0,
-          },
-          "y": {
-            "type": "i32",
-            "value": 6,
+            "value": -2,
           },
         },
       },
@@ -645,11 +469,77 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": 1,
+            "value": -1,
           },
           "y": {
             "type": "i32",
-            "value": 6,
+            "value": 0,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 108,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 0,
+          },
+          "y": {
+            "type": "i32",
+            "value": -2,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 28,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": -1,
+          },
+          "y": {
+            "type": "i32",
+            "value": -1,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 22,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": -4,
+          },
+          "y": {
+            "type": "i32",
+            "value": -3,
           },
         },
       },
@@ -667,11 +557,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": 2,
+            "value": -1,
           },
           "y": {
             "type": "i32",
-            "value": 6,
+            "value": 1,
           },
         },
       },
@@ -689,11 +579,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": 3,
+            "value": -1,
           },
           "y": {
             "type": "i32",
-            "value": 6,
+            "value": 2,
           },
         },
       },
@@ -711,11 +601,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": 4,
+            "value": -1,
           },
           "y": {
             "type": "i32",
-            "value": 6,
+            "value": 3,
           },
         },
       },
@@ -726,14 +616,14 @@
     ],
   ),
   (
-    entity: 33,
+    entity: 67,
     components: [
       {
         "type": "taileater::GridLocation",
         "struct": {
           "x": {
             "type": "i32",
-            "value": 5,
+            "value": -4,
           },
           "y": {
             "type": "i32",
@@ -755,11 +645,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": 6,
+            "value": -3,
           },
           "y": {
             "type": "i32",
-            "value": 6,
+            "value": 3,
           },
         },
       },
@@ -770,41 +660,19 @@
     ],
   ),
   (
-    entity: 35,
+    entity: 103,
     components: [
       {
         "type": "taileater::GridLocation",
         "struct": {
           "x": {
-            "type": "i32",
-            "value": 6,
-          },
-          "y": {
-            "type": "i32",
-            "value": 5,
-          },
-        },
-      },
-      {
-        "type": "taileater::Ground",
-        "struct": {},
-      },
-    ],
-  ),
-  (
-    entity: 36,
-    components: [
-      {
-        "type": "taileater::GridLocation",
-        "struct": {
-          "x": {
-            "type": "i32",
-            "value": 6,
-          },
-          "y": {
             "type": "i32",
             "value": 4,
           },
+          "y": {
+            "type": "i32",
+            "value": -2,
+          },
         },
       },
       {
@@ -814,7 +682,29 @@
     ],
   ),
   (
-    entity: 48,
+    entity: 97,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 9,
+          },
+          "y": {
+            "type": "i32",
+            "value": 0,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 102,
     components: [
       {
         "type": "taileater::GridLocation",
@@ -825,7 +715,7 @@
           },
           "y": {
             "type": "i32",
-            "value": -6,
+            "value": -2,
           },
         },
       },
@@ -843,11 +733,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": 6,
+            "value": -10,
           },
           "y": {
             "type": "i32",
-            "value": 3,
+            "value": -9,
           },
         },
       },
@@ -865,11 +755,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": 6,
+            "value": -10,
           },
           "y": {
             "type": "i32",
-            "value": 2,
+            "value": -8,
           },
         },
       },
@@ -887,11 +777,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": 6,
+            "value": -10,
           },
           "y": {
             "type": "i32",
-            "value": 1,
+            "value": -7,
           },
         },
       },
@@ -909,11 +799,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": 6,
+            "value": -10,
           },
           "y": {
             "type": "i32",
-            "value": 0,
+            "value": -6,
           },
         },
       },
@@ -931,11 +821,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": 6,
+            "value": -10,
           },
           "y": {
             "type": "i32",
-            "value": -1,
+            "value": -5,
           },
         },
       },
@@ -953,11 +843,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": 6,
+            "value": -10,
           },
           "y": {
             "type": "i32",
-            "value": -2,
+            "value": -4,
           },
         },
       },
@@ -975,7 +865,7 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": 6,
+            "value": -10,
           },
           "y": {
             "type": "i32",
@@ -997,11 +887,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": 6,
+            "value": -9,
           },
           "y": {
             "type": "i32",
-            "value": -4,
+            "value": -3,
           },
         },
       },
@@ -1019,33 +909,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": 6,
+            "value": -8,
           },
           "y": {
             "type": "i32",
-            "value": -5,
-          },
-        },
-      },
-      {
-        "type": "taileater::Ground",
-        "struct": {},
-      },
-    ],
-  ),
-  (
-    entity: 49,
-    components: [
-      {
-        "type": "taileater::GridLocation",
-        "struct": {
-          "x": {
-            "type": "i32",
-            "value": 6,
-          },
-          "y": {
-            "type": "i32",
-            "value": -6,
+            "value": -3,
           },
         },
       },
@@ -1063,11 +931,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": -5,
+            "value": -7,
           },
           "y": {
             "type": "i32",
-            "value": 2,
+            "value": -3,
           },
         },
       },
@@ -1078,18 +946,18 @@
     ],
   ),
   (
-    entity: 37,
+    entity: 48,
     components: [
       {
         "type": "taileater::GridLocation",
         "struct": {
           "x": {
             "type": "i32",
-            "value": -4,
+            "value": -6,
           },
           "y": {
             "type": "i32",
-            "value": 2,
+            "value": -3,
           },
         },
       },
@@ -1107,11 +975,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": -3,
+            "value": -2,
           },
           "y": {
             "type": "i32",
-            "value": 2,
+            "value": 0,
           },
         },
       },
@@ -1122,18 +990,40 @@
     ],
   ),
   (
-    entity: 51,
+    entity: 33,
     components: [
       {
         "type": "taileater::GridLocation",
         "struct": {
           "x": {
             "type": "i32",
-            "value": -2,
+            "value": -1,
           },
           "y": {
             "type": "i32",
-            "value": 2,
+            "value": 4,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 49,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": -1,
+          },
+          "y": {
+            "type": "i32",
+            "value": 5,
           },
         },
       },
@@ -1155,7 +1045,205 @@
           },
           "y": {
             "type": "i32",
-            "value": 2,
+            "value": 6,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 101,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 6,
+          },
+          "y": {
+            "type": "i32",
+            "value": -2,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 100,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 7,
+          },
+          "y": {
+            "type": "i32",
+            "value": -2,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 99,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 9,
+          },
+          "y": {
+            "type": "i32",
+            "value": -2,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 98,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 9,
+          },
+          "y": {
+            "type": "i32",
+            "value": -1,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 63,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": -1,
+          },
+          "y": {
+            "type": "i32",
+            "value": -8,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 64,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": -1,
+          },
+          "y": {
+            "type": "i32",
+            "value": -9,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 62,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": -1,
+          },
+          "y": {
+            "type": "i32",
+            "value": -7,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 57,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 0,
+          },
+          "y": {
+            "type": "i32",
+            "value": 6,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 10,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 1,
+          },
+          "y": {
+            "type": "i32",
+            "value": 6,
           },
         },
       },
@@ -1173,11 +1261,11 @@
         "struct": {
           "x": {
             "type": "i32",
-            "value": 0,
+            "value": 2,
           },
           "y": {
             "type": "i32",
-            "value": -5,
+            "value": 6,
           },
         },
       },
@@ -1188,73 +1276,51 @@
     ],
   ),
   (
-    entity: 53,
+    entity: 59,
     components: [
       {
         "type": "taileater::GridLocation",
         "struct": {
           "x": {
-            "type": "i32",
-            "value": -4,
-          },
-          "y": {
             "type": "i32",
             "value": 3,
           },
+          "y": {
+            "type": "i32",
+            "value": 6,
+          },
         },
       },
       {
-        "type": "taileater::Snake",
+        "type": "taileater::Ground",
         "struct": {},
       },
     ],
   ),
   (
-    entity: 54,
+    entity: 88,
     components: [
       {
         "type": "taileater::GridLocation",
         "struct": {
           "x": {
             "type": "i32",
-            "value": -3,
+            "value": 9,
           },
           "y": {
             "type": "i32",
-            "value": 3,
+            "value": 4,
           },
         },
       },
       {
-        "type": "taileater::Snake",
+        "type": "taileater::Ground",
         "struct": {},
       },
     ],
   ),
   (
-    entity: 55,
-    components: [
-      {
-        "type": "taileater::GridLocation",
-        "struct": {
-          "x": {
-            "type": "i32",
-            "value": -4,
-          },
-          "y": {
-            "type": "i32",
-            "value": -2,
-          },
-        },
-      },
-      {
-        "type": "taileater::Food",
-        "struct": {},
-      },
-    ],
-  ),
-  (
-    entity: 56,
+    entity: 61,
     components: [
       {
         "type": "taileater::GridLocation",
@@ -1265,18 +1331,700 @@
           },
           "y": {
             "type": "i32",
-            "value": -3,
+            "value": 6,
           },
         },
       },
       {
-        "type": "taileater::Food",
+        "type": "taileater::Ground",
         "struct": {},
       },
     ],
   ),
   (
-    entity: 57,
+    entity: 65,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 5,
+          },
+          "y": {
+            "type": "i32",
+            "value": 6,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 66,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 6,
+          },
+          "y": {
+            "type": "i32",
+            "value": 6,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 95,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 6,
+          },
+          "y": {
+            "type": "i32",
+            "value": 0,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 96,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 7,
+          },
+          "y": {
+            "type": "i32",
+            "value": 0,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 94,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 6,
+          },
+          "y": {
+            "type": "i32",
+            "value": 1,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 70,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": -1,
+          },
+          "y": {
+            "type": "i32",
+            "value": 9,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 71,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 0,
+          },
+          "y": {
+            "type": "i32",
+            "value": 9,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 72,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 1,
+          },
+          "y": {
+            "type": "i32",
+            "value": 9,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 73,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 2,
+          },
+          "y": {
+            "type": "i32",
+            "value": 9,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 74,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 3,
+          },
+          "y": {
+            "type": "i32",
+            "value": 9,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 75,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 4,
+          },
+          "y": {
+            "type": "i32",
+            "value": 9,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 76,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 5,
+          },
+          "y": {
+            "type": "i32",
+            "value": 9,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 77,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 6,
+          },
+          "y": {
+            "type": "i32",
+            "value": 9,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 78,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 7,
+          },
+          "y": {
+            "type": "i32",
+            "value": 9,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 79,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 8,
+          },
+          "y": {
+            "type": "i32",
+            "value": 9,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 80,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 9,
+          },
+          "y": {
+            "type": "i32",
+            "value": 9,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 82,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 9,
+          },
+          "y": {
+            "type": "i32",
+            "value": 8,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 81,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 9,
+          },
+          "y": {
+            "type": "i32",
+            "value": 7,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 91,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 9,
+          },
+          "y": {
+            "type": "i32",
+            "value": 1,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 90,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 9,
+          },
+          "y": {
+            "type": "i32",
+            "value": 2,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 89,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 9,
+          },
+          "y": {
+            "type": "i32",
+            "value": 3,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 87,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 9,
+          },
+          "y": {
+            "type": "i32",
+            "value": 6,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 86,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 9,
+          },
+          "y": {
+            "type": "i32",
+            "value": 5,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 60,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 7,
+          },
+          "y": {
+            "type": "i32",
+            "value": 6,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 85,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 6,
+          },
+          "y": {
+            "type": "i32",
+            "value": 5,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 83,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 6,
+          },
+          "y": {
+            "type": "i32",
+            "value": 4,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 84,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 6,
+          },
+          "y": {
+            "type": "i32",
+            "value": 3,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 92,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 7,
+          },
+          "y": {
+            "type": "i32",
+            "value": 3,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 93,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 6,
+          },
+          "y": {
+            "type": "i32",
+            "value": 2,
+          },
+        },
+      },
+      {
+        "type": "taileater::Ground",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 2,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": -9,
+          },
+          "y": {
+            "type": "i32",
+            "value": -8,
+          },
+        },
+      },
+      {
+        "type": "taileater::Snake",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 3,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": -8,
+          },
+          "y": {
+            "type": "i32",
+            "value": -8,
+          },
+        },
+      },
+      {
+        "type": "taileater::Snake",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 11,
     components: [
       {
         "type": "taileater::GridLocation",
@@ -1287,7 +2035,51 @@
           },
           "y": {
             "type": "i32",
+            "value": -8,
+          },
+        },
+      },
+      {
+        "type": "taileater::Food",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 12,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
             "value": -5,
+          },
+          "y": {
+            "type": "i32",
+            "value": -8,
+          },
+        },
+      },
+      {
+        "type": "taileater::Food",
+        "struct": {},
+      },
+    ],
+  ),
+  (
+    entity: 104,
+    components: [
+      {
+        "type": "taileater::GridLocation",
+        "struct": {
+          "x": {
+            "type": "i32",
+            "value": 3,
+          },
+          "y": {
+            "type": "i32",
+            "value": -1,
           },
         },
       },
