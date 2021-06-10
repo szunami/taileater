@@ -1156,7 +1156,11 @@ fn win(
 
         // ignore z in this calculation!
         if head_grid_location == tail_location
-            && head_xform.translation.truncate().distance(tail_xform.translation.truncate()) < 0.001
+            && head_xform
+                .translation
+                .truncate()
+                .distance(tail_xform.translation.truncate())
+                < 0.001
         {
             println!("You won! Nice.");
             state.set(GameState::Win).ok();
@@ -2409,7 +2413,6 @@ fn setup_level_select(
     beat_levels: Res<BeatLevels>,
 ) {
     commands
-        // root node
         .spawn_bundle(NodeBundle {
             style: Style {
                 justify_content: JustifyContent::Center,
@@ -2437,7 +2440,7 @@ fn setup_level_select(
                         "PICK A LEVEL",
                         TextStyle {
                             font: asset_server.load("fonts/AsepriteFont.ttf"),
-                            font_size: 64.0,
+                            font_size: 32.0,
                             color: Color::WHITE,
                         },
                         TextAlignment {
@@ -2475,239 +2478,499 @@ fn setup_level_select(
                     ..Default::default()
                 });
 
-                row.spawn_bundle(ImageBundle {
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_lr_dark.png",
+                    LevelId(0),
+                    GridLocation { x: 0, y: 0 },
+                );
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_lr_light.png",
+                    LevelId(1),
+                    GridLocation { x: 1, y: 0 },
+                );
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_lr_dark.png",
+                    LevelId(2),
+                    GridLocation { x: 2, y: 0 },
+                );
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_lr_light.png",
+                    LevelId(3),
+                    GridLocation { x: 3, y: 0 },
+                );
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_lr_dark.png",
+                    LevelId(4),
+                    GridLocation { x: 4, y: 0 },
+                );
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_ld_light.png",
+                    LevelId(5),
+                    GridLocation { x: 5, y: 0 },
+                );
+
+                row.spawn_bundle(NodeBundle {
                     style: Style {
                         justify_content: JustifyContent::Center,
-                        size: Size::new(Val::Percent(100.0 / 8.), Val::Percent(100.0)),
+                        size: Size::new(Val::Percent(100.0 / 8 as f32), Val::Percent(100.0)),
                         align_items: AlignItems::Center,
                         ..Default::default()
                     },
-                    material: materials.add(
-                        asset_server
-                            .load("sprites/tmp/level_select/body_lr_dark.png")
-                            .into(),
-                    ),
+                    material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+
                     ..Default::default()
-                })
-                .insert(LevelId(0))
-                .insert(GridLocation { x: 0, y: 0 })
-                .with_children(|image| {
-                    image.spawn_bundle(TextBundle {
-                        text: Text::with_section(
-                            "0",
-                            TextStyle {
-                                font: asset_server.load("fonts/AsepriteFont.ttf"),
-                                font_size: 64.0,
-                                color: Color::rgb(232. / 255., 193. / 255., 112. / 255.),
-                            },
-                            TextAlignment {
-                                vertical: VerticalAlign::Center,
-                                horizontal: HorizontalAlign::Center,
-                            },
-                        ),
-                        ..Default::default()
-                    });
-                });
-                row.spawn_bundle(ImageBundle {
-                    style: Style {
-                        justify_content: JustifyContent::Center,
-                        size: Size::new(Val::Percent(100.0 / 8.), Val::Percent(100.0)),
-                        align_items: AlignItems::Center,
-                        ..Default::default()
-                    },
-                    material: materials.add(
-                        asset_server
-                            .load("sprites/tmp/level_select/body_lr_light.png")
-                            .into(),
-                    ),
-                    ..Default::default()
-                })
-                .insert(LevelId(1))
-                .insert(GridLocation { x: 1, y: 0 })
-                .with_children(|image| {
-                    image.spawn_bundle(TextBundle {
-                        text: Text::with_section(
-                            "1",
-                            TextStyle {
-                                font: asset_server.load("fonts/AsepriteFont.ttf"),
-                                font_size: 64.0,
-                                color: Color::WHITE,
-                            },
-                            TextAlignment {
-                                vertical: VerticalAlign::Center,
-                                horizontal: HorizontalAlign::Center,
-                            },
-                        ),
-                        ..Default::default()
-                    });
-                });
-                row.spawn_bundle(ImageBundle {
-                    style: Style {
-                        justify_content: JustifyContent::Center,
-                        size: Size::new(Val::Percent(100.0 / 8.), Val::Percent(100.0)),
-                        align_items: AlignItems::Center,
-                        ..Default::default()
-                    },
-                    material: materials.add(
-                        asset_server
-                            .load("sprites/tmp/level_select/body_lr_light.png")
-                            .into(),
-                    ),
-                    ..Default::default()
-                })
-                .insert(LevelId(2))
-                .insert(GridLocation { x: 2, y: 0 })
-                .with_children(|image| {
-                    image.spawn_bundle(TextBundle {
-                        text: Text::with_section(
-                            "2",
-                            TextStyle {
-                                font: asset_server.load("fonts/AsepriteFont.ttf"),
-                                font_size: 64.0,
-                                color: Color::WHITE,
-                            },
-                            TextAlignment {
-                                vertical: VerticalAlign::Center,
-                                horizontal: HorizontalAlign::Center,
-                            },
-                        ),
-                        ..Default::default()
-                    });
-                });
-                row.spawn_bundle(ImageBundle {
-                    style: Style {
-                        justify_content: JustifyContent::Center,
-                        size: Size::new(Val::Percent(100.0 / 8.), Val::Percent(100.0)),
-                        align_items: AlignItems::Center,
-                        ..Default::default()
-                    },
-                    material: materials.add(
-                        asset_server
-                            .load("sprites/tmp/level_select/body_lr_dark.png")
-                            .into(),
-                    ),
-                    ..Default::default()
-                })
-                .insert(LevelId(3))
-                .insert(GridLocation { x: 3, y: 0 })
-                .with_children(|image| {
-                    image.spawn_bundle(TextBundle {
-                        text: Text::with_section(
-                            "3",
-                            TextStyle {
-                                font: asset_server.load("fonts/AsepriteFont.ttf"),
-                                font_size: 64.0,
-                                color: Color::WHITE,
-                            },
-                            TextAlignment {
-                                vertical: VerticalAlign::Center,
-                                horizontal: HorizontalAlign::Center,
-                            },
-                        ),
-                        ..Default::default()
-                    });
-                });
-                row.spawn_bundle(ImageBundle {
-                    style: Style {
-                        justify_content: JustifyContent::Center,
-                        size: Size::new(Val::Percent(100.0 / 8.), Val::Percent(100.0)),
-                        align_items: AlignItems::Center,
-                        ..Default::default()
-                    },
-                    material: materials.add(
-                        asset_server
-                            .load("sprites/tmp/level_select/body_lr_light.png")
-                            .into(),
-                    ),
-                    ..Default::default()
-                })
-                .insert(LevelId(4))
-                .insert(GridLocation { x: 4, y: 0 })
-                .with_children(|image| {
-                    image.spawn_bundle(TextBundle {
-                        text: Text::with_section(
-                            "4",
-                            TextStyle {
-                                font: asset_server.load("fonts/AsepriteFont.ttf"),
-                                font_size: 64.0,
-                                color: Color::WHITE,
-                            },
-                            TextAlignment {
-                                vertical: VerticalAlign::Center,
-                                horizontal: HorizontalAlign::Center,
-                            },
-                        ),
-                        ..Default::default()
-                    });
-                });
-                row.spawn_bundle(ImageBundle {
-                    style: Style {
-                        justify_content: JustifyContent::Center,
-                        size: Size::new(Val::Percent(100.0 / 8.), Val::Percent(100.0)),
-                        align_items: AlignItems::Center,
-                        ..Default::default()
-                    },
-                    material: materials.add(
-                        asset_server
-                            .load("sprites/tmp/level_select/body_lr_light.png")
-                            .into(),
-                    ),
-                    ..Default::default()
-                })
-                .insert(LevelId(5))
-                .insert(GridLocation { x: 5, y: 0 })
-                .with_children(|image| {
-                    image.spawn_bundle(TextBundle {
-                        text: Text::with_section(
-                            "5",
-                            TextStyle {
-                                font: asset_server.load("fonts/AsepriteFont.ttf"),
-                                font_size: 64.0,
-                                color: Color::WHITE,
-                            },
-                            TextAlignment {
-                                vertical: VerticalAlign::Center,
-                                horizontal: HorizontalAlign::Center,
-                            },
-                        ),
-                        ..Default::default()
-                    });
-                });
-                row.spawn_bundle(ImageBundle {
-                    style: Style {
-                        justify_content: JustifyContent::Center,
-                        size: Size::new(Val::Percent(100.0 / 8.), Val::Percent(100.0)),
-                        align_items: AlignItems::Center,
-                        ..Default::default()
-                    },
-                    material: materials.add(
-                        asset_server
-                            .load("sprites/tmp/level_select/body_lr_light.png")
-                            .into(),
-                    ),
-                    ..Default::default()
-                })
-                .insert(LevelId(6))
-                .insert(GridLocation { x: 6, y: 0 })
-                .with_children(|image| {
-                    image.spawn_bundle(TextBundle {
-                        text: Text::with_section(
-                            "6",
-                            TextStyle {
-                                font: asset_server.load("fonts/AsepriteFont.ttf"),
-                                font_size: 64.0,
-                                color: Color::WHITE,
-                            },
-                            TextAlignment {
-                                vertical: VerticalAlign::Center,
-                                horizontal: HorizontalAlign::Center,
-                            },
-                        ),
-                        ..Default::default()
-                    });
                 });
             });
+
+            root.spawn_bundle(NodeBundle {
+                style: Style {
+                    justify_content: JustifyContent::Center,
+                    size: Size::new(Val::Percent(100.0), Val::Percent(100. / 6.)),
+                    align_items: AlignItems::Center,
+                    ..Default::default()
+                },
+                material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+                ..Default::default()
+            })
+            .with_children(|row| {
+                row.spawn_bundle(NodeBundle {
+                    style: Style {
+                        justify_content: JustifyContent::Center,
+                        size: Size::new(Val::Percent(100.0 / 8 as f32), Val::Percent(100.0)),
+                        align_items: AlignItems::Center,
+                        ..Default::default()
+                    },
+                    material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+
+                    ..Default::default()
+                });
+
+                let y = 1;
+
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_rd_light.png",
+                    LevelId(11),
+                    GridLocation { x: 0, y },
+                );
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_rl_dark.png",
+                    LevelId(10),
+                    GridLocation { x: 1, y },
+                );
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_rl_light.png",
+                    LevelId(9),
+                    GridLocation { x: 2, y },
+                );
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_rl_dark.png",
+                    LevelId(8),
+                    GridLocation { x: 3, y },
+                );
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_rl_light.png",
+                    LevelId(7),
+                    GridLocation { x: 4, y },
+                );
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_ul_dark.png",
+                    LevelId(6),
+                    GridLocation { x: 5, y },
+                );
+
+                row.spawn_bundle(NodeBundle {
+                    style: Style {
+                        justify_content: JustifyContent::Center,
+                        size: Size::new(Val::Percent(100.0 / 8 as f32), Val::Percent(100.0)),
+                        align_items: AlignItems::Center,
+                        ..Default::default()
+                    },
+                    material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+
+                    ..Default::default()
+                });
+            });
+
+            root.spawn_bundle(NodeBundle {
+                style: Style {
+                    justify_content: JustifyContent::Center,
+                    size: Size::new(Val::Percent(100.0), Val::Percent(100. / 6.)),
+                    align_items: AlignItems::Center,
+                    ..Default::default()
+                },
+                material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+                ..Default::default()
+            })
+            .with_children(|row| {
+                row.spawn_bundle(NodeBundle {
+                    style: Style {
+                        justify_content: JustifyContent::Center,
+                        size: Size::new(Val::Percent(100.0 / 8 as f32), Val::Percent(100.0)),
+                        align_items: AlignItems::Center,
+                        ..Default::default()
+                    },
+                    material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+
+                    ..Default::default()
+                });
+
+                let y = 2;
+
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_ur_dark.png",
+                    LevelId(12),
+                    GridLocation { x: 0, y },
+                );
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_lr_light.png",
+                    LevelId(13),
+                    GridLocation { x: 1, y },
+                );
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_lr_dark.png",
+                    LevelId(14),
+                    GridLocation { x: 2, y },
+                );
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_lr_light.png",
+                    LevelId(15),
+                    GridLocation { x: 3, y },
+                );
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_lr_dark.png",
+                    LevelId(16),
+                    GridLocation { x: 4, y },
+                );
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_ld_light.png",
+                    LevelId(17),
+                    GridLocation { x: 5, y },
+                );
+
+                row.spawn_bundle(NodeBundle {
+                    style: Style {
+                        justify_content: JustifyContent::Center,
+                        size: Size::new(Val::Percent(100.0 / 8 as f32), Val::Percent(100.0)),
+                        align_items: AlignItems::Center,
+                        ..Default::default()
+                    },
+                    material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+
+                    ..Default::default()
+                });
+            });
+            
+            root.spawn_bundle(NodeBundle {
+                style: Style {
+                    justify_content: JustifyContent::Center,
+                    size: Size::new(Val::Percent(100.0), Val::Percent(100. / 6.)),
+                    align_items: AlignItems::Center,
+                    ..Default::default()
+                },
+                material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+                ..Default::default()
+            })
+            .with_children(|row| {
+                row.spawn_bundle(NodeBundle {
+                    style: Style {
+                        justify_content: JustifyContent::Center,
+                        size: Size::new(Val::Percent(100.0 / 8 as f32), Val::Percent(100.0)),
+                        align_items: AlignItems::Center,
+                        ..Default::default()
+                    },
+                    material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+
+                    ..Default::default()
+                });
+
+                let y = 3;
+
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_rd_light.png",
+                    LevelId(23),
+                    GridLocation { x: 0, y },
+                );
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_rl_dark.png",
+                    LevelId(22),
+                    GridLocation { x: 1, y },
+                );
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_rl_light.png",
+                    LevelId(21),
+                    GridLocation { x: 2, y },
+                );
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_rl_dark.png",
+                    LevelId(20),
+                    GridLocation { x: 3, y },
+                );
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_rl_light.png",
+                    LevelId(19),
+                    GridLocation { x: 4, y },
+                );
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_ul_dark.png",
+                    LevelId(18),
+                    GridLocation { x: 5, y },
+                );
+
+                row.spawn_bundle(NodeBundle {
+                    style: Style {
+                        justify_content: JustifyContent::Center,
+                        size: Size::new(Val::Percent(100.0 / 8 as f32), Val::Percent(100.0)),
+                        align_items: AlignItems::Center,
+                        ..Default::default()
+                    },
+                    material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+
+                    ..Default::default()
+                });
+            });
+            
+            root.spawn_bundle(NodeBundle {
+                style: Style {
+                    justify_content: JustifyContent::Center,
+                    size: Size::new(Val::Percent(100.0), Val::Percent(100. / 6.)),
+                    align_items: AlignItems::Center,
+                    ..Default::default()
+                },
+                material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+                ..Default::default()
+            })
+            .with_children(|row| {
+                row.spawn_bundle(NodeBundle {
+                    style: Style {
+                        justify_content: JustifyContent::Center,
+                        size: Size::new(Val::Percent(100.0 / 8 as f32), Val::Percent(100.0)),
+                        align_items: AlignItems::Center,
+                        ..Default::default()
+                    },
+                    material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+
+                    ..Default::default()
+                });
+
+                let y = 4;
+
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_ur_dark.png",
+                    LevelId(24),
+                    GridLocation { x: 0, y },
+                );
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_lr_light.png",
+                    LevelId(25),
+                    GridLocation { x: 1, y },
+                );
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_lr_dark.png",
+                    LevelId(26),
+                    GridLocation { x: 2, y },
+                );
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_lr_light.png",
+                    LevelId(27),
+                    GridLocation { x: 3, y },
+                );
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_lr_dark.png",
+                    LevelId(28),
+                    GridLocation { x: 4, y },
+                );
+                level(
+                    row,
+                    &mut materials,
+                    &asset_server,
+                    &beat_levels,
+                    "sprites/tmp/level_select/body_ld_light.png",
+                    LevelId(29),
+                    GridLocation { x: 5, y },
+                );
+
+                row.spawn_bundle(NodeBundle {
+                    style: Style {
+                        justify_content: JustifyContent::Center,
+                        size: Size::new(Val::Percent(100.0 / 8 as f32), Val::Percent(100.0)),
+                        align_items: AlignItems::Center,
+                        ..Default::default()
+                    },
+                    material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+
+                    ..Default::default()
+                });
+            });
+            
+            
         });
+}
+
+fn level(
+    row: &mut ChildBuilder,
+    materials: &mut ResMut<Assets<ColorMaterial>>,
+    asset_server: &Res<AssetServer>,
+
+    beat_levels: &Res<BeatLevels>,
+    asset_path: &str,
+    level_id: LevelId,
+    grid_location: GridLocation,
+) {
+    
+    row.spawn_bundle(ImageBundle {
+        style: Style {
+            justify_content: JustifyContent::Center,
+            size: Size::new(Val::Percent(100.0 / 8.), Val::Percent(100.0)),
+            align_items: AlignItems::Center,
+            ..Default::default()
+        },
+        material: materials.add(asset_server.load(asset_path).into()),
+        ..Default::default()
+    })
+    .with_children(|image| {
+        let color = {
+            if beat_levels.0.contains(&level_id) {
+                Color::GRAY
+            } else {
+                Color::WHITE
+            }
+        };
+
+        image
+            .spawn_bundle(TextBundle {
+                text: Text::with_section(
+                    format!("{}", level_id.0),
+                    TextStyle {
+                        font: asset_server.load("fonts/AsepriteFont.ttf"),
+                        font_size: 32.0,
+                        color,
+                    },
+                    TextAlignment {
+                        vertical: VerticalAlign::Center,
+                        horizontal: HorizontalAlign::Center,
+                    },
+                ),
+                ..Default::default()
+            })
+            .insert(level_id)
+            .insert(grid_location);
+    });
 }
 
 fn update_selected(
@@ -2754,6 +3017,36 @@ fn update_selected(
             );
         }
     }
+
+    if keyboard_input.just_pressed(KeyCode::W) {
+        if let Some(level_id) = valid_grids.get(&GridLocation {
+            x: selected.0.x,
+            y: selected.0.y - 1,
+        }) {
+            *selected = Selected(
+                GridLocation {
+                    x: selected.0.x,
+                    y: selected.0.y - 1,
+                },
+                level_id.clone(),
+            );
+        }
+    }
+
+    if keyboard_input.just_pressed(KeyCode::S) {
+        if let Some(level_id) = valid_grids.get(&GridLocation {
+            x: selected.0.x,
+            y: selected.0.y + 1,
+        }) {
+            *selected = Selected(
+                GridLocation {
+                    x: selected.0.x,
+                    y: selected.0.y + 1,
+                },
+                level_id.clone(),
+            );
+        }
+    }
 }
 
 fn display_selected(
@@ -2762,9 +3055,21 @@ fn display_selected(
     selected: Res<Selected>,
     asset_server: Res<AssetServer>,
 
-    mut q: Query<(&GridLocation, &mut Handle<ColorMaterial>)>,
+    mut q: Query<(&GridLocation, &mut Text)>,
 ) {
-    for (grid_location, mut handle) in q.iter_mut() {}
+    let mut count = 0;
+
+    for (grid_location, mut text) in q.iter_mut() {
+        if *grid_location == selected.0 {
+            if let Some(text_section) = text.sections.first_mut() {
+                text_section.style.font_size = 64.0
+            }
+        } else {
+            if let Some(text_section) = text.sections.first_mut() {
+                text_section.style.font_size = 32.0
+            }
+        }
+    }
 
     // if *grid_location == selected.0 {
     //     *handle = materials.add(Color::rgb(0.15, 0.9, 0.15).into());
