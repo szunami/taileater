@@ -1298,8 +1298,8 @@ fn editor(
         // );
 
         let mouse_grid_location = GridLocation {
-            x: (pos_wld.x / GRID_WIDTH) as i32,
-            y: (pos_wld.y / GRID_HEIGHT) as i32,
+            x: (pos_wld.x / GRID_WIDTH).round() as i32,
+            y: (pos_wld.y / GRID_HEIGHT).round() as i32,
         };
         let mouse_xform = Transform::from_translation(Vec3::new(
             mouse_grid_location.x as f32 * GRID_WIDTH,
