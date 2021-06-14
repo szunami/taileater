@@ -125,7 +125,8 @@ struct TransitionQueue(Vec<Transition>);
 
 #[derive(Clone, Eq, PartialEq, Debug, Hash)]
 enum GameState {
-    StartMenu,
+    Szunami,
+    StartScreen,
     LevelSelect,
     InGame,
     Win,
@@ -325,7 +326,7 @@ fn main() {
         #[cfg(target_arch = "x86_64")]
         app.add_plugins(DefaultPlugins);
 
-        app.add_state(GameState::StartMenu)
+        app.add_state(GameState::Szunami)
             .register_type::<Ground>()
             .register_type::<GridLocation>()
             .register_type::<Snake>()
@@ -337,23 +338,34 @@ fn main() {
             .insert_resource(GameHistory(vec![]))
             .add_system(bevy::input::system::exit_on_esc_system.system())
             .add_system_set(
-                SystemSet::on_enter(GameState::StartMenu).with_system(enter_start_menu.system()),
+                SystemSet::on_enter(GameState::Szunami).with_system(enter_szunami.system()),
             )
             .add_system_set(
-                SystemSet::on_enter(GameState::StartMenu).with_system(load_beat_levels.system()),
+                SystemSet::on_enter(GameState::Szunami).with_system(load_beat_levels.system()),
             )
             .add_system_set(
-                SystemSet::on_enter(GameState::StartMenu).with_system(load_assets.system()),
+                SystemSet::on_enter(GameState::Szunami).with_system(load_assets.system()),
             )
             .add_system_set(
-                SystemSet::on_update(GameState::StartMenu).with_system(update_start_menu.system()),
+                SystemSet::on_update(GameState::Szunami).with_system(update_szunami.system()),
             )
             .add_system_set(
-                SystemSet::on_exit(GameState::StartMenu).with_system(exit_start_menu.system()),
+                SystemSet::on_exit(GameState::Szunami).with_system(exit_szunami.system()),
             )
             .add_system_set(
-                SystemSet::on_update(GameState::StartMenu).with_system(update_start_menu.system()),
+                SystemSet::on_enter(GameState::StartScreen)
+                    .with_system(enter_title_screen.system()),
             )
+            .add_system_set(
+                SystemSet::on_update(GameState::StartScreen)
+                    .with_system(update_title_screen.system()),
+            )
+            .add_system_set(
+                SystemSet::on_exit(GameState::StartScreen).with_system(exit_title_screen.system()),
+            )
+            // .add_system_set(
+            //     SystemSet::on_enter(GameState::StartScreen).with_system(exit_start-screen.system())
+            // )
             // This is a little messy; need to handle quitting game + winning
             .add_system_set(
                 SystemSet::on_enter(GameState::LevelSelect).with_system(exit_ingame.system()),
@@ -531,7 +543,7 @@ fn level_editor_cleanup(
     }
 }
 
-fn enter_start_menu(
+fn enter_szunami(
     mut commands: Commands,
 
     asset_server: Res<AssetServer>,
@@ -553,7 +565,7 @@ fn enter_start_menu(
         .insert(Logo);
 }
 
-fn update_start_menu(
+fn update_szunami(
     time: Res<Time>,
     mut state: ResMut<State<GameState>>,
 
@@ -567,11 +579,11 @@ fn update_start_menu(
     }
 
     if time.seconds_since_startup() > 3. {
-        state.set(GameState::LevelSelect).ok();
+        state.set(GameState::StartScreen).ok();
     }
 }
 
-fn exit_start_menu(mut commands: Commands, mut q: Query<Entity, With<Logo>>) {
+fn exit_szunami(mut commands: Commands, mut q: Query<Entity, With<Logo>>) {
     dbg!("exiting start menu");
     for e in q.iter_mut() {
         commands.entity(e).despawn_recursive();
@@ -3355,5 +3367,113 @@ mod tests {
                 assert_eq!(data.beat_levels.0, levels);
             }
         }
+    }
+}
+
+struct Title;
+
+fn enter_title_screen(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+
+    mut materials: ResMut<Assets<ColorMaterial>>,
+
+    mut clear_color: ResMut<ClearColor>,
+) {
+    *clear_color = ClearColor(Color::rgb(87. / 255., 114. / 255., 119. / 255.));
+
+    let logo = asset_server.load("sprites/tmp/title/snake.png");
+    let logo = TextureAtlas::from_grid(logo, Vec2::new(128.0, 96.0), 31, 1);
+    let logo = texture_atlases.add(logo);
+
+    commands
+        .spawn_bundle(SpriteSheetBundle {
+            texture_atlas: logo,
+            transform: Transform::from_scale(6. * Vec3::ONE),
+            ..Default::default()
+        })
+        .insert(Title)
+        .insert(Timer::from_seconds(0.1, true));
+
+    let title_material = asset_server.load("sprites/tmp/title/title.png").into();
+
+    let mut xform = Transform {
+        translation: Vec3::new(0., 224., 0.),
+        scale: 2. * Vec3::ONE,
+        ..Default::default()
+    };
+    commands
+        .spawn_bundle(SpriteBundle {
+            sprite: Sprite::new(Vec2::new(204., 52.)),
+            material: materials.add(title_material),
+            transform: xform,
+            ..Default::default()
+        })
+        .insert(Title);
+
+    commands
+        .spawn_bundle(NodeBundle {
+            style: Style {
+                justify_content: JustifyContent::Center,
+                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                flex_direction: FlexDirection::ColumnReverse,
+                align_items: AlignItems::Center,
+                ..Default::default()
+            },
+            material: materials.add(Color::rgba(0.0, 0.0, 0.0, 0.0).into()),
+            ..Default::default()
+        })
+        .with_children(|root| {
+            root.spawn_bundle(TextBundle {
+                text: Text {
+                    sections: vec![TextSection {
+                        value: "press enter".to_string(),
+                        style: TextStyle {
+                            font: asset_server.load("fonts/AsepriteFont.ttf"),
+                            font_size: 40.0,
+                            color: Color::rgb(0.5, 0.5, 1.0),
+                        },
+                    }],
+                    ..Default::default()
+                },
+                style: Style {
+                    position_type: PositionType::Absolute,
+                    position: Rect {
+                        bottom: Val::Px(64.0),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                },
+                ..Default::default()
+            })
+            .insert(Title);
+        });
+}
+
+fn update_title_screen(
+    mut state: ResMut<State<GameState>>,
+
+    keyboard_input: Res<Input<KeyCode>>,
+    time: Res<Time>,
+
+    mut q: Query<(&mut TextureAtlasSprite, &mut Timer), With<Title>>,
+) {
+    for (mut sprite, mut timer) in q.iter_mut() {
+        timer.tick(time.delta());
+        if timer.just_finished() {
+            sprite.index = (sprite.index + 1) % 31;
+        }
+    }
+
+    if keyboard_input.just_pressed(KeyCode::Return) {
+        dbg!("entering levelselect");
+        state.set(GameState::LevelSelect).ok();
+    }
+}
+
+fn exit_title_screen(mut commands: Commands, mut q: Query<(Entity), With<Title>>) {
+    for e in q.iter() {
+        commands.entity(e).despawn_recursive();
     }
 }
