@@ -3424,6 +3424,7 @@ fn enter_title_screen(
             material: materials.add(Color::rgba(0.0, 0.0, 0.0, 0.0).into()),
             ..Default::default()
         })
+        .insert(Title)
         .with_children(|root| {
             root.spawn_bundle(TextBundle {
                 text: Text {
@@ -3454,7 +3455,7 @@ fn enter_title_screen(
 fn update_title_screen(
     mut state: ResMut<State<GameState>>,
 
-    keyboard_input: Res<Input<KeyCode>>,
+    mut keyboard_input: ResMut<Input<KeyCode>>,
     time: Res<Time>,
 
     mut q: Query<(&mut TextureAtlasSprite, &mut Timer), With<Title>>,
@@ -3467,7 +3468,7 @@ fn update_title_screen(
     }
 
     if keyboard_input.just_pressed(KeyCode::Return) {
-        dbg!("entering levelselect");
+        *keyboard_input = Input::default();
         state.set(GameState::LevelSelect).ok();
     }
 }
