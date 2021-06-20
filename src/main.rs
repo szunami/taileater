@@ -3383,7 +3383,7 @@ fn enter_title_screen(
 ) {
     *clear_color = ClearColor(Color::rgb(87. / 255., 114. / 255., 119. / 255.));
 
-    let logo = asset_server.load("sprites/tmp/title/snake.png");
+    let logo = asset_server.load("sprites/drafts/title/snake.png");
     let logo = TextureAtlas::from_grid(logo, Vec2::new(128.0, 96.0), 31, 1);
     let logo = texture_atlases.add(logo);
 
@@ -3396,7 +3396,7 @@ fn enter_title_screen(
         .insert(Title)
         .insert(Timer::from_seconds(0.1, true));
 
-    let title_material = asset_server.load("sprites/tmp/title/title.png").into();
+    let title_material = asset_server.load("sprites/drafts/title/title.png").into();
 
     let mut xform = Transform {
         translation: Vec3::new(0., 224., 0.),
