@@ -146,7 +146,7 @@ struct BeatLevels(HashSet<LevelId>);
 
 #[derive(Serialize, Deserialize)]
 enum SaveState {
-    v1(SaveStateV1),
+    V1(SaveStateV1),
 }
 
 #[derive(Serialize, Deserialize)]
@@ -2535,7 +2535,18 @@ fn setup_level_select(
             root.spawn_bundle(NodeBundle {
                 style: Style {
                     justify_content: JustifyContent::Center,
-                    size: Size::new(Val::Percent(100.0), Val::Percent(100. / 6.)),
+                    size: Size::new(Val::Percent(100.0), Val::Percent(100. * 2. / 21.)),
+                    align_items: AlignItems::Center,
+                    ..Default::default()
+                },
+                material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+                ..Default::default()
+            });
+
+            root.spawn_bundle(NodeBundle {
+                style: Style {
+                    justify_content: JustifyContent::Center,
+                    size: Size::new(Val::Percent(100.0), Val::Percent(100. / 21.)),
                     align_items: AlignItems::Center,
                     ..Default::default()
                 },
@@ -2563,7 +2574,18 @@ fn setup_level_select(
             root.spawn_bundle(NodeBundle {
                 style: Style {
                     justify_content: JustifyContent::Center,
-                    size: Size::new(Val::Percent(100.0), Val::Percent(100. / 6.)),
+                    size: Size::new(Val::Percent(100.0), Val::Percent(100. / 21.)),
+                    align_items: AlignItems::Center,
+                    ..Default::default()
+                },
+                material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+                ..Default::default()
+            });
+
+            root.spawn_bundle(NodeBundle {
+                style: Style {
+                    justify_content: JustifyContent::Center,
+                    size: Size::new(Val::Percent(100.0), Val::Percent(100. * 3. / 21.)),
                     align_items: AlignItems::Center,
                     ..Default::default()
                 },
@@ -2571,10 +2593,23 @@ fn setup_level_select(
                 ..Default::default()
             })
             .with_children(|row| {
+
+                row.spawn_bundle(NodeBundle {
+                    style: Style {
+                        justify_content: JustifyContent::Center,
+                        size: Size::new(Val::Percent(100.0 * 1.5 / 21.), Val::Percent(100.0)),
+                        align_items: AlignItems::Center,
+                        ..Default::default()
+                    },
+                    material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+
+                    ..Default::default()
+                });
+
                 row.spawn_bundle(ImageBundle {
                     style: Style {
                         justify_content: JustifyContent::Center,
-                        size: Size::new(Val::Percent(100.0 / 8 as f32), Val::Percent(100.0)),
+                        size: Size::new(Val::Percent(100.0 * 3. / 21.), Val::Percent(100.0)),
                         align_items: AlignItems::Center,
                         ..Default::default()
                     },
@@ -2618,33 +2653,16 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/drafts/level_select/body_lr_dark.png",
+                    "sprites/drafts/level_select/body_ld_dark.png",
                     LevelId(3),
                     GridLocation { x: 3, y: 0 },
                 );
-                level(
-                    row,
-                    &mut materials,
-                    &asset_server,
-                    &beat_levels,
-                    "sprites/drafts/level_select/body_lr_light.png",
-                    LevelId(4),
-                    GridLocation { x: 4, y: 0 },
-                );
-                level(
-                    row,
-                    &mut materials,
-                    &asset_server,
-                    &beat_levels,
-                    "sprites/drafts/level_select/body_ld_dark.png",
-                    LevelId(5),
-                    GridLocation { x: 5, y: 0 },
-                );
+              
 
                 row.spawn_bundle(NodeBundle {
                     style: Style {
                         justify_content: JustifyContent::Center,
-                        size: Size::new(Val::Percent(100.0 / 8 as f32), Val::Percent(100.0)),
+                        size: Size::new(Val::Percent(100.0 * 4.5 / 21.), Val::Percent(100.0)),
                         align_items: AlignItems::Center,
                         ..Default::default()
                     },
@@ -2657,7 +2675,7 @@ fn setup_level_select(
             root.spawn_bundle(NodeBundle {
                 style: Style {
                     justify_content: JustifyContent::Center,
-                    size: Size::new(Val::Percent(100.0), Val::Percent(100. / 6.)),
+                    size: Size::new(Val::Percent(100.0), Val::Percent(100. * 3. / 21.)),
                     align_items: AlignItems::Center,
                     ..Default::default()
                 },
@@ -2665,10 +2683,11 @@ fn setup_level_select(
                 ..Default::default()
             })
             .with_children(|row| {
+
                 row.spawn_bundle(NodeBundle {
                     style: Style {
                         justify_content: JustifyContent::Center,
-                        size: Size::new(Val::Percent(100.0 / 8 as f32), Val::Percent(100.0)),
+                        size: Size::new(Val::Percent(100.0 * 4.5 / 21.), Val::Percent(100.0)),
                         align_items: AlignItems::Center,
                         ..Default::default()
                     },
@@ -2685,7 +2704,7 @@ fn setup_level_select(
                     &asset_server,
                     &beat_levels,
                     "sprites/drafts/level_select/body_rd_dark.png",
-                    LevelId(11),
+                    LevelId(7),
                     GridLocation { x: 0, y },
                 );
                 level(
@@ -2694,7 +2713,7 @@ fn setup_level_select(
                     &asset_server,
                     &beat_levels,
                     "sprites/drafts/level_select/body_rl_light.png",
-                    LevelId(10),
+                    LevelId(6),
                     GridLocation { x: 1, y },
                 );
                 level(
@@ -2703,7 +2722,7 @@ fn setup_level_select(
                     &asset_server,
                     &beat_levels,
                     "sprites/drafts/level_select/body_rl_dark.png",
-                    LevelId(9),
+                    LevelId(5),
                     GridLocation { x: 2, y },
                 );
                 level(
@@ -2711,33 +2730,16 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/drafts/level_select/body_rl_light.png",
-                    LevelId(8),
+                    "sprites/drafts/level_select/body_ul_light.png",
+                    LevelId(4),
                     GridLocation { x: 3, y },
                 );
-                level(
-                    row,
-                    &mut materials,
-                    &asset_server,
-                    &beat_levels,
-                    "sprites/drafts/level_select/body_rl_dark.png",
-                    LevelId(7),
-                    GridLocation { x: 4, y },
-                );
-                level(
-                    row,
-                    &mut materials,
-                    &asset_server,
-                    &beat_levels,
-                    "sprites/drafts/level_select/body_ul_light.png",
-                    LevelId(6),
-                    GridLocation { x: 5, y },
-                );
+              
 
                 row.spawn_bundle(NodeBundle {
                     style: Style {
                         justify_content: JustifyContent::Center,
-                        size: Size::new(Val::Percent(100.0 / 8 as f32), Val::Percent(100.0)),
+                        size: Size::new(Val::Percent(100.0 * 4.5 / 21.), Val::Percent(100.0)),
                         align_items: AlignItems::Center,
                         ..Default::default()
                     },
@@ -2750,7 +2752,7 @@ fn setup_level_select(
             root.spawn_bundle(NodeBundle {
                 style: Style {
                     justify_content: JustifyContent::Center,
-                    size: Size::new(Val::Percent(100.0), Val::Percent(100. / 6.)),
+                    size: Size::new(Val::Percent(100.0), Val::Percent(100. * 3. / 21.)),
                     align_items: AlignItems::Center,
                     ..Default::default()
                 },
@@ -2758,10 +2760,11 @@ fn setup_level_select(
                 ..Default::default()
             })
             .with_children(|row| {
+
                 row.spawn_bundle(NodeBundle {
                     style: Style {
                         justify_content: JustifyContent::Center,
-                        size: Size::new(Val::Percent(100.0 / 8 as f32), Val::Percent(100.0)),
+                        size: Size::new(Val::Percent(100.0 * 4.5 / 21.), Val::Percent(100.0)),
                         align_items: AlignItems::Center,
                         ..Default::default()
                     },
@@ -2778,7 +2781,7 @@ fn setup_level_select(
                     &asset_server,
                     &beat_levels,
                     "sprites/drafts/level_select/body_ur_light.png",
-                    LevelId(12),
+                    LevelId(8),
                     GridLocation { x: 0, y },
                 );
                 level(
@@ -2787,7 +2790,7 @@ fn setup_level_select(
                     &asset_server,
                     &beat_levels,
                     "sprites/drafts/level_select/body_lr_dark.png",
-                    LevelId(13),
+                    LevelId(9),
                     GridLocation { x: 1, y },
                 );
                 level(
@@ -2796,7 +2799,7 @@ fn setup_level_select(
                     &asset_server,
                     &beat_levels,
                     "sprites/drafts/level_select/body_lr_light.png",
-                    LevelId(14),
+                    LevelId(10),
                     GridLocation { x: 2, y },
                 );
                 level(
@@ -2804,33 +2807,16 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/drafts/level_select/body_lr_dark.png",
-                    LevelId(15),
+                    "sprites/drafts/level_select/body_ld_dark.png",
+                    LevelId(11),
                     GridLocation { x: 3, y },
                 );
-                level(
-                    row,
-                    &mut materials,
-                    &asset_server,
-                    &beat_levels,
-                    "sprites/drafts/level_select/body_lr_light.png",
-                    LevelId(16),
-                    GridLocation { x: 4, y },
-                );
-                level(
-                    row,
-                    &mut materials,
-                    &asset_server,
-                    &beat_levels,
-                    "sprites/drafts/level_select/body_ld_dark.png",
-                    LevelId(17),
-                    GridLocation { x: 5, y },
-                );
+              
 
                 row.spawn_bundle(NodeBundle {
                     style: Style {
                         justify_content: JustifyContent::Center,
-                        size: Size::new(Val::Percent(100.0 / 8 as f32), Val::Percent(100.0)),
+                        size: Size::new(Val::Percent(100.0 * 4.5 / 21.), Val::Percent(100.0)),
                         align_items: AlignItems::Center,
                         ..Default::default()
                     },
@@ -2843,7 +2829,7 @@ fn setup_level_select(
             root.spawn_bundle(NodeBundle {
                 style: Style {
                     justify_content: JustifyContent::Center,
-                    size: Size::new(Val::Percent(100.0), Val::Percent(100. / 6.)),
+                    size: Size::new(Val::Percent(100.0), Val::Percent(100. * 3. / 21.)),
                     align_items: AlignItems::Center,
                     ..Default::default()
                 },
@@ -2851,10 +2837,11 @@ fn setup_level_select(
                 ..Default::default()
             })
             .with_children(|row| {
+
                 row.spawn_bundle(NodeBundle {
                     style: Style {
                         justify_content: JustifyContent::Center,
-                        size: Size::new(Val::Percent(100.0 / 8 as f32), Val::Percent(100.0)),
+                        size: Size::new(Val::Percent(100.0 * 4.5 / 21.), Val::Percent(100.0)),
                         align_items: AlignItems::Center,
                         ..Default::default()
                     },
@@ -2871,7 +2858,7 @@ fn setup_level_select(
                     &asset_server,
                     &beat_levels,
                     "sprites/drafts/level_select/body_rd_dark.png",
-                    LevelId(23),
+                    LevelId(15),
                     GridLocation { x: 0, y },
                 );
                 level(
@@ -2880,7 +2867,7 @@ fn setup_level_select(
                     &asset_server,
                     &beat_levels,
                     "sprites/drafts/level_select/body_rl_light.png",
-                    LevelId(22),
+                    LevelId(14),
                     GridLocation { x: 1, y },
                 );
                 level(
@@ -2889,7 +2876,7 @@ fn setup_level_select(
                     &asset_server,
                     &beat_levels,
                     "sprites/drafts/level_select/body_rl_dark.png",
-                    LevelId(21),
+                    LevelId(13),
                     GridLocation { x: 2, y },
                 );
                 level(
@@ -2897,33 +2884,16 @@ fn setup_level_select(
                     &mut materials,
                     &asset_server,
                     &beat_levels,
-                    "sprites/drafts/level_select/body_rl_light.png",
-                    LevelId(20),
+                    "sprites/drafts/level_select/body_ul_light.png",
+                    LevelId(12),
                     GridLocation { x: 3, y },
                 );
-                level(
-                    row,
-                    &mut materials,
-                    &asset_server,
-                    &beat_levels,
-                    "sprites/drafts/level_select/body_rl_dark.png",
-                    LevelId(19),
-                    GridLocation { x: 4, y },
-                );
-                level(
-                    row,
-                    &mut materials,
-                    &asset_server,
-                    &beat_levels,
-                    "sprites/drafts/level_select/body_ul_light.png",
-                    LevelId(18),
-                    GridLocation { x: 5, y },
-                );
+              
 
                 row.spawn_bundle(NodeBundle {
                     style: Style {
                         justify_content: JustifyContent::Center,
-                        size: Size::new(Val::Percent(100.0 / 8 as f32), Val::Percent(100.0)),
+                        size: Size::new(Val::Percent(100.0 * 4.5 / 21.), Val::Percent(100.0)),
                         align_items: AlignItems::Center,
                         ..Default::default()
                     },
@@ -2936,7 +2906,7 @@ fn setup_level_select(
             root.spawn_bundle(NodeBundle {
                 style: Style {
                     justify_content: JustifyContent::Center,
-                    size: Size::new(Val::Percent(100.0), Val::Percent(100. / 6.)),
+                    size: Size::new(Val::Percent(100.0), Val::Percent(100. * 3. / 21.)),
                     align_items: AlignItems::Center,
                     ..Default::default()
                 },
@@ -2944,10 +2914,11 @@ fn setup_level_select(
                 ..Default::default()
             })
             .with_children(|row| {
+
                 row.spawn_bundle(NodeBundle {
                     style: Style {
                         justify_content: JustifyContent::Center,
-                        size: Size::new(Val::Percent(100.0 / 8 as f32), Val::Percent(100.0)),
+                        size: Size::new(Val::Percent(100.0 * 4.5 / 21.), Val::Percent(100.0)),
                         align_items: AlignItems::Center,
                         ..Default::default()
                     },
@@ -2964,7 +2935,7 @@ fn setup_level_select(
                     &asset_server,
                     &beat_levels,
                     "sprites/drafts/level_select/body_ur_light.png",
-                    LevelId(24),
+                    LevelId(16),
                     GridLocation { x: 0, y },
                 );
                 level(
@@ -2973,7 +2944,7 @@ fn setup_level_select(
                     &asset_server,
                     &beat_levels,
                     "sprites/drafts/level_select/body_lr_dark.png",
-                    LevelId(25),
+                    LevelId(17),
                     GridLocation { x: 1, y },
                 );
                 level(
@@ -2982,7 +2953,7 @@ fn setup_level_select(
                     &asset_server,
                     &beat_levels,
                     "sprites/drafts/level_select/body_lr_light.png",
-                    LevelId(26),
+                    LevelId(18),
                     GridLocation { x: 2, y },
                 );
                 level(
@@ -2991,32 +2962,14 @@ fn setup_level_select(
                     &asset_server,
                     &beat_levels,
                     "sprites/drafts/level_select/body_lr_dark.png",
-                    LevelId(27),
+                    LevelId(19),
                     GridLocation { x: 3, y },
-                );
-                level(
-                    row,
-                    &mut materials,
-                    &asset_server,
-                    &beat_levels,
-                    "sprites/drafts/level_select/body_lr_light.png",
-                    LevelId(28),
-                    GridLocation { x: 4, y },
-                );
-                level(
-                    row,
-                    &mut materials,
-                    &asset_server,
-                    &beat_levels,
-                    "sprites/drafts/level_select/body_lr_dark.png",
-                    LevelId(29),
-                    GridLocation { x: 5, y },
                 );
 
                 row.spawn_bundle(ImageBundle {
                     style: Style {
                         justify_content: JustifyContent::Center,
-                        size: Size::new(Val::Percent(100.0 / 8 as f32), Val::Percent(100.0)),
+                        size: Size::new(Val::Percent(100.0 * 3. / 21.), Val::Percent(100.0)),
                         align_items: AlignItems::Center,
                         ..Default::default()
                     },
@@ -3027,7 +2980,32 @@ fn setup_level_select(
                     ),
                     ..Default::default()
                 });
+              
+
+                row.spawn_bundle(NodeBundle {
+                    style: Style {
+                        justify_content: JustifyContent::Center,
+                        size: Size::new(Val::Percent(100.0 * 1.5 / 21.), Val::Percent(100.0)),
+                        align_items: AlignItems::Center,
+                        ..Default::default()
+                    },
+                    material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+
+                    ..Default::default()
+                });
             });
+
+            root.spawn_bundle(NodeBundle {
+                style: Style {
+                    justify_content: JustifyContent::Center,
+                    size: Size::new(Val::Percent(100.0), Val::Percent(100. * 2. / 21.)),
+                    align_items: AlignItems::Center,
+                    ..Default::default()
+                },
+                material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
+                ..Default::default()
+            });
+
         });
 }
 
@@ -3044,7 +3022,7 @@ fn level(
     row.spawn_bundle(ImageBundle {
         style: Style {
             justify_content: JustifyContent::Center,
-            size: Size::new(Val::Percent(100.0 / 8.), Val::Percent(100.0)),
+            size: Size::new(Val::Percent(100.0 * 3. / 21.), Val::Percent(100.0)),
             align_items: AlignItems::Center,
             ..Default::default()
         },
@@ -3300,7 +3278,7 @@ fn load_beat_levels(mut commands: Commands) {
             let reader = BufReader::new(file);
             match serde_json::from_reader::<_, SaveState>(reader) {
                 Ok(v) => match v {
-                    SaveState::v1(v) => v.beat_levels,
+                    SaveState::V1(v) => v.beat_levels,
                 },
                 Err(e) => {
                     eprintln!("Failed to deser {}. Err was {}", SAVE_FILE, e);
@@ -3318,7 +3296,7 @@ fn load_beat_levels(mut commands: Commands) {
 }
 
 fn save_beat_levels(beat_levels: BeatLevels) {
-    let wrapped = SaveState::v1(SaveStateV1 { beat_levels });
+    let wrapped = SaveState::V1(SaveStateV1 { beat_levels });
 
     match serde_json::to_vec(&wrapped) {
         Ok(data) => match File::create(SAVE_FILE) {
@@ -3352,7 +3330,7 @@ mod tests {
     fn it_works() {
         let levels = HashSet::from_iter(vec![LevelId(0), LevelId(3), LevelId(10)]);
 
-        let save_state = SaveState::v1(SaveStateV1 {
+        let save_state = SaveState::V1(SaveStateV1 {
             beat_levels: BeatLevels(levels.clone()),
         });
 
@@ -3366,7 +3344,7 @@ mod tests {
         let data = data.expect("it works");
 
         match data {
-            SaveState::v1(data) => {
+            SaveState::V1(data) => {
                 assert_eq!(data.beat_levels.0, levels);
             }
         }
