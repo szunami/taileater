@@ -312,6 +312,9 @@ fn main() {
 
         app.insert_resource(WindowDescriptor {
             title: "TAILEATER".to_string(),
+            vsync: false,
+            width: 672.,
+            height: 672.,
             ..Default::default()
         })
         .insert_resource(ClearColor(Color::rgb(
