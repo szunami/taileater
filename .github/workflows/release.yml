@@ -21,7 +21,7 @@ jobs:
           - channel: linux
             image_name: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            features: default
+            features: native
           - channel: wasm
             image_name: ubuntu-latest
             target: wasm32-unknown-unknown
@@ -29,11 +29,11 @@ jobs:
           - channel: macos
             image_name: macOS-latest
             target: x86_64-apple-darwin
-            features: default
+            features: native
           - channel: windows
             image_name: windows-latest
             target: x86_64-pc-windows-msvc
-            features: default
+            features: native
     steps:
       - uses: little-core-labs/get-git-tag@v3.0.1
         id: get_version
