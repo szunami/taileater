@@ -14,7 +14,7 @@ chrono = "0.4"
 serde = {version = "1", features = ["derive"]}
 serde_json = "1"
 
-web-sys = {version="0.3", optional=true, features = ["console", "Window"]}
+web-sys = {version="0.3", optional=true, features = ["console", "Window", "Storage"]}
 wasm-bindgen = {version="0.2", optional=true}
 winit = {version="0.24", optional=true}
 

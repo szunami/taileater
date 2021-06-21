@@ -326,7 +326,7 @@ fn main() {
         #[cfg(target_arch = "wasm32")]
         app.add_plugins(bevy_webgl2::DefaultPlugins);
 
-        #[cfg(target_arch = "x86_64")]
+        #[cfg(not(target_arch = "wasm32"))]
         app.add_plugins(DefaultPlugins);
 
         app.add_state(GameState::Szunami)
@@ -2593,7 +2593,6 @@ fn setup_level_select(
                 ..Default::default()
             })
             .with_children(|row| {
-
                 row.spawn_bundle(NodeBundle {
                     style: Style {
                         justify_content: JustifyContent::Center,
@@ -2657,7 +2656,6 @@ fn setup_level_select(
                     LevelId(3),
                     GridLocation { x: 3, y: 0 },
                 );
-              
 
                 row.spawn_bundle(NodeBundle {
                     style: Style {
@@ -2683,7 +2681,6 @@ fn setup_level_select(
                 ..Default::default()
             })
             .with_children(|row| {
-
                 row.spawn_bundle(NodeBundle {
                     style: Style {
                         justify_content: JustifyContent::Center,
@@ -2734,7 +2731,6 @@ fn setup_level_select(
                     LevelId(4),
                     GridLocation { x: 3, y },
                 );
-              
 
                 row.spawn_bundle(NodeBundle {
                     style: Style {
@@ -2760,7 +2756,6 @@ fn setup_level_select(
                 ..Default::default()
             })
             .with_children(|row| {
-
                 row.spawn_bundle(NodeBundle {
                     style: Style {
                         justify_content: JustifyContent::Center,
@@ -2811,7 +2806,6 @@ fn setup_level_select(
                     LevelId(11),
                     GridLocation { x: 3, y },
                 );
-              
 
                 row.spawn_bundle(NodeBundle {
                     style: Style {
@@ -2837,7 +2831,6 @@ fn setup_level_select(
                 ..Default::default()
             })
             .with_children(|row| {
-
                 row.spawn_bundle(NodeBundle {
                     style: Style {
                         justify_content: JustifyContent::Center,
@@ -2888,7 +2881,6 @@ fn setup_level_select(
                     LevelId(12),
                     GridLocation { x: 3, y },
                 );
-              
 
                 row.spawn_bundle(NodeBundle {
                     style: Style {
@@ -2914,7 +2906,6 @@ fn setup_level_select(
                 ..Default::default()
             })
             .with_children(|row| {
-
                 row.spawn_bundle(NodeBundle {
                     style: Style {
                         justify_content: JustifyContent::Center,
@@ -2980,7 +2971,6 @@ fn setup_level_select(
                     ),
                     ..Default::default()
                 });
-              
 
                 row.spawn_bundle(NodeBundle {
                     style: Style {
@@ -3005,7 +2995,6 @@ fn setup_level_select(
                 material: materials.add(Color::rgb(0.15, 0.15, 0.15).into()),
                 ..Default::default()
             });
-
         });
 }
 
@@ -3272,48 +3261,113 @@ fn exit_ingame(
 const SAVE_FILE: &str = "0.sav";
 
 fn load_beat_levels(mut commands: Commands) {
-    // TODO: handle browserstorage case
-    let beat_levels = match File::open(Path::new(SAVE_FILE)) {
-        Ok(file) => {
-            let reader = BufReader::new(file);
-            match serde_json::from_reader::<_, SaveState>(reader) {
-                Ok(v) => match v {
-                    SaveState::V1(v) => v.beat_levels,
-                },
-                Err(e) => {
-                    eprintln!("Failed to deser {}. Err was {}", SAVE_FILE, e);
-                    BeatLevels(HashSet::new())
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        let beat_levels = match File::open(Path::new(SAVE_FILE)) {
+            Ok(file) => {
+                let reader = BufReader::new(file);
+                match serde_json::from_reader::<_, SaveState>(reader) {
+                    Ok(v) => match v {
+                        SaveState::V1(v) => v.beat_levels,
+                    },
+                    Err(e) => {
+                        eprintln!("Failed to deser {}. Err was {}", SAVE_FILE, e);
+                        BeatLevels(HashSet::new())
+                    }
                 }
             }
-        }
-        Err(e) => {
-            eprintln!("Failed to open {}. Err was {}", SAVE_FILE, e);
-            BeatLevels(HashSet::new())
-        }
-    };
+            Err(e) => {
+                eprintln!("Failed to open {}. Err was {}", SAVE_FILE, e);
+                BeatLevels(HashSet::new())
+            }
+        };
 
-    commands.insert_resource(beat_levels);
+        commands.insert_resource(beat_levels);
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        let storage = web_sys::window()
+            .expect("should have a Window")
+            .local_storage()
+            .expect("should have a Storage")
+            .expect("should have a Storage");
+
+        let beat_levels = match storage.get_item(SAVE_FILE) {
+            Ok(maybe) => match maybe {
+                Some(beat_levels_string) => {
+                    match serde_json::from_str::<SaveState>(&beat_levels_string) {
+                        Ok(v) => match v {
+                            SaveState::V1(v) => v.beat_levels,
+                        },
+                        Err(e) => {
+                            eprintln!("Failed to deser savestate. Error was {:?}", e);
+                            BeatLevels(HashSet::new())
+                        }
+                    }
+                }
+                None => {
+                    eprintln!("No savestate found.");
+                    BeatLevels(HashSet::new())
+                }
+            },
+            Err(e) => {
+                eprintln!("Failed to load from local storage. Error was {:?}", e);
+                BeatLevels(HashSet::new())
+            }
+        };
+
+        commands.insert_resource(beat_levels);
+    }
 }
 
 fn save_beat_levels(beat_levels: BeatLevels) {
     let wrapped = SaveState::V1(SaveStateV1 { beat_levels });
 
-    match serde_json::to_vec(&wrapped) {
-        Ok(data) => match File::create(SAVE_FILE) {
-            Ok(mut f) => match f.write_all(&data) {
-                Ok(_) => {
-                    dbg!("Saved to {}", SAVE_FILE);
-                }
-                Err(e) => {
-                    eprintln!("Failed to save to {}, error was {}", SAVE_FILE, e);
-                }
-            },
-            Err(e) => {
-                eprintln!("Failed to create {}. Error was {}", SAVE_FILE, e);
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        match serde_json::to_vec(&wrapped) {
+            Ok(data) => {
+                match File::create(SAVE_FILE) {
+                    Ok(mut f) => match f.write_all(&data) {
+                        Ok(_) => {
+                            dbg!("Saved to {}", SAVE_FILE);
+                        }
+                        Err(e) => {
+                            eprintln!("Failed to save to {}, error was {}", SAVE_FILE, e);
+                        }
+                    },
+                    Err(e) => {
+                        eprintln!("Failed to create {}. Error was {}", SAVE_FILE, e);
+                    }
+                };
             }
-        },
-        Err(e) => {
-            eprintln!("Failed to create {}. Error was {}", SAVE_FILE, e);
+            Err(e) => {
+                eprintln!("Failed to serialize. Error was {}", e);
+            }
+        }
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        match serde_json::to_string(&wrapped) {
+            Ok(data) => {
+                let storage = web_sys::window()
+                    .expect("should have a Window")
+                    .local_storage()
+                    .expect("should have a Storage")
+                    .expect("should have a Storage");
+
+                match storage.set_item(SAVE_FILE, data.as_str()) {
+                    Ok(_) => {}
+                    Err(e) => {
+                        eprintln!("Failed to save to storage. Error was {:?}", e);
+                    }
+                }
+            }
+            Err(e) => {
+                eprintln!("Failed to create {}. Error was {:?}", SAVE_FILE, e);
+            }
         }
     }
 }
