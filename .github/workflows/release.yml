@@ -1,0 +1,182 @@
+name: release-flow
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  binary: taileater
+  itch_game: taileater
+  itch_user: szunami
+  package_assets: true
+
+jobs:
+  release:
+    runs-on: ${{ matrix.target.image_name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - channel: linux
+            image_name: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            features: default
+          - channel: wasm
+            image_name: ubuntu-latest
+            target: wasm32-unknown-unknown
+            features: web
+          - channel: macos
+            image_name: macOS-latest
+            target: x86_64-apple-darwin
+            features: default
+          - channel: windows
+            image_name: windows-latest
+            target: x86_64-pc-windows-msvc
+            features: default
+    steps:
+      - uses: little-core-labs/get-git-tag@v3.0.1
+        id: get_version
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target.target }}
+          override: true
+      - name: archive extension setup
+        shell: pwsh
+        run: |
+          switch ( "${{ matrix.target.channel }}" )
+          {
+            "macos" { echo "extension=dmg" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append }
+            default { echo "extension=zip" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append }
+          }
+
+      - name: macOS setup
+        if: matrix.target.channel == 'macos'
+        run: |
+          export CFLAGS="-fno-stack-check"
+          export MACOSX_DEPLOYMENT_TARGET="10.9"
+      - name: linux setup
+        if: matrix.target.channel == 'linux'
+        run: |
+          sudo apt-get update; sudo apt-get install pkg-config libx11-dev libasound2-dev libudev-dev
+      - name: wasm setup
+        if: matrix.target.channel == 'wasm'
+        run: |
+          cargo install wasm-bindgen-cli
+
+      - name: build
+        run: |
+          cargo build --release --target ${{ matrix.target.target }} --no-default-features --features=${{ matrix.target.features}}
+
+      - name: macOS finish
+        if: matrix.target.channel == 'macos'
+        run: |
+          mkdir -p ${{ env.binary }}.app/Contents/MacOS
+          cp target/${{ matrix.target.target }}/release/${{ env.binary }} ${{ env.binary }}.app/Contents/MacOS/
+          strip ${{ env.binary }}.app/Contents/MacOS/${{ env.binary }}
+          if [ "${{ env.package_assets }}" != "false" ]
+          then
+            cp -r assets ${{ env.binary }}.app/Contents/MacOS/
+          fi
+      - name: linux finish
+        if: matrix.target.channel == 'linux'
+        run: |
+          mkdir linux
+          cp target/${{ matrix.target.target }}/release/${{ env.binary }} linux/
+          strip linux/${{ env.binary }}
+          if [ "${{ env.package_assets }}" != "false" ]
+          then
+            cp -r assets linux/
+          fi
+      - name: windows finish
+        if: matrix.target.channel == 'windows'
+        run: |
+          mkdir windows
+          cp target/${{ matrix.target.target }}/release/${{ env.binary }}.exe windows/
+          if ( -not "${{ env.package_assets }}" -eq "false" )
+          {
+            cp -r assets windows/
+          }
+      - name: wasm finish
+        if: matrix.target.channel == 'wasm'
+        run: |
+          wasm-bindgen --no-typescript --out-name ${{ env.binary }} --out-dir wasm --target web target/${{ matrix.target.target }}/release/${{ env.binary }}.wasm
+          if [ "${{ env.package_assets }}" != "false" ]
+          then
+            cp -r assets wasm/
+          fi
+
+      - name: macOS packaging
+        if: matrix.target.channel == 'macos'
+        run: |
+          hdiutil create -fs HFS+ -volname "${{ env.binary }}" -srcfolder ${{ env.binary }}.app ${{ env.binary }}.${{ env.extension }}
+      - name: linux packaging
+        if: matrix.target.channel == 'linux'
+        uses: papeloto/action-zip@v1
+        with:
+          files: linux
+          dest: ${{ env.binary }}.${{ env.extension }}
+      - name: windows packaging
+        if: matrix.target.channel == 'windows'
+        uses: papeloto/action-zip@v1
+        with:
+          files: windows
+          dest: ${{ env.binary }}.${{ env.extension }}
+      - name: wasm packaging
+        if: matrix.target.channel == 'wasm'
+        uses: papeloto/action-zip@v1
+        with:
+          files: wasm
+          dest: ${{ env.binary }}.${{ env.extension }}
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{ env.binary }}.${{ env.extension }}
+          asset_name: ${{ env.binary }}-${{ matrix.target.channel }}-${{ steps.get_version.outputs.tag }}.${{ env.extension }}
+          tag: ${{ github.ref }}
+          overwrite: true
+
+      - name: save artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ matrix.target.channel }}-release
+          path: ${{ env.binary }}.${{ env.extension }}
+
+  publish-itchio:
+    needs: ["release"]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - channel: linux
+          - channel: wasm
+          - channel: macos
+          - channel: windows
+    steps:
+      - uses: little-core-labs/get-git-tag@v3.0.1
+        id: get_version
+      - name: archive extension setup
+        shell: pwsh
+        run: |
+          switch ( "${{ matrix.target.channel }}" )
+          {
+            "macos" { echo "extension=dmg" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append }
+            default { echo "extension=zip" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append }
+          }
+      - name: Download last release
+        uses: actions/download-artifact@v1
+        with:
+          name: ${{ matrix.target.channel }}-release
+      - uses: josephbmanley/butler-publish-itchio-action@v1.0.2
+        env:
+          BUTLER_CREDENTIALS: ${{ secrets.BUTLER_CREDENTIALS }}
+          CHANNEL: ${{ matrix.target.channel }}
+          ITCH_GAME: ${{ env.itch_game }}
+          ITCH_USER: ${{ env.itch_user }}
+          PACKAGE: ${{ matrix.target.channel }}-release/${{ env.binary }}.${{ env.extension }}
+          VERSION: ${{ steps.get_version.outputs.tag }}
