@@ -43,6 +43,7 @@ jobs:
           toolchain: nightly
           target: ${{ matrix.target.target }}
           override: true
+      - uses: Swatinem/rust-cache@v1
       - name: archive extension setup
         shell: pwsh
         run: |
