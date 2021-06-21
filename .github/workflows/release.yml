@@ -68,7 +68,7 @@ jobs:
 
       - name: build
         run: |
-          cargo build --release --target ${{ matrix.target.target }} --no-default-features --features=${{ matrix.target.features}}
+          cargo build --release --target ${{ matrix.target.target }} --features=${{ matrix.target.features}}
 
       - name: macOS finish
         if: matrix.target.channel == 'macos'
