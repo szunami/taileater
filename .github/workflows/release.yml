@@ -55,6 +55,7 @@ jobs:
       - name: macOS setup
         if: matrix.target.channel == 'macos'
         run: |
+          brew install michaeleisel/zld/zld
           export CFLAGS="-fno-stack-check"
           export MACOSX_DEPLOYMENT_TARGET="10.9"
       - name: linux setup
