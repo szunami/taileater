@@ -814,16 +814,16 @@ fn snake_movement(
     // TODO: don't allow x and y at the same damn time
     let mut diff = GridLocation { x: 0, y: 0 };
     if keyboard_input.just_pressed(KeyCode::A) || keyboard_input.just_pressed(KeyCode::Left) {
-        diff.x -= 1;
+        diff = GridLocation { x: -1, y: 0 };
     }
     if keyboard_input.just_pressed(KeyCode::D) || keyboard_input.just_pressed(KeyCode::Right) {
-        diff.x += 1;
+        diff = GridLocation { x: 1, y: 0 };
     }
     if keyboard_input.just_pressed(KeyCode::S) || keyboard_input.just_pressed(KeyCode::Down) {
-        diff.y -= 1;
+        diff = GridLocation { x: 0, y: -1 };
     }
     if keyboard_input.just_pressed(KeyCode::W) || keyboard_input.just_pressed(KeyCode::Up) {
-        diff.y += 1;
+        diff = GridLocation { x: 0, y: 1};
     }
 
     if diff == (GridLocation { x: 0, y: 0 }) {
@@ -3425,7 +3425,7 @@ fn enter_title_screen(
     commands
         .spawn_bundle(SpriteSheetBundle {
             texture_atlas: logo,
-            transform: Transform::from_scale(6. * Vec3::ONE),
+            transform: Transform::from_scale(4. * Vec3::ONE),
             ..Default::default()
         })
         .insert(Title)
@@ -3434,7 +3434,7 @@ fn enter_title_screen(
     let title_material = asset_server.load("sprites/drafts/title/title.png").into();
 
     let mut xform = Transform {
-        translation: Vec3::new(0., 224., 0.),
+        translation: Vec3::new(0., 230., 0.),
         scale: 2. * Vec3::ONE,
         ..Default::default()
     };
@@ -3468,7 +3468,7 @@ fn enter_title_screen(
                         style: TextStyle {
                             font: asset_server.load("fonts/AsepriteFont.ttf"),
                             font_size: 40.0,
-                            color: Color::rgb(0.5, 0.5, 1.0),
+                            color: Color::WHITE,
                         },
                     }],
                     ..Default::default()
