@@ -396,18 +396,6 @@ fn main() {
                 SystemSet::on_update(GameState::InGame).with_system(back_to_levelselect.system()),
             )
             .add_system_set(
-                SystemSet::on_update(GameState::InGame).with_system(
-                    (|snake_parts: Res<SnakeParts>, q: Query<&Transform>| {
-                        if let Some(tail_e) = snake_parts.0.last() {
-                            if let Ok(tail_xform) = q.get(*tail_e) {
-                                // dbg!(tail_xform);
-                            }
-                        }
-                    })
-                    .system(),
-                ),
-            )
-            .add_system_set(
                 SystemSet::on_update(GameState::InGame)
                     .with_system(update_history.system())
                     .label(HistoryLabel),
@@ -594,7 +582,6 @@ fn exit_szunami(mut commands: Commands, mut q: Query<Entity, With<Logo>>) {
 }
 
 fn load_assets(
-    mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
@@ -652,8 +639,6 @@ fn load_assets(
 }
 
 fn setup(
-    mut commands: Commands,
-
     asset_server: Res<AssetServer>,
     level: Res<Selected>,
     mut scene_spawner: ResMut<SceneSpawner>,
@@ -823,7 +808,7 @@ fn snake_movement(
         diff = GridLocation { x: 0, y: -1 };
     }
     if keyboard_input.just_pressed(KeyCode::W) || keyboard_input.just_pressed(KeyCode::Up) {
-        diff = GridLocation { x: 0, y: 1};
+        diff = GridLocation { x: 0, y: 1 };
     }
 
     if diff == (GridLocation { x: 0, y: 0 }) {
@@ -2440,11 +2425,11 @@ fn update_win(
     target_lookup: Query<&Transform, (With<Snake>, Without<HeadToOrb>)>,
 
     mut snakes: Query<
-        (&mut TextureAtlasSprite),
+        &mut TextureAtlasSprite,
         (With<Snake>, Without<GlowingSnake>, Without<HeadToOrb>),
     >,
     mut glowing_snakes: Query<
-        (&mut TextureAtlasSprite),
+        &mut TextureAtlasSprite,
         (With<GlowingSnake>, Without<Snake>, Without<HeadToOrb>),
     >,
     mut head_to_orb: Query<
@@ -2487,11 +2472,11 @@ fn update_win(
 
                     let mut delta = target_xform.translation - xform.translation;
 
-                    if (delta.x != 0.) {
+                    if delta.x != 0. {
                         delta.x = delta.x.signum();
                     }
 
-                    if (delta.y != 0.) {
+                    if delta.y != 0. {
                         delta.y = delta.y.signum();
                     }
 
@@ -3139,18 +3124,10 @@ fn display_selected(
             if let Some(text_section) = text.sections.first_mut() {
                 text_section.style.font_size = 64.0
             }
-        } else {
-            if let Some(text_section) = text.sections.first_mut() {
-                text_section.style.font_size = 32.0
-            }
+        } else if let Some(text_section) = text.sections.first_mut() {
+            text_section.style.font_size = 32.0
         }
     }
-
-    // if *grid_location == selected.0 {
-    //     *handle = materials.add(Color::rgb(0.15, 0.9, 0.15).into());
-    // } else {
-    //     *handle = materials.add(Color::rgb(0.15, 0.5, 0.15).into());
-    // }
 }
 
 fn enter_level(
@@ -3508,7 +3485,7 @@ fn update_title_screen(
     }
 }
 
-fn exit_title_screen(mut commands: Commands, mut q: Query<(Entity), With<Title>>) {
+fn exit_title_screen(mut commands: Commands, mut q: Query<Entity, With<Title>>) {
     for e in q.iter() {
         commands.entity(e).despawn_recursive();
     }
