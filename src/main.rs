@@ -549,7 +549,7 @@ fn enter_szunami(
 
     commands
         .spawn_bundle(SpriteSheetBundle {
-            texture_atlas: logo.clone(),
+            texture_atlas: logo,
             ..Default::default()
         })
         .insert(Timer::from_seconds(0.1, true))
@@ -654,7 +654,6 @@ fn setup(
 // spawning scenes is async, we don't have a good callback yet
 fn cleanup(
     mut commands: Commands,
-    mut materials: ResMut<Assets<ColorMaterial>>,
     mut snake_parts: ResMut<SnakeParts>,
 
     snake_assets: Res<MaybeSnakeAssets>,
@@ -699,7 +698,7 @@ fn cleanup(
     for (_poison, grid_location, e) in poisons.iter() {
         commands.entity(e).insert_bundle(SpriteBundle {
             sprite: Sprite::new(Vec2::new(GRID_WIDTH, GRID_HEIGHT)),
-            material: snake_assets.poison.clone().into(),
+            material: snake_assets.poison.clone(),
             transform: Transform::from_translation(Vec3::new(
                 grid_location.x as f32 * GRID_WIDTH,
                 grid_location.y as f32 * GRID_HEIGHT,
@@ -786,7 +785,7 @@ fn snake_movement(
 
     mut transitions: Query<&mut TransitionQueue, With<Snake>>,
 ) {
-    if snake_parts.0.len() == 0 {
+    if snake_parts.0.is_empty() {
         return;
     }
 
@@ -885,7 +884,7 @@ fn snake_movement(
 
     if let Some(head) = snake_parts.0.first() {
         if let Ok((mut grid_location, mut queue, _orientation)) = snakes.get_mut(*head) {
-            *grid_location = grid_location.clone() + diff.clone();
+            *grid_location = grid_location.clone() + diff;
             queue.0.push(grid_location.clone());
         }
     }
@@ -898,15 +897,15 @@ fn snake_movement(
         {
             if let Ok((_prev_grid_location, _prev_queue, prev_orientation)) = snakes.get_mut(*prev)
             {
-                let tmp = prev_orientation.clone();
+                let tmp = *prev_orientation;
 
                 if let Ok((_curr_grid_location, _curr_queue, mut curr_orientation)) =
                     snakes.get_mut(*curr)
                 {
                     if let Ok(mut transition_queue) = transitions.get_mut(*curr) {
                         transition_queue.0.push(Transition {
-                            from: curr_orientation.clone(),
-                            to: tmp.clone(),
+                            from: *curr_orientation,
+                            to: tmp,
                             index: 0,
                         });
                     }
@@ -921,9 +920,9 @@ fn snake_movement(
         if let Ok((_grid_location, _queue, mut orientation)) = snakes.get_mut(*second) {
             // handle transition here?
 
-            let old_orientation = orientation.clone();
+            let old_orientation = *orientation;
 
-            orientation.from = match orientation.to.clone() {
+            orientation.from = match orientation.to {
                 Direction::Up => Direction::Down,
                 Direction::Down => Direction::Up,
                 Direction::Left => Direction::Right,
@@ -947,7 +946,7 @@ fn snake_movement(
                 orientation.to = Direction::Up;
             }
 
-            let new_orientation = orientation.clone();
+            let new_orientation = *orientation;
 
             if let Ok(mut transition_queue) = transitions.get_mut(*second) {
                 transition_queue.0.push(Transition {
@@ -961,8 +960,8 @@ fn snake_movement(
 
     if let Some(head) = snake_parts.0.first() {
         if let Ok((_grid_location, _queue, mut orientation)) = snakes.get_mut(*head) {
-            let old_orientation = orientation.clone();
-            orientation.from = orientation.to.clone();
+            let old_orientation = *orientation;
+            orientation.from = orientation.to;
 
             if keyboard_input.just_pressed(KeyCode::A) || keyboard_input.just_pressed(KeyCode::Left)
             {
@@ -992,7 +991,7 @@ fn snake_movement(
                 .0
                 .push(Transition {
                     from: old_orientation,
-                    to: orientation.clone(),
+                    to: *orientation,
                     index: 4,
                 })
         }
@@ -1098,7 +1097,7 @@ fn food(
                 }
             };
 
-            let mut xform = tail_xform.clone();
+            let mut xform = *tail_xform;
             xform.translation.z = 0.;
 
             let new_snake = commands
@@ -1114,7 +1113,7 @@ fn food(
                 .insert(TransitionQueue(vec![]))
                 .insert(Snake)
                 // what is orientation??
-                .insert(tail_orientation.clone())
+                .insert(*tail_orientation)
                 .id();
 
             let index = match snake_parts.0.len() {
@@ -1171,7 +1170,7 @@ fn poison(
                 .expect("still exists for now");
 
             let new_tail_location = to_despawn_loc.clone();
-            let new_tail_orientation = to_despawn_orientation.clone();
+            let new_tail_orientation = *to_despawn_orientation;
 
             commands.entity(to_despawn).despawn_recursive();
 
@@ -1191,8 +1190,8 @@ fn poison(
                     .get_mut(tail_entity)
                     .expect("tail lookup");
                 tail_transition_queue.0.push(Transition {
-                    from: tail_orientation.clone(),
-                    to: new_tail_orientation.clone(),
+                    from: *tail_orientation,
+                    to: new_tail_orientation,
                     index: 0,
                 });
             }
@@ -2209,21 +2208,20 @@ fn update_history(
                                     let (grid_location, transition) =
                                         snake_query.get(*e).expect("snake part lookup");
 
-                                    let mut transition =
-                                        transition.0.last().cloned().unwrap_or_else(|| {
-                                            // dbg!("transition queue was empty, using default");
-                                            Transition {
-                                                from: Orientation {
-                                                    from: Direction::Left,
-                                                    to: Direction::Right,
-                                                },
-                                                to: Orientation {
-                                                    from: Direction::Left,
-                                                    to: Direction::Right,
-                                                },
-                                                index: 4,
-                                            }
-                                        });
+                                    let mut transition = transition.0.last().cloned().unwrap_or({
+                                        // dbg!("transition queue was empty, using default");
+                                        Transition {
+                                            from: Orientation {
+                                                from: Direction::Left,
+                                                to: Direction::Right,
+                                            },
+                                            to: Orientation {
+                                                from: Direction::Left,
+                                                to: Direction::Right,
+                                            },
+                                            index: 4,
+                                        }
+                                    });
 
                                     transition.index = 4;
 
@@ -2231,12 +2229,12 @@ fn update_history(
                                 }
 
                                 let mut foods = vec![];
-                                for (e, grid_location) in food_query.iter() {
+                                for (_e, grid_location) in food_query.iter() {
                                     foods.push(grid_location.clone());
                                 }
 
                                 let mut poisons = vec![];
-                                for (e, grid_location) in poison_query.iter() {
+                                for (_e, grid_location) in poison_query.iter() {
                                     poisons.push(grid_location.clone());
                                 }
 
@@ -2280,12 +2278,12 @@ fn update_history(
                     }
 
                     let mut foods = vec![];
-                    for (e, grid_location) in food_query.iter() {
+                    for (_e, grid_location) in food_query.iter() {
                         foods.push(grid_location.clone());
                     }
 
                     let mut poisons = vec![];
-                    for (e, grid_location) in poison_query.iter() {
+                    for (_e, grid_location) in poison_query.iter() {
                         poisons.push(grid_location.clone());
                     }
                     history.0.push(Snapshot {
@@ -2328,7 +2326,7 @@ fn enter_win(
 
         let glowing_index = glowing_index(head_orientation.from, tail_orientation.to);
 
-        let transform = head_xform.clone();
+        let transform = *head_xform;
         let color = Color::rgba(1.0, 1.0, 1.0, 0.0);
 
         commands
@@ -2371,14 +2369,14 @@ fn enter_win(
 
         let index = glowing_index(orientation.from, orientation.to);
 
-        let transform = xform.clone();
+        let transform = *xform;
         let color = Color::rgba(1.0, 1.0, 1.0, 0.0);
 
         commands
             .spawn_bundle(SpriteSheetBundle {
                 sprite: TextureAtlasSprite {
-                    index,
                     color,
+                    index,
                     ..Default::default()
                 },
                 texture_atlas: snake_assets.glowing_body.clone(),
@@ -3109,15 +3107,8 @@ fn update_selected(
     }
 }
 
-fn display_selected(
-    mut materials: ResMut<Assets<ColorMaterial>>,
-
-    selected: Res<Selected>,
-    asset_server: Res<AssetServer>,
-
-    mut q: Query<(&GridLocation, &mut Text)>,
-) {
-    let mut count = 0;
+fn display_selected(selected: Res<Selected>, mut q: Query<(&GridLocation, &mut Text)>) {
+    let _count = 0;
 
     for (grid_location, mut text) in q.iter_mut() {
         if *grid_location == selected.0 {
@@ -3353,8 +3344,6 @@ fn save_beat_levels(beat_levels: BeatLevels) {
 mod tests {
     use std::{collections::HashSet, fs::File, io::BufReader, iter::FromIterator, path::Path};
 
-    use serde_json::Error;
-
     use crate::{BeatLevels, LevelId, SaveState, SaveStateV1};
 
     #[test]
@@ -3410,7 +3399,7 @@ fn enter_title_screen(
 
     let title_material = asset_server.load("sprites/drafts/title/title.png").into();
 
-    let mut xform = Transform {
+    let xform = Transform {
         translation: Vec3::new(0., 230., 0.),
         scale: 2. * Vec3::ONE,
         ..Default::default()
@@ -3485,7 +3474,7 @@ fn update_title_screen(
     }
 }
 
-fn exit_title_screen(mut commands: Commands, mut q: Query<Entity, With<Title>>) {
+fn exit_title_screen(mut commands: Commands, q: Query<Entity, With<Title>>) {
     for e in q.iter() {
         commands.entity(e).despawn_recursive();
     }
