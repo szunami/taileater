@@ -1,6 +1,6 @@
 ### taileater
 
-![logo of a pixellated snake attempting to eat it's own tail](logo.png)
+![logo of a pixellated snake attempting to eat it's own tail](logo.gif)
 
 taileater is a puzzle game available for free here: https://szunami.itch.io/taileater
 
