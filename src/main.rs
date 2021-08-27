@@ -90,6 +90,10 @@ struct SnakeAssets {
     wall: Handle<ColorMaterial>,
 }
 
+// struct AudioFiles {
+//     move:
+// }
+
 const GRID_WIDTH: f32 = 32.0;
 const GRID_HEIGHT: f32 = 32.0;
 
@@ -643,12 +647,17 @@ fn setup(
     level: Res<Selected>,
     mut scene_spawner: ResMut<SceneSpawner>,
     mut bg_color: ResMut<ClearColor>,
+    audio: Res<Audio>,
 ) {
     let scene_handle: Handle<DynamicScene> =
         asset_server.load(format!("scenes/prod/{}.scn.ron", level.1 .0).as_str());
     scene_spawner.spawn_dynamic(scene_handle);
 
     *bg_color = ClearColor(Color::rgb(87. / 255., 114. / 255., 119. / 255.));
+
+    dbg!("asdf");
+    let music = asset_server.load("sounds/move.wav");
+    audio.play(music);
 }
 
 // spawning scenes is async, we don't have a good callback yet
