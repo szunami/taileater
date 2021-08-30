@@ -90,6 +90,12 @@ struct SnakeAssets {
     wall: Handle<ColorMaterial>,
 }
 
+struct MaybeSoundAssets(Option<SoundAssets>);
+
+struct SoundAssets {
+    snake_move: Handle<AudioSource>,
+}
+
 const GRID_WIDTH: f32 = 32.0;
 const GRID_HEIGHT: f32 = 32.0;
 
@@ -337,6 +343,7 @@ fn main() {
             .register_type::<Poison>()
             .insert_resource(Selected(GridLocation { x: 0, y: 0 }, LevelId(0)))
             .insert_resource(MaybeSnakeAssets(None))
+            .insert_resource(MaybeSoundAssets(None))
             .insert_resource(SnakeParts(vec![]))
             .insert_resource(GameHistory(vec![]))
             .add_system(bevy::input::system::exit_on_esc_system.system())
@@ -586,6 +593,7 @@ fn load_assets(
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     mut snake_assets: ResMut<MaybeSnakeAssets>,
+    mut sound_assets: ResMut<MaybeSoundAssets>,
 ) {
     dbg!("loading assets");
     let light_body = asset_server.load("sprites/drafts/body_light.png");
@@ -636,6 +644,9 @@ fn load_assets(
         ground,
         wall,
     }));
+
+    let snake_move = asset_server.load("sounds/move.wav");
+    *sound_assets = MaybeSoundAssets(Some(SoundAssets { snake_move }));
 }
 
 fn setup(
@@ -784,6 +795,9 @@ fn snake_movement(
     >,
 
     mut transitions: Query<&mut TransitionQueue, With<Snake>>,
+
+    maybe_sounds: Res<MaybeSoundAssets>,
+    audio: Res<Audio>,
 ) {
     if snake_parts.0.is_empty() {
         return;
@@ -868,6 +882,10 @@ fn snake_movement(
     if block_set.contains(&proposed_location) {
         dbg!("blocked; not moving!");
         return;
+    }
+
+    if let Some(sounds) = &maybe_sounds.0 {
+        audio.play(sounds.snake_move.clone_weak());
     }
 
     for (prev, curr) in snake_parts.0.iter().zip(snake_parts.0[1..].iter()).rev() {
