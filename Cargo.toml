@@ -13,6 +13,7 @@ itertools = "0.10.0"
 chrono = "0.4"
 serde = {version = "1", features = ["derive"]}
 serde_json = "1"
+bevy_kira_audio = "0.5.1"
 
 web-sys = {version="0.3", optional=true, features = ["console", "Window", "Storage"]}
 wasm-bindgen = {version="0.2", optional=true}
@@ -24,8 +25,7 @@ default = [
   "bevy/bevy_winit",
   "bevy/render",
   "bevy/png",
-  "bevy/bevy_audio",
-  "bevy/wav",
+  "bevy_kira_audio/wav",
 ]
 
 native = [

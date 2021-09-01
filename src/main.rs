@@ -1,3 +1,4 @@
+use bevy_kira_audio::{Audio, AudioChannel, AudioPlugin, AudioSource};
 use bevy::{prelude::*, reflect::TypeRegistry};
 use chrono::Local;
 
@@ -6,8 +7,8 @@ use std::io::BufReader;
 use std::{collections::HashSet, path::Path};
 use std::{env, fs::File, io::Write};
 
+
 use serde::{Deserialize, Serialize};
-// use serde_json::Result;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
 pub struct HistoryLabel;
@@ -334,6 +335,8 @@ fn main() {
 
         #[cfg(not(target_arch = "wasm32"))]
         app.add_plugins(DefaultPlugins);
+
+        app.add_plugin(AudioPlugin);
 
         app.add_state(GameState::Szunami)
             .register_type::<Ground>()
