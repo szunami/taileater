@@ -107,6 +107,7 @@ jobs:
           wasm-bindgen --no-typescript --out-name ${{ env.binary }} --out-dir wasm --target web target/${{ matrix.target.target }}/release/${{ env.binary }}.wasm
           if [ "${{ env.package_assets }}" != "false" ]
           then
+            cp index.html wasm/
             cp -r assets wasm/
           fi
 
