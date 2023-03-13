@@ -95,6 +95,7 @@ struct MaybeSoundAssets(Option<SoundAssets>);
 
 struct SoundAssets {
     snake_move: Handle<AudioSource>,
+    szunami: Handle<AudioSource>,
 }
 
 const GRID_WIDTH: f32 = 32.0;
@@ -549,6 +550,9 @@ fn enter_szunami(
 
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+
+    maybe_sounds: Res<MaybeSoundAssets>,
+    audio: Res<Audio>,
 ) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
@@ -557,6 +561,14 @@ fn enter_szunami(
     let logo = TextureAtlas::from_grid(logo, Vec2::new(371.0, 96.0), 5, 1);
     let logo = texture_atlases.add(logo);
 
+
+    if let Some(sounds) = &maybe_sounds.0 {
+        dbg!("Playing szunami");
+        audio.play(sounds.szunami.clone_weak());
+    } else {
+        dbg!("No sounds yet.");
+    }
+
     commands
         .spawn_bundle(SpriteSheetBundle {
             texture_atlas: logo,
@@ -564,6 +576,8 @@ fn enter_szunami(
         })
         .insert(Timer::from_seconds(0.1, true))
         .insert(Logo);
+
+
 }
 
 fn update_szunami(
@@ -573,6 +587,7 @@ fn update_szunami(
     mut q: Query<(&mut TextureAtlasSprite, &mut Timer), With<Logo>>,
 ) {
     for (mut sprite, mut timer) in q.iter_mut() {
+
         timer.tick(time.delta());
         if timer.just_finished() {
             sprite.index = (sprite.index + 1) % 5;
@@ -649,7 +664,8 @@ fn load_assets(
     }));
 
     let snake_move = asset_server.load("sounds/move.wav");
-    *sound_assets = MaybeSoundAssets(Some(SoundAssets { snake_move }));
+    let szunami = asset_server.load("sounds/szunami.wav");
+    *sound_assets = MaybeSoundAssets(Some(SoundAssets { snake_move, szunami }));
 }
 
 fn setup(

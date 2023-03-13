@@ -25,6 +25,7 @@ default = [
   "bevy/bevy_winit",
   "bevy/render",
   "bevy/png",
+  "bevy/mp3",
   "bevy_kira_audio/wav",
 ]
 
