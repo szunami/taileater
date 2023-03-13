@@ -1,12 +1,11 @@
-use bevy_kira_audio::{Audio, AudioChannel, AudioPlugin, AudioSource};
 use bevy::{prelude::*, reflect::TypeRegistry};
+use bevy_kira_audio::{Audio, AudioChannel, AudioPlugin, AudioSource};
 use chrono::Local;
 
 use std::collections::HashMap;
 use std::io::BufReader;
 use std::{collections::HashSet, path::Path};
 use std::{env, fs::File, io::Write};
-
 
 use serde::{Deserialize, Serialize};
 
@@ -96,6 +95,9 @@ struct MaybeSoundAssets(Option<SoundAssets>);
 struct SoundAssets {
     snake_move: Handle<AudioSource>,
     szunami: Handle<AudioSource>,
+    apple: Handle<AudioSource>,
+    enter: Handle<AudioSource>,
+    changeselection: Handle<AudioSource>,
 }
 
 const GRID_WIDTH: f32 = 32.0;
@@ -561,7 +563,6 @@ fn enter_szunami(
     let logo = TextureAtlas::from_grid(logo, Vec2::new(371.0, 96.0), 5, 1);
     let logo = texture_atlases.add(logo);
 
-
     if let Some(sounds) = &maybe_sounds.0 {
         dbg!("Playing szunami");
         audio.play(sounds.szunami.clone_weak());
@@ -576,8 +577,6 @@ fn enter_szunami(
         })
         .insert(Timer::from_seconds(0.1, true))
         .insert(Logo);
-
-
 }
 
 fn update_szunami(
@@ -587,7 +586,6 @@ fn update_szunami(
     mut q: Query<(&mut TextureAtlasSprite, &mut Timer), With<Logo>>,
 ) {
     for (mut sprite, mut timer) in q.iter_mut() {
-
         timer.tick(time.delta());
         if timer.just_finished() {
             sprite.index = (sprite.index + 1) % 5;
@@ -665,7 +663,16 @@ fn load_assets(
 
     let snake_move = asset_server.load("sounds/move.wav");
     let szunami = asset_server.load("sounds/szunami.wav");
-    *sound_assets = MaybeSoundAssets(Some(SoundAssets { snake_move, szunami }));
+    let apple = asset_server.load("sounds/apple.wav");
+    let enter = asset_server.load("sounds/enter.wav");
+    let changeselection = asset_server.load("sounds/changeselection.wav");
+    *sound_assets = MaybeSoundAssets(Some(SoundAssets {
+        snake_move,
+        szunami,
+        apple,
+        enter,
+        changeselection,
+    }));
 }
 
 fn setup(
@@ -1099,6 +1106,9 @@ fn food(
 
     snake_locations: Query<(&GridLocation, &Transform, &Orientation), (With<Snake>, Without<Food>)>,
     food_locations: Query<(&GridLocation, Entity), (With<Food>, Without<Snake>)>,
+
+    maybe_sounds: Res<MaybeSoundAssets>,
+    audio: Res<Audio>,
 ) {
     if snake_assets.0.is_none() {
         return;
@@ -1121,6 +1131,13 @@ fn food(
 
     for (food_location, food_entity) in food_locations.iter() {
         if food_location == head_location {
+            if let Some(sounds) = &maybe_sounds.0 {
+                dbg!("Playing food");
+                audio.play(sounds.apple.clone_weak());
+            } else {
+                dbg!("No sounds yet.");
+            }
+
             // despawn food!
             commands.entity(food_entity).despawn_recursive();
 
@@ -3074,6 +3091,9 @@ fn update_selected(
     mut selected: ResMut<Selected>,
 
     q: Query<(&GridLocation, &LevelId)>,
+
+    maybe_sounds: Res<MaybeSoundAssets>,
+    audio: Res<Audio>,
 ) {
     let valid_grids = {
         let mut tmp = HashMap::new();
@@ -3088,6 +3108,13 @@ fn update_selected(
             x: selected.0.x + 1,
             y: selected.0.y,
         }) {
+            if let Some(sounds) = &maybe_sounds.0 {
+                dbg!("Playing change selection");
+                audio.play(sounds.changeselection.clone_weak());
+            } else {
+                dbg!("No sounds yet.");
+            }
+
             *selected = Selected(
                 GridLocation {
                     x: selected.0.x + 1,
@@ -3103,6 +3130,13 @@ fn update_selected(
             x: selected.0.x - 1,
             y: selected.0.y,
         }) {
+            if let Some(sounds) = &maybe_sounds.0 {
+                dbg!("Playing change selection");
+                audio.play(sounds.changeselection.clone_weak());
+            } else {
+                dbg!("No sounds yet.");
+            }
+
             *selected = Selected(
                 GridLocation {
                     x: selected.0.x - 1,
@@ -3113,11 +3147,17 @@ fn update_selected(
         }
     }
 
-    if keyboard_input.just_pressed(KeyCode::W) || keyboard_input.just_pressed(KeyCode::Up){
+    if keyboard_input.just_pressed(KeyCode::W) || keyboard_input.just_pressed(KeyCode::Up) {
         if let Some(level_id) = valid_grids.get(&GridLocation {
             x: selected.0.x,
             y: selected.0.y - 1,
         }) {
+            if let Some(sounds) = &maybe_sounds.0 {
+                dbg!("Playing change selection");
+                audio.play(sounds.changeselection.clone_weak());
+            } else {
+                dbg!("No sounds yet.");
+            }
             *selected = Selected(
                 GridLocation {
                     x: selected.0.x,
@@ -3128,11 +3168,17 @@ fn update_selected(
         }
     }
 
-    if keyboard_input.just_pressed(KeyCode::S) || keyboard_input.just_pressed(KeyCode::Down){
+    if keyboard_input.just_pressed(KeyCode::S) || keyboard_input.just_pressed(KeyCode::Down) {
         if let Some(level_id) = valid_grids.get(&GridLocation {
             x: selected.0.x,
             y: selected.0.y + 1,
         }) {
+            if let Some(sounds) = &maybe_sounds.0 {
+                dbg!("Playing change selection");
+                audio.play(sounds.changeselection.clone_weak());
+            } else {
+                dbg!("No sounds yet.");
+            }
             *selected = Selected(
                 GridLocation {
                     x: selected.0.x,
@@ -3165,8 +3211,18 @@ fn enter_level(
     keyboard_input: Res<Input<KeyCode>>,
 
     q: Query<(&GridLocation, &LevelId)>,
+
+    maybe_sounds: Res<MaybeSoundAssets>,
+    audio: Res<Audio>,
 ) {
     if keyboard_input.just_pressed(KeyCode::Return) {
+        if let Some(sounds) = &maybe_sounds.0 {
+            dbg!("Playing enter");
+            audio.play(sounds.enter.clone_weak());
+        } else {
+            dbg!("No sounds yet.");
+        }
+
         for (grid_location, level_id) in q.iter() {
             if selected.0 == *grid_location {
                 dbg!("Entering level: {}", level_id.0);
