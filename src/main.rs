@@ -98,6 +98,8 @@ struct SoundAssets {
     apple: Handle<AudioSource>,
     enter: Handle<AudioSource>,
     changeselection: Handle<AudioSource>,
+    win: Handle<AudioSource>,
+    homescreen: Handle<AudioSource>,
 }
 
 const GRID_WIDTH: f32 = 32.0;
@@ -666,12 +668,16 @@ fn load_assets(
     let apple = asset_server.load("sounds/apple.wav");
     let enter = asset_server.load("sounds/enter.wav");
     let changeselection = asset_server.load("sounds/changeselection.wav");
+    let win = asset_server.load("sounds/win.wav");
+    let homescreen = asset_server.load("sounds/homescreen.wav");
     *sound_assets = MaybeSoundAssets(Some(SoundAssets {
         snake_move,
         szunami,
         apple,
         enter,
         changeselection,
+        win,
+        homescreen,
     }));
 }
 
@@ -1288,6 +1294,9 @@ fn win(
     snake_parts: Res<SnakeParts>,
     snake_locations: Query<(&GridLocation, &Transform), With<Snake>>,
     mut state: ResMut<State<GameState>>,
+
+    maybe_sounds: Res<MaybeSoundAssets>,
+    audio: Res<Audio>,
 ) {
     if snake_parts.0.len() <= 2 {
         return;
@@ -1308,6 +1317,13 @@ fn win(
                 .distance(tail_xform.translation.truncate())
                 < 0.001
         {
+            if let Some(sounds) = &maybe_sounds.0 {
+                dbg!("Playing szunami");
+                audio.play_looped(sounds.win.clone_weak());
+            } else {
+                dbg!("No sounds yet.");
+            }
+
             println!("You won! Nice.");
             state.set(GameState::Win).ok();
         }
@@ -3310,6 +3326,8 @@ fn exit_ingame(
     mut commands: Commands,
     q: Query<(&Wall, Entity)>,
     mut game_history: ResMut<GameHistory>,
+
+    audio: Res<Audio>,
 ) {
     for (_wall, e) in q.iter() {
         commands.entity(e).despawn_recursive();
@@ -3317,6 +3335,8 @@ fn exit_ingame(
 
     // need to clear gamestate too!
     *game_history = GameHistory(vec![]);
+
+    audio.stop();
 }
 
 const SAVE_FILE: &str = "0.sav";
@@ -3474,7 +3494,17 @@ fn enter_title_screen(
     mut materials: ResMut<Assets<ColorMaterial>>,
 
     mut clear_color: ResMut<ClearColor>,
+
+    maybe_sounds: Res<MaybeSoundAssets>,
+    audio: Res<Audio>,
 ) {
+    if let Some(sounds) = &maybe_sounds.0 {
+        dbg!("Playing szunami");
+        audio.play(sounds.homescreen.clone_weak());
+    } else {
+        dbg!("No sounds yet.");
+    }
+
     *clear_color = ClearColor(Color::rgb(87. / 255., 114. / 255., 119. / 255.));
 
     let logo = asset_server.load("sprites/drafts/title/snake.png");
