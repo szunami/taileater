@@ -3067,7 +3067,7 @@ fn update_selected(
         tmp
     };
 
-    if keyboard_input.just_pressed(KeyCode::D) {
+    if keyboard_input.just_pressed(KeyCode::D) || keyboard_input.just_pressed(KeyCode::Right) {
         if let Some(level_id) = valid_grids.get(&GridLocation {
             x: selected.0.x + 1,
             y: selected.0.y,
@@ -3082,7 +3082,7 @@ fn update_selected(
         }
     }
 
-    if keyboard_input.just_pressed(KeyCode::A) {
+    if keyboard_input.just_pressed(KeyCode::A) || keyboard_input.just_pressed(KeyCode::Left) {
         if let Some(level_id) = valid_grids.get(&GridLocation {
             x: selected.0.x - 1,
             y: selected.0.y,
@@ -3097,7 +3097,7 @@ fn update_selected(
         }
     }
 
-    if keyboard_input.just_pressed(KeyCode::W) {
+    if keyboard_input.just_pressed(KeyCode::W) || keyboard_input.just_pressed(KeyCode::Up){
         if let Some(level_id) = valid_grids.get(&GridLocation {
             x: selected.0.x,
             y: selected.0.y - 1,
@@ -3112,7 +3112,7 @@ fn update_selected(
         }
     }
 
-    if keyboard_input.just_pressed(KeyCode::S) {
+    if keyboard_input.just_pressed(KeyCode::S) || keyboard_input.just_pressed(KeyCode::Down){
         if let Some(level_id) = valid_grids.get(&GridLocation {
             x: selected.0.x,
             y: selected.0.y + 1,
