@@ -175,7 +175,7 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: ${{ matrix.target.channel }}-release
-      - uses: josephbmanley/butler-publish-itchio-action@v1.0.2
+      - uses: josephbmanley/butler-publish-itchio-action@master
         env:
           BUTLER_CREDENTIALS: ${{ secrets.BUTLER_CREDENTIALS }}
           CHANNEL: ${{ matrix.target.channel }}
